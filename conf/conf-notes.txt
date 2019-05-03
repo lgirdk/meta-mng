@@ -1,0 +1,3 @@
+Common bitbake targets are:
+
+  core-image-base       <-- Generic console based image

@@ -1,0 +1,312 @@
+#!/usr/bin/env bash
+#
+# Copyright (C) 2013, Linaro Ltd.
+# Authored-by:  Nicolas Dechesne <nicolas.dechesne@linaro.org>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 2 as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+if [ "$0" = "${BASH_SOURCE}" ]; then
+    echo -e "\nERROR: This script must not be executed but sourced like below"
+    echo -e "\n. $0 \nor \nsource $0"
+    exit 1
+fi
+
+if [ -z "$BASH" -a -z "$ZSH_NAME" ] ;then
+    echo Please source this script in bash or zsh shell
+    return 1
+fi
+
+# check that we are not root!
+if [ "$(whoami)" = "root" ]; then
+    echo -e "\nERROR: do not use the BSP as root. Exiting..."
+    return 1
+fi
+
+# check that we are where we think we are!
+if [ ! -f "openembedded-core/oe-init-build-env" ]; then
+    echo -e "\nUNABLE TO FIND OPENEMBEDDED !"
+    return 1
+fi
+
+usage () {
+    cat <<EOF
+
+Usage: [MACHINE=<MACHINE>] source $BASH_SOURCE [BUILDDIR]
+If no MACHINE is set, list all possible machines, and ask user to choose.
+
+EOF
+}
+
+# Clean up PATH for local dirs starting with .
+export PATH="`echo ${PATH} | sed 's/\(:.\|:\)*:/:/g;s/^.\?://;s/:.\?$//'`"
+
+# Clean PATH of any previous oe-core bitbake or scripts directories
+export PATH="$(echo $PATH | sed 's!/[^:]\+/\(openembedded-core\|poky\|yocto\)/\(bitbake/bin\|scripts\):!!g')"
+
+# only 1 parameter max, <build> folder, or default to build-$machine
+_BUILDDIR=
+if [ $# -gt 1 ]; then
+    usage
+    return 1
+elif [ $# -eq 1 ]; then
+    _BUILDDIR=$1
+    if [ "${_BUILDDIR#build-}" = "${_BUILDDIR}" ]; then
+        echo -e "\nError: unexpected build directory name '${_BUILDDIR}' (must be in the format build-XXX)\n"
+        return 1
+    fi
+    # check if this <build> folder was already configured
+    _CONFIGS_FOUND=
+    if [ -f ${_BUILDDIR}/conf/local.conf ] && [ -f ${_BUILDDIR}/conf/bblayers.conf ]; then
+        _CONFIGS_FOUND="yes"
+    fi
+fi
+# if no MACHINE is set, list common machines and ask user.
+# Note: filter out less common qemu machines from this list to avoid confusion
+# (it's still possible to select any valid machine manually).
+while [ -z "$MACHINE" ] && [ -z "$_CONFIGS_FOUND" ]; do
+
+    _options=$(\ls -1 *{,/*}/conf/machine/*.conf 2>/dev/null | \grep -v '\(^openembedded-core/meta-selftest\|/qemuarm\|/qemumips\|/qemuppc\|/qemuriscv\|/qemux86\)' | sort)
+    _options_count=`echo ${_options} | wc -w`
+    if [ $_options_count -eq 0 ]; then
+        echo -e "\nError: no machine config files found\n"
+        unset _options_count _options
+        return 1
+    fi
+    PS3="Please enter your choice of machine [1..${_options_count}]: "
+    select opt in `echo $_options`
+    do
+        if [ -z "$opt" ]; then
+            echo "Invalid choice"
+        else
+            _MACH_CONF="$opt"
+            MACHINE=$(echo $opt | sed 's|.*/\(.*\)\.conf|\1|')
+            break;
+        fi
+    done
+    unset PS3 _options_count _options
+done
+
+# at this point, MACHINE is set, either from env, or explicitely
+# BUILDIR is either set from command line, or needs to be set to build-$MACHINE
+if [ -z "$_BUILDDIR" ]; then
+    _BUILDDIR=build-$MACHINE
+    # check if this build-$MACHINE folder was already configured
+    if [ -f ${_BUILDDIR}/conf/local.conf ] && \
+        [ -f ${_BUILDDIR}/conf/bblayers.conf ]; then
+        _CONFIGS_FOUND="yes"
+    fi
+fi
+
+_PWD_PREV=$(pwd)
+
+# oe-buildenv-internal can get confused if BB_ENV_EXTRAWHITE is already set
+# (e.g. if the setup-environment script is re-run to create a new build
+# directory when swapping between different machines), so ensure that
+# BB_ENV_EXTRAWHITE is cleared before calling oe-init-build-env.
+unset BB_ENV_EXTRAWHITE
+
+# Warning: Sourcing the oe-init-build-env script changes the current directory.
+
+TEMPLATECONF=${_PWD_PREV}/meta-mng/conf source openembedded-core/oe-init-build-env ${_BUILDDIR}
+
+if [ "$_CONFIGS_FOUND" ]; then
+    echo -e "\nConfig files already exist in folder ${_BUILDDIR}/conf/, they were not modified."
+    unset -f usage
+    unset _BUILDDIR _CONFIGS_FOUND _PWD_PREV MACHINE _MACH_CONF
+    return 0
+fi
+
+# ----------------------------------------------------------------------
+
+# The OE default is to use the number of logical threads for both BB_NUMBER_THREADS
+# and PARALLEL_MAKE. However, that's a little too aggressive for typical laptops or
+# build machines with Hyper-Threading so we use number of real CPU cores instead.
+
+_NPROC="$(cat /proc/cpuinfo | \grep -c '^processor')"
+_THREADS_PER_CORE="$(lscpu | \grep 'Thread(s) per core:' | sed 's/Thread(s) per core:[ \t]*//')"
+
+if [ "0${_THREADS_PER_CORE}" -gt 1 ]
+then
+    _NPROC="$((_NPROC / _THREADS_PER_CORE))"
+fi
+
+sed -e "s/##CPU##/${_NPROC}/g" \
+    -i conf/local.conf
+
+# ----------------------------------------------------------------------
+
+# If the user has created persisten downloads or sstate dirs for all builds
+# under ${HOME}/oe then use them. Otherwise fall back to putting downloads and
+# sstate-cache in the directory which contains the meta layers and build dirs.
+
+if [ -e "${HOME}/oe/downloads" ]
+then
+    sed -e 's|##DL_DIR##|${HOME}/oe/downloads|' -i conf/local.conf
+else
+    sed -e 's|##DL_DIR##|${TOPDIR}/../downloads|' -i conf/local.conf
+fi
+
+if [ -e "${HOME}/oe/sstate-cache" ]
+then
+    sed -e 's|##SSTATE_DIR##|${HOME}/oe/sstate-cache|' -i conf/local.conf
+else
+    sed -e 's|##SSTATE_DIR##|${TOPDIR}/../sstate-cache|' -i conf/local.conf
+fi
+
+# ----------------------------------------------------------------------
+
+# Check the machine type specified
+_VALID_MACHINES=$(\ls -1 ${_PWD_PREV}/*{,/*}/conf/machine/${MACHINE}.conf 2>/dev/null | wc -l)
+if [ "$_VALID_MACHINES" -eq 0 ]; then
+    echo -e "\n##\n## WARNING: No machine configs found for '$MACHINE' !"
+    echo -e "##\n## That looks very suspicious, you should check your configuration"
+    echo -e "##\n## Possible alternatives might be:\n##"
+    ( \cd ${_PWD_PREV} && \ls -1 *{,/*}/conf/machine/*.conf 2>/dev/null | sed 's|.*/\(.*\)\.conf|##   \1|' | sort | uniq )
+    echo -e "##"
+elif [ "$_VALID_MACHINES" -gt 1 ]; then
+    echo -e "\n##\n## WARNING: Multiple possible machine configs found for '$MACHINE' !\n##"
+    ( \cd ${_PWD_PREV} && \ls -1 *{,/*}/conf/machine/${MACHINE}.conf 2>/dev/null | sed 's|^|##   |' )
+    echo -e "##\n## That looks very suspicious, you should check your source tree\n##"
+fi
+
+# Change settings according environment
+sed -e "s/##MACHINE##/$MACHINE/g" \
+    -i conf/local.conf
+
+if [ -f ${_PWD_PREV}/auto.conf ]; then
+    ln -s ${_PWD_PREV}/auto.conf conf/auto.conf
+fi
+
+# Include BSP layer(s) in bblayers.conf
+if [ "$_VALID_MACHINES" -ge 1 ]; then
+
+    # ------------------------------------------------------------------------
+    # If _MACH_CONF is not set then it means MACHINE was specified via the
+    # setup-environment command line instead of interactively (ie the normal
+    # case for scripted CI builds). Find the machine conf which matches MACHINE.
+    # ------------------------------------------------------------------------
+
+    if [ -z "${_MACH_CONF}" ]; then
+        _MACH_CONF=$( \cd ${_PWD_PREV} && \ls -1 *{,/*}/conf/machine/${MACHINE}.conf 2>/dev/null | grep -v meta-lgi-eos | grep -v meta-lgi-dawn | tail -n1 )
+    fi
+
+    # ------------------------------------------------------------------------
+    # Set _BSP to a list of required BSP layers, made up of the layer which
+    # contains _MACH_CONF and any additional layers listed as 'NEEDED_BSPLAYERS'
+    # in the _MACH_CONF machine config file.
+    # ------------------------------------------------------------------------
+
+    _BSP="${_MACH_CONF%/conf/machine/*}"
+    _BSP="${_BSP} $( \cd ${_PWD_PREV} && \grep '^#@NEEDED_BSPLAYERS:' ${_MACH_CONF} | sed 's/^#@NEEDED_BSPLAYERS://' )"
+
+    # ------------------------------------------------------------------------
+    # Sort and remove duplicates if required
+    # ------------------------------------------------------------------------
+
+    if [ $(echo ${_BSP} | sed 's/[ \t]\+/\n/g' | wc -l) -gt $(echo ${_BSP} | sed 's/[ \t]\+/\n/g' | sort | uniq | wc -l) ]
+    then
+        _BSP="$(echo ${_BSP} | sed 's/[ \t]\+/\n/g' | sort | uniq)"
+    fi
+
+    # ------------------------------------------------------------------------
+    # Add each BSP layer to bblayers.conf, filtering out oe-core etc
+    # ------------------------------------------------------------------------
+
+    for bsp in ${_BSP}; do
+
+        # oe-core, meta-oe and meta-mng are included in BBLAYERS by default,
+        # so don't need to be listed as additional BSP layers.
+
+        if [ "$bsp" = "openembedded-core/meta" ] || \
+           [ "$bsp" = "meta-openembedded/meta-oe" ] || \
+           [ "$bsp" = "meta-mng" ]; then
+            continue
+        fi
+
+        # Machine configs should be agnostic about meta-cmf and meta-cmf-qt5.
+        # Unfortunately some include these layers as hard dependencies.
+        # Filter out the CMF layers when setting up BBLAYERS_BSP.
+
+        if [ -n "$(echo $bsp | \grep '^meta-cmf')" ]; then
+            echo "# Skipping $bsp" >> conf/bblayers.conf
+            continue
+        fi
+
+        # Add this BSP layer to bblayers.conf
+
+        cat >> conf/bblayers.conf <<EOF
+BBLAYERS_BSP += "\${RDKROOT}/$bsp"
+EOF
+
+    done
+
+    # ------------------------------------------------------------------------
+    # The machine config may also list optional layers via 'RECOMMENDED_BSPLAYERS'
+    # ------------------------------------------------------------------------
+
+    cat >> conf/bblayers.conf <<EOF
+
+# Some BSP layers require dedicated licenses, so are included only if available.
+BBLAYERS_BSP_IF_AVAILABLE = ""
+EOF
+
+    # ------------------------------------------------------------------------
+    # Extract RECOMMENDED_BSPLAYERS from machine config file
+    # ------------------------------------------------------------------------
+
+    _BSP="$( \cd ${_PWD_PREV} && \grep '^#@RECOMMENDED_BSPLAYERS:' ${_MACH_CONF} | sed 's/^#@RECOMMENDED_BSPLAYERS://' )"
+
+    # ------------------------------------------------------------------------
+    # Add recommended layer(s) to bblayers.conf
+    # ------------------------------------------------------------------------
+
+    if [ -n "${_BSP}" ]; then
+        for bsp in $_BSP; do
+
+            # meta-seachange is no longer required, but some machine configs
+            # may still contain references to it so filter them out.
+
+            if [ "$bsp" = "meta-seachange" ]; then
+                continue
+            fi
+
+            cat >> conf/bblayers.conf <<EOF
+BBLAYERS_BSP_IF_AVAILABLE += "\${@'\${RDKROOT}/$bsp' if os.path.isfile('\${RDKROOT}/$bsp/conf/layer.conf') else ''}"
+EOF
+        done
+    fi
+
+    # ------------------------------------------------------------------------
+    # Temp solution to remove meta-oe layers for certain machines...
+    # ------------------------------------------------------------------------
+
+    if [ "$MACHINE" = "mv1intel-atom" ]
+    then
+        sed '/\/meta-openembedded\//d' -i conf/bblayers.conf
+    fi
+fi
+
+# ----------------------------------------------------------------------
+
+cat <<EOF
+
+Configuration files have been created for the following configuration:
+
+ MACHINE: $MACHINE
+
+EOF
+
+# Since this script is sourced, be careful not to pollute caller's environment with temp variables
+unset -f usage
+unset _BUILDDIR _CONFIGS_FOUND _PWD_PREV _VALID_MACHINES _BSP MACHINE _MACH_CONF _NPROC _THREADS_PER_CORE
