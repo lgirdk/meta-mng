@@ -1,5 +1,5 @@
 #!/bin/sh
-MDEV_AUTOMOUNT=y
+MDEV_AUTOMOUNT=n
 MDEV_AUTOMOUNT_ROOT=/run/media
 [ -f /etc/default/mdev ] && . /etc/default/mdev
 if [ "${MDEV_AUTOMOUNT}" = "n" ] ; then
