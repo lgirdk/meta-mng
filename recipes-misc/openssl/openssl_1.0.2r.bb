@@ -9,7 +9,7 @@ LICENSE = "openssl"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=f475368924827d06d4b416111c8bdb77"
 
 DEPENDS = ""
-DEPENDS_append_class-target = " openssl-native"
+#DEPENDS_append_class-target = " openssl-native"
 
 PROVIDES += "openssl10"
 
@@ -379,4 +379,4 @@ RRECOMMENDS_libcrypto += "openssl-conf"
 RDEPENDS_${PN}-misc = "${@bb.utils.contains('PACKAGECONFIG', 'perl', 'perl', '', d)}"
 RDEPENDS_${PN}-ptest += "${PN}-misc make perl perl-module-filehandle bc"
 
-BBCLASSEXTEND = "native nativesdk"
+#BBCLASSEXTEND = "native nativesdk"
