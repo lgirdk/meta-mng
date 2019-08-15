@@ -1,4 +1,8 @@
 
+FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+
+SRC_URI += "file://0001-fix-address-family-data-type-for-nfct_query-in-connt.patch"
+
 do_compile_append() {
 	# Build examples ( see https://git.netfilter.org/libnetfilter_conntrack/tree/README )
 	oe_runmake check

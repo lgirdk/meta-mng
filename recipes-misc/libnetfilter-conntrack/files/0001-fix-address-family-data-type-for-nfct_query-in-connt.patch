@@ -1,0 +1,35 @@
+From 4a1299a9d3d4a46f3fff879483bab8665b7e5f22 Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Wed, 14 Aug 2019 19:00:07 -0700
+Subject: [PATCH] fix address family data type for nfct_query() in
+ conntrack_flush.c
+
+The address family data type for nfct_query() is uint32_t and for
+nfexp_query() it's uint8_t. The reasons behind the difference are not
+clear (seems to be a historical mistake?) but either way, passing a
+pointer to a uint8_t address family value to nfct_query() can cause
+alignment traps. Passing a pointer to an 8bit value to a function
+expecting a pointer to a 32bit value may trigger endian issues too,
+although that hasn't been confirmed.
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ utils/conntrack_flush.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/utils/conntrack_flush.c b/utils/conntrack_flush.c
+index 265c4ae..b5360ce 100644
+--- a/utils/conntrack_flush.c
++++ b/utils/conntrack_flush.c
+@@ -8,7 +8,7 @@
+ int main(void)
+ {
+ 	int ret;
+-	uint8_t family = AF_INET;
++	uint32_t family = AF_INET;
+ 	struct nfct_handle *h;
+ 
+ 	h = nfct_open(CONNTRACK, 0);
+-- 
+1.9.1
+
