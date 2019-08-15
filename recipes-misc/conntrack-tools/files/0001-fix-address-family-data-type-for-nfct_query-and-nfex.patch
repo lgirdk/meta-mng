@@ -1,0 +1,175 @@
+From 5ef0867e3b6087d2064422f6cfda7e46fcfd1001 Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Wed, 14 Aug 2019 20:40:52 -0700
+Subject: [PATCH] fix address family data type for nfct_query() and
+ nfexp_query()
+
+The address family data type for nfct_query() is uint32_t and for
+nfexp_query() it's uint8_t. The reasons behind the difference are not
+clear (seems to be a historical mistake?) but either way, passing a
+pointer to a uint8_t address family value to nfct_query() can cause
+alignment traps. Passing a pointer to an 8bit value to a function
+expecting a pointer to a 32bit value may trigger endian issues too,
+although that hasn't been confirmed.
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ src/conntrack.c       | 23 ++++++++++++++++-------
+ src/internal_bypass.c |  4 ++--
+ src/netlink.c         | 14 ++++++++++----
+ 3 files changed, 28 insertions(+), 13 deletions(-)
+
+diff --git a/src/conntrack.c b/src/conntrack.c
+index 06f60e8..68f854d 100644
+--- a/src/conntrack.c
++++ b/src/conntrack.c
+@@ -2630,12 +2630,14 @@ int main(int argc, char *argv[])
+ 		break;
+ 
+ 	case EXP_LIST:
++	{
++		uint8_t af = (uint8_t) family;
+ 		cth = nfct_open(EXPECT, 0);
+ 		if (!cth)
+ 			exit_error(OTHER_PROBLEM, "Can't open handler");
+ 
+ 		nfexp_callback_register(cth, NFCT_T_ALL, dump_exp_cb, NULL);
+-		res = nfexp_query(cth, NFCT_Q_DUMP, &family);
++		res = nfexp_query(cth, NFCT_Q_DUMP, &af);
+ 		nfct_close(cth);
+ 
+ 		if (dump_xml_header_done == 0) {
+@@ -2643,6 +2645,7 @@ int main(int argc, char *argv[])
+ 			fflush(stdout);
+ 		}
+ 		break;
++	}
+ 
+ 	case CT_CREATE:
+ 		if ((options & CT_OPT_ORIG) && !(options & CT_OPT_REPL))
+@@ -2691,11 +2694,11 @@ int main(int argc, char *argv[])
+ 
+ 		nfct_callback_register(cth, NFCT_T_ALL, update_cb, tmpl.ct);
+ 
+-		res = nfct_query(cth, NFCT_Q_DUMP, &family);
++		res = nfct_query(cth, NFCT_Q_DUMP, (uint32_t *) &family);
+ 		nfct_close(ith);
+ 		nfct_close(cth);
+ 		break;
+-		
++
+ 	case CT_DELETE:
+ 		cth = nfct_open(CONNTRACK, 0);
+ 		ith = nfct_open(CONNTRACK, 0);
+@@ -2764,22 +2767,25 @@ int main(int argc, char *argv[])
+ 		cth = nfct_open(CONNTRACK, 0);
+ 		if (!cth)
+ 			exit_error(OTHER_PROBLEM, "Can't open handler");
+-		res = nfct_query(cth, NFCT_Q_FLUSH, &family);
++		res = nfct_query(cth, NFCT_Q_FLUSH, (uint32_t *) &family);
+ 		nfct_close(cth);
+ 		fprintf(stderr, "%s v%s (conntrack-tools): ",PROGNAME,VERSION);
+ 		fprintf(stderr,"connection tracking table has been emptied.\n");
+ 		break;
+ 
+ 	case EXP_FLUSH:
++	{
++		uint8_t af = (uint8_t) family;
+ 		cth = nfct_open(EXPECT, 0);
+ 		if (!cth)
+ 			exit_error(OTHER_PROBLEM, "Can't open handler");
+-		res = nfexp_query(cth, NFCT_Q_FLUSH, &family);
++		res = nfexp_query(cth, NFCT_Q_FLUSH, &af);
+ 		nfct_close(cth);
+ 		fprintf(stderr, "%s v%s (conntrack-tools): ",PROGNAME,VERSION);
+ 		fprintf(stderr,"expectation table has been emptied.\n");
+ 		break;
+-		
++	}
++
+ 	case CT_EVENT:
+ 		if (options & CT_OPT_EVENT_MASK) {
+ 			unsigned int nl_events = 0;
+@@ -2892,15 +2898,18 @@ try_proc_count:
+ 		break;
+ 	}
+ 	case EXP_COUNT:
++	{
++		uint8_t af = (uint8_t) family;
+ 		cth = nfct_open(EXPECT, 0);
+ 		if (!cth)
+ 			exit_error(OTHER_PROBLEM, "Can't open handler");
+ 
+ 		nfexp_callback_register(cth, NFCT_T_ALL, count_exp_cb, NULL);
+-		res = nfexp_query(cth, NFCT_Q_DUMP, &family);
++		res = nfexp_query(cth, NFCT_Q_DUMP, &af);
+ 		nfct_close(cth);
+ 		printf("%d\n", counter);
+ 		break;
++	}
+ 	case CT_STATS:
+ 		/* If we fail with netlink, fall back to /proc to ensure
+ 		 * backward compatibility.
+diff --git a/src/internal_bypass.c b/src/internal_bypass.c
+index 61988c7..8fad098 100644
+--- a/src/internal_bypass.c
++++ b/src/internal_bypass.c
+@@ -180,7 +180,7 @@ internal_bypass_exp_dump_cb(enum nf_conntrack_msg_type type,
+ static void internal_bypass_exp_dump(int fd, int type)
+ {
+ 	struct nfct_handle *h;
+-	uint32_t family = AF_UNSPEC;
++	uint8_t af = AF_UNSPEC;
+ 	int ret;
+ 
+ 	h = nfct_open(CONFIG(netlink).subsys_id, 0);
+@@ -190,7 +190,7 @@ static void internal_bypass_exp_dump(int fd, int type)
+ 	}
+ 	nfexp_callback_register(h, NFCT_T_ALL,
+ 				internal_bypass_exp_dump_cb, &fd);
+-	ret = nfexp_query(h, NFCT_Q_DUMP, &family);
++	ret = nfexp_query(h, NFCT_Q_DUMP, &af);
+ 	if (ret == -1) {
+ 		dlog(LOG_ERR, "can't dump kernel table");
+ 	}
+diff --git a/src/netlink.c b/src/netlink.c
+index ddf4cf4..5014d5b 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -146,7 +146,7 @@ void nl_resize_socket_buffer(struct nfct_handle *h)
+ 			 "to %u bytes", CONFIG(netlink_buffer_size));
+ }
+ 
+-static const int family = AF_UNSPEC;
++static const uint32_t family = AF_UNSPEC;
+ 
+ int nl_dump_conntrack_table(struct nfct_handle *h)
+ {
+@@ -363,15 +363,21 @@ int nl_get_expect(struct nfct_handle *h, const struct nf_expect *exp)
+ 
+ int nl_dump_expect_table(struct nfct_handle *h)
+ {
+-	return nfexp_query(h, NFCT_Q_DUMP, &family);
++	uint8_t af = (uint8_t) family;
++
++	return nfexp_query(h, NFCT_Q_DUMP, &af);
+ }
+ 
+ int nl_flush_expect_table(struct nfct_handle *h)
+ {
+-	return nfexp_query(h, NFCT_Q_FLUSH, &family);
++	uint8_t af = (uint8_t) family;
++
++	return nfexp_query(h, NFCT_Q_FLUSH, &af);
+ }
+ 
+ int nl_send_expect_resync(struct nfct_handle *h)
+ {
+-	return nfexp_send(h, NFCT_Q_DUMP, &family);
++	uint8_t af = (uint8_t) family;
++
++	return nfexp_send(h, NFCT_Q_DUMP, &af);
+ }
+-- 
+1.9.1
+
