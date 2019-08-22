@@ -311,7 +311,6 @@ do_install () {
 		if grep "CONFIG_FEATURE_MDEV_CONF=y" ${B}/.config; then
 			install -m 644 ${WORKDIR}/mdev.conf ${D}${sysconfdir}/mdev.conf
 			install -d ${D}${sysconfdir}/mdev
-			install -m 0755 ${WORKDIR}/find-touchscreen.sh ${D}${sysconfdir}/mdev
 			install -m 0755 ${WORKDIR}/mdev-mount.sh ${D}${sysconfdir}/mdev
 		fi
 	fi
