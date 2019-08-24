@@ -14,7 +14,6 @@
 # Stuff to do before rebooting
 ::ctrlaltdel:/sbin/reboot
 ::shutdown:/etc/init.d/rcK
-::shutdown:/sbin/swapoff -a
 ::shutdown:/bin/umount -a -r
 
 # Stuff to do when restarting the init process
