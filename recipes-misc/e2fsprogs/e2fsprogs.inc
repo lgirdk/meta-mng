@@ -24,4 +24,4 @@ S = "${WORKDIR}/git"
 
 inherit autotools gettext texinfo pkgconfig multilib_header update-alternatives ptest
 
-BBCLASSEXTEND = "native nativesdk"
+# BBCLASSEXTEND = "native nativesdk"
