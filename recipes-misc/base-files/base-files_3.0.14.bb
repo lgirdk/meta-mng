@@ -10,8 +10,7 @@ LIC_FILES_CHKSUM = "file://licenses/GPL-2;md5=94d55d512a9ba36caa9b7df079bae19f"
 # For the manifest and the license text for each package:
 # Set COPY_LIC_MANIFEST and COPY_LIC_DIRS
 
-SRC_URI = "file://rotation \
-           file://nsswitch.conf \
+SRC_URI = "file://nsswitch.conf \
            file://motd \
            file://hosts \
            file://host.conf \
@@ -114,11 +113,6 @@ do_install () {
 
 	install -m 0644 ${WORKDIR}/hosts ${D}${sysconfdir}/hosts
 	${BASEFILESISSUEINSTALL}
-
-	rotation=`cat ${WORKDIR}/rotation`
-	if [ "$rotation" != "0" ]; then
- 		install -m 0644 ${WORKDIR}/rotation ${D}${sysconfdir}/rotation
-	fi
 
 	install -m 0644 ${WORKDIR}/fstab ${D}${sysconfdir}/fstab
 	install -m 0644 ${WORKDIR}/profile ${D}${sysconfdir}/profile
