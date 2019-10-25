@@ -17,6 +17,7 @@ SRC_URI = "http://download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-${PV}.t
         file://lighttpd.conf \
         file://lighttpd \
         file://0001-Use-pkg-config-for-pcre-dependency-instead-of-config.patch \
+        file://0001-drop-dependency-on-Openssl-md4-support-temp-solution.patch \
         "
 
 SRC_URI[md5sum] = "be4bda2c28bcbdac6eb941528f6edf03"
