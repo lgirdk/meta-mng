@@ -38,5 +38,5 @@ SRC_URI = "http://www.busybox.net/downloads/busybox-${PV}.tar.bz2;name=tarball \
 "
 SRC_URI_append_libc-musl = " file://musl.cfg "
 
-SRC_URI[tarball.md5sum] = "4f72fc6abd736d5f4741fc4a2485547a"
-SRC_URI[tarball.sha256sum] = "3d1d04a4dbd34048f4794815a5c48ebb9eb53c5277e09ffffc060323b95dfbdc"
+SRC_URI[tarball.md5sum] = "70913edaf2263a157393af07565c17f0"
+SRC_URI[tarball.sha256sum] = "d0f940a72f648943c1f2211e0e3117387c31d765137d92bd8284a3fb9752a998"
