@@ -11,3 +11,9 @@ SRC_URI = "git://github.com/armcc/${BPN}.git;protocol=https"
 S = "${WORKDIR}/git"
 
 inherit autotools
+
+do_install_append_libc-glibc() {
+
+	# Temp workaround for glibc, which also installs /usr/include/rpc/netdb.h
+	rm -f ${D}${includedir}/rpc/netdb.h
+}
