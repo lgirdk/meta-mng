@@ -18,6 +18,16 @@ SECURITY_NO_PIE_CFLAGS = "${@oe.utils.conditional('DEBUG_BUILD','1','','-D_FORTI
 
 SECURITY_CFLAGS = "${SECURITY_NO_PIE_CFLAGS}"
 
+SECURITY_LDFLAGS = "-Wl,-z,relro,-z,now"
+
+# ----------------------------------------------------------------------------
+
+SECURITY_LDFLAGS_pn-sysklogd = ""
+SECURITY_LDFLAGS_pn-valgrind = ""
+
+# ----------------------------------------------------------------------------
+
 TARGET_CFLAGS_append_class-target = " ${SECURITY_CFLAGS}"
+TARGET_LDFLAGS_append_class-target = " ${SECURITY_LDFLAGS}"
 
 # ----------------------------------------------------------------------------
