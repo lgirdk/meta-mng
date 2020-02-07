@@ -29,6 +29,10 @@ PACKAGECONFIG[libnftnl] = "--enable-nftables,--disable-nftables,libnftnl"
 
 EXTRA_OECONF = "--enable-static --disable-shared"
 
+# Ensure that the static libs can be safely linked into a PIE application.
+# Workaround for issues building iproute2 with clang (which defaults to PIE).
+CFLAGS += "-fPIC"
+
 CFLAGS += "-ffunction-sections -fdata-sections"
 LDFLAGS += "-Wl,--gc-sections"
 
