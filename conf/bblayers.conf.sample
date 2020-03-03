@@ -12,10 +12,10 @@ BBLAYERS ?= " \
   ${BBLAYERS_IF_AVAILABLE} \
   ${RDKROOT}/meta-mng \
   ${RDKROOT}/openembedded-core/meta \
-  ${RDKROOT}/meta-gplv2 \
   ${RDKROOT}/meta-openembedded/meta-oe \
   ${RDKROOT}/meta-openembedded/meta-networking \
   ${RDKROOT}/meta-openembedded/meta-python \
+  ${@'${RDKROOT}/meta-gplv2' if os.path.isfile('${RDKROOT}/meta-gplv2/conf/layer.conf') else ''} \
 "
 
 BBLAYERS_IF_AVAILABLE = ""
