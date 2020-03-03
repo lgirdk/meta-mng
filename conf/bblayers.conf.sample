@@ -4,7 +4,7 @@ LCONF_VERSION = "7"
 
 BBPATH = "${TOPDIR}"
 BBFILES ?= ""
-RDKROOT := "${@os.path.abspath(os.path.dirname(d.getVar('FILE')) + '/../..')}"
+RDKROOT := "${@os.path.abspath(os.path.dirname(d.getVar('FILE', True)) + '/../..')}"
 
 BBLAYERS ?= " \
   ${BBLAYERS_BSP} \
