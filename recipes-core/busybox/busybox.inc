@@ -49,7 +49,7 @@ CONFFILES_${PN}-mdev = "${sysconfdir}/mdev.conf"
 
 RRECOMMENDS_${PN} = "${PN}-udhcpc"
 
-RDEPENDS_${PN} = "${@["", "busybox-inittab"][(d.getVar('VIRTUAL-RUNTIME_init_manager') == 'busybox')]}"
+RDEPENDS_${PN} = "${@["", "busybox-inittab"][(d.getVar('VIRTUAL-RUNTIME_init_manager', True) == 'busybox')]}"
 
 inherit cml1 systemd update-rc.d ptest
 
@@ -359,8 +359,8 @@ python do_package_prepend () {
     # We need to load the full set of busybox provides from the /etc/busybox.links
     # Use this to see the update-alternatives with the right information
 
-    dvar = d.getVar('D')
-    pn = d.getVar('PN')
+    dvar = d.getVar('D', True)
+    pn = d.getVar('PN', True)
     def set_alternative_vars(links, target):
         links = d.expand(links)
         target = d.expand(target)
