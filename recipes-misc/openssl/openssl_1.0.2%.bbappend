@@ -24,10 +24,9 @@ EXTRA_OECONF_append_class-target = " \
     no-seed \
 "
 
-# Public Key Ciphers
+# Public Key Ciphers ( ** Skip "no-dsa" for now since it's required by ccsp-common-library ** )
 #
 EXTRA_OECONF_append_class-target = " \
-    no-dsa \
     no-ec \
     no-ecdh \
     no-ecdsa \
