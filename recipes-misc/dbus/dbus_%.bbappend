@@ -1,4 +1,10 @@
 
+FILESEXTRAPATHS_prepend := "${THISDIR}/dbus:"
+
+SRC_URI_append_class-target = " file://01-dbus-ccsp-apis-${PV}.patch"
+
+# ----------------------------------------------------------------------------
+
 # Force the systemd distro feature to be ignored to prevent systemd service
 # files from being enabled. For RDKB, D-Bus will be started from RDKB init
 # scripts (e.g. utopia_init.sh).
