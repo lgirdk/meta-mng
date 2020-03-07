@@ -111,7 +111,7 @@ do_prepare_config () {
 	fi
 	sed -e '/CONFIG_STATIC/d' \
 		< ${WORKDIR}/defconfig > ${S}/.config
-	echo "# CONFIG_STATIC is not set" >> .config
+	echo "# CONFIG_STATIC is not set" >> ${S}/.config
 	for i in 'CROSS' 'DISTRO FEATURES'; do echo "### $i"; done >> \
 		${S}/.config
 	sed -i -e '${configmangle}' ${S}/.config
