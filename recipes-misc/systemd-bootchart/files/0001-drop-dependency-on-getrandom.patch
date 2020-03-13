@@ -1,0 +1,73 @@
+From 0c3c55e95c9b63f501ee82359c5b941e844a5a1b Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Fri, 13 Mar 2020 16:02:17 -0700
+Subject: [PATCH] drop dependency on getrandom()
+
+According to the getrandom() manpage:
+
+  getrandom() was introduced in version 3.17 of the Linux kernel.
+  Support was added to glibc in version 2.25.
+
+Avoid build issues when using a toolchain based on kernel libc
+headers which don't define GRND_NONBLOCK (ie 3.17.0 and before ?) by
+forcing the code to never even attempt getrandom() and always use the
+fallback of reading /dev/urandom.
+
+  http://man7.org/linux/man-pages/man2/getrandom.2.html
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ src/random-util.c | 30 ------------------------------
+ 1 file changed, 30 deletions(-)
+
+diff --git a/src/random-util.c b/src/random-util.c
+index 2f468db..b83387f 100644
+--- a/src/random-util.c
++++ b/src/random-util.c
+@@ -37,7 +37,6 @@
+ #include "time-util.h"
+ 
+ int dev_urandom(void *p, size_t n) {
+-        static int have_syscall = -1;
+ 
+         _cleanup_close_ int fd = -1;
+         int r;
+@@ -49,35 +48,6 @@ int dev_urandom(void *p, size_t n) {
+          * returned entropy, but is good enough for or usual usecases
+          * of seeding the hash functions for hashtable */
+ 
+-        /* Use the getrandom() syscall unless we know we don't have
+-         * it, or when the requested size is too large for it. */
+-        if (have_syscall != 0 || (size_t) (int) n != n) {
+-                r = getrandom(p, n, GRND_NONBLOCK);
+-                if (r == (int) n) {
+-                        have_syscall = true;
+-                        return 0;
+-                }
+-
+-                if (r < 0) {
+-                        if (errno == ENOSYS)
+-                                /* we lack the syscall, continue with
+-                                 * reading from /dev/urandom */
+-                                have_syscall = false;
+-                        else if (errno == EAGAIN)
+-                                /* not enough entropy for now. Let's
+-                                 * remember to use the syscall the
+-                                 * next time, again, but also read
+-                                 * from /dev/urandom for now, which
+-                                 * doesn't care about the current
+-                                 * amount of entropy.  */
+-                                have_syscall = true;
+-                        else
+-                                return -errno;
+-                } else
+-                        /* too short read? */
+-                        return -ENODATA;
+-        }
+-
+         fd = open("/dev/urandom", O_RDONLY|O_CLOEXEC|O_NOCTTY);
+         if (fd < 0)
+                 return errno == ENOENT ? -ENOSYS : -errno;
+-- 
+2.24.0
+
