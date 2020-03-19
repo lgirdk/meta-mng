@@ -276,7 +276,7 @@ do_install () {
 	if grep -q "CONFIG_SYSLOGD=y" ${B}/.config; then
 		install -m 0755 ${WORKDIR}/syslog ${D}${sysconfdir}/init.d/syslog
 		install -m 644 ${WORKDIR}/syslog-startup.conf ${D}${sysconfdir}/syslog-startup.conf
-		install -m 644 ${WORKDIR}/syslog.conf ${D}${sysconfdir}/syslog.conf
+		install -m 644 ${WORKDIR}/syslog.conf ${D}${sysconfdir}/syslog.conf.${BPN}
 	fi
 	if grep -q "CONFIG_CROND=y" ${B}/.config; then
 		install -m 0755 ${WORKDIR}/busybox-cron ${D}${sysconfdir}/init.d/
@@ -354,6 +354,10 @@ do_install_ptest () {
 inherit update-alternatives
 
 ALTERNATIVE_PRIORITY = "50"
+
+ALTERNATIVE_${PN}-syslog = "syslog-conf"
+ALTERNATIVE_LINK_NAME[syslog-conf] = "${sysconfdir}/syslog.conf"
+ALTERNATIVE_TARGET[syslog-conf] = "${sysconfdir}/syslog.conf.${BPN}"
 
 python do_package_prepend () {
     # We need to load the full set of busybox provides from the /etc/busybox.links
