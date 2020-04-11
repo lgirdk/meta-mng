@@ -1,0 +1,98 @@
+From 75c0082a89fdaa2618f441ec4858406c1cb36d78 Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Sat, 11 Apr 2020 04:11:22 +0000
+Subject: [PATCH] cleanup __wrp_XXX_to_string functions
+
+ | /.../tmp/work/arm1176jzsb-oe-linux-musleabi/wrp-c/git+AUTOINC+adb7f0c152-r0/git/src/wrp-c.c: In function '__wrp_keep_alive_to_string':
+ | /.../tmp/work/arm1176jzsb-oe-linux-musleabi/wrp-c/git+AUTOINC+adb7f0c152-r0/git/src/wrp-c.c:719:13: error: 'strncpy' output truncated before terminating nul copying 23 bytes from a string of the same length [-Werror=stringop-truncation]
+ |   719 |             strncpy( data, keep_alive_fmt, length );
+ |       |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ | cc1: all warnings being treated as errors
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ src/wrp-c.c | 18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
+
+diff --git a/src/wrp-c.c b/src/wrp-c.c
+index 5a2ed43..75c33c3 100644
+--- a/src/wrp-c.c
++++ b/src/wrp-c.c
+@@ -713,11 +713,10 @@ static ssize_t __wrp_keep_alive_to_string (char **bytes )
+     length = strlen (keep_alive_fmt);
+ 
+     if( NULL != bytes ) {
+-        data = ( char* ) malloc( sizeof( char ) * ( length + 1 ) );   /* +1 for '\0' */
++        data = malloc( length + 1 );   /* +1 for '\0' */
+ 
+         if( NULL != data ) {
+-            strncpy( data, keep_alive_fmt, length );
+-            data[length] = '\0';
++            memcpy( data, keep_alive_fmt, length + 1 );
+             *bytes = data;
+         } else {
+             return -1;
+@@ -746,11 +745,10 @@ static ssize_t __wrp_auth_struct_to_string( const struct wrp_auth_msg *auth,
+     length = snprintf( NULL, 0, auth_fmt, auth->status );
+ 
+     if( NULL != bytes ) {
+-        data = ( char* ) malloc( sizeof( char ) * ( length + 1 ) );   /* +1 for '\0' */
++        data = malloc( length + 1 );   /* +1 for '\0' */
+ 
+         if( NULL != data ) {
+             sprintf( data, auth_fmt, auth->status );
+-            data[length] = '\0';
+             *bytes = data;
+         } else {
+             return -1;
+@@ -798,14 +796,13 @@ static ssize_t __wrp_req_struct_to_string( const struct wrp_req_msg *req, char *
+ 
+     if( NULL != bytes ) {
+         char *data;
+-        data = ( char* ) malloc( sizeof( char ) * ( length + 1 ) );   /* +1 for '\0' */
++        data = malloc( length + 1 );   /* +1 for '\0' */
+ 
+         if( NULL != data ) {
+             sprintf( data, req_fmt, req->transaction_uuid, req->source,
+                      req->dest, partner_ids, headers, req->content_type,
+                      req->accept, ( req->include_spans ? "true" : "false" ),
+                      spans, req->payload_size );
+-            data[length] = '\0';
+             *bytes = data;
+         } else {
+             length = -1;
+@@ -858,12 +855,11 @@ static ssize_t __wrp_event_struct_to_string( const struct wrp_event_msg *event,
+ 
+     if( NULL != bytes ) {
+         char *data;
+-        data = ( char* ) malloc( sizeof( char ) * ( length + 1 ) );   /* +1 for '\0' */
++        data = malloc( length + 1 );   /* +1 for '\0' */
+ 
+         if( NULL != data ) {
+             sprintf( data, event_fmt, event->source, event->dest, partner_ids, headers, event->content_type,
+                      event->payload_size );
+-            data[length] = '\0';
+             *bytes = data;
+         } else {
+             length = -1;
+@@ -912,7 +908,7 @@ static char* __get_header_string( headers_t *headers )
+             comma = 2;
+         }
+ 
+-        tmp = ( char* ) malloc( sizeof( char ) * ( length + 1 ) );   /* +1 for '\0' */
++        tmp = malloc( length + 1 );   /* +1 for '\0' */
+ 
+         if( NULL != tmp ) {
+             const char *comma;
+@@ -953,7 +949,7 @@ static char* __get_partner_ids_string( partners_t *partner_ids )
+             comma = 2;
+         }
+ 
+-        tmp = ( char* ) malloc( sizeof( char ) * ( length + 1 ) );   /* +1 for '\0' */
++        tmp = malloc( length + 1 );   /* +1 for '\0' */
+ 
+         if( NULL != tmp ) {
+             const char *comma;
+-- 
+2.17.1
+

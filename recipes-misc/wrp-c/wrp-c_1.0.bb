@@ -8,6 +8,9 @@ DEPENDS = "trower-base64 msgpack-c cimplog"
 
 SRCREV = "adb7f0c152b930899caa08684d266d314a49b512"
 SRC_URI = "git://github.com/Comcast/wrp-c.git"
+
+SRC_URI += "file://0001-cleanup-__wrp_XXX_to_string-functions.patch"
+
 PV = "git+${SRCPV}"
 
 S = "${WORKDIR}/git"
