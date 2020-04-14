@@ -1,5 +1,11 @@
 #!/bin/sh
 
+if [ -e /proc/sys/fs/mqueue ]
+then
+	mkdir -p /dev/mqueue
+	mount -t mqueue none /dev/mqueue
+fi
+
 # Start all init scripts in /etc/rcS.d and /etc/rc5.d
 # executing them in numerical order.
 
