@@ -20,7 +20,7 @@ export EXTRA_LDFLAGS = "${LDFLAGS}"
 
 EXTRA_OEMAKE = "CC='${CC}' LD='${CCLD}' V=1 ARCH=${TARGET_ARCH} CROSS_COMPILE=${TARGET_PREFIX} SKIP_STRIP=y HOSTCC='${BUILD_CC}' HOSTCPP='${BUILD_CPP}'"
 
-PACKAGES =+ "${PN}-httpd ${PN}-udhcpd ${PN}-udhcpc ${PN}-syslog ${PN}-mdev ${PN}-hwclock"
+PACKAGES =+ "${PN}-httpd ${PN}-udhcpd ${PN}-udhcpc ${PN}-syslog ${PN}-mdev ${PN}-hwclock ${PN}-watchdog"
 
 FILES_${PN}-httpd = "${sysconfdir}/init.d/busybox-httpd /srv/www"
 FILES_${PN}-syslog = "${sysconfdir}/init.d/syslog* ${sysconfdir}/syslog-startup.conf* ${sysconfdir}/syslog.conf* ${systemd_unitdir}/system/syslog.service ${sysconfdir}/default/busybox-syslog"
@@ -28,8 +28,9 @@ FILES_${PN}-mdev = "${sysconfdir}/init.d/mdev ${sysconfdir}/mdev.conf ${sysconfd
 FILES_${PN}-udhcpd = "${sysconfdir}/init.d/busybox-udhcpd"
 FILES_${PN}-udhcpc = "${sysconfdir}/udhcpc.d ${datadir}/udhcpc"
 FILES_${PN}-hwclock = "${sysconfdir}/init.d/hwclock.sh"
+FILES_${PN}-watchdog = "${sysconfdir}/init.d/watchdog"
 
-INITSCRIPT_PACKAGES = "${PN}-httpd ${PN}-syslog ${PN}-udhcpd ${PN}-mdev ${PN}-hwclock"
+INITSCRIPT_PACKAGES = "${PN}-httpd ${PN}-syslog ${PN}-udhcpd ${PN}-mdev ${PN}-hwclock ${PN}-watchdog"
 
 INITSCRIPT_NAME_${PN}-httpd = "busybox-httpd"
 INITSCRIPT_NAME_${PN}-hwclock = "hwclock.sh"
@@ -37,9 +38,12 @@ INITSCRIPT_NAME_${PN}-mdev = "mdev"
 INITSCRIPT_PARAMS_${PN}-mdev = "start 04 S ."
 INITSCRIPT_NAME_${PN}-syslog = "syslog"
 INITSCRIPT_NAME_${PN}-udhcpd = "busybox-udhcpd"
+INITSCRIPT_NAME_${PN}-watchdog = "watchdog"
+INITSCRIPT_PARAMS_${PN}-watchdog = "start 25 S ."
 
-SYSTEMD_PACKAGES = "${PN}-syslog"
+SYSTEMD_PACKAGES = "${PN}-syslog ${PN}-watchdog"
 SYSTEMD_SERVICE_${PN}-syslog = "${@bb.utils.contains('SRC_URI', 'file://syslog.cfg', 'busybox-syslog.service', '', d)}"
+SYSTEMD_SERVICE_${PN}-watchdog = "watchdog.service"
 
 RDEPENDS_${PN}-syslog = "busybox"
 CONFFILES_${PN}-syslog = "${sysconfdir}/syslog-startup.conf"
@@ -47,7 +51,7 @@ RCONFLICTS_${PN}-syslog = "rsyslog sysklogd syslog-ng"
 
 CONFFILES_${PN}-mdev = "${sysconfdir}/mdev.conf"
 
-RRECOMMENDS_${PN} = "${PN}-udhcpc"
+RRECOMMENDS_${PN} = "${PN}-udhcpc ${PN}-watchdog"
 
 RDEPENDS_${PN} = "${@["", "busybox-inittab"][(d.getVar('VIRTUAL-RUNTIME_init_manager', True) == 'busybox')]}"
 
@@ -285,6 +289,9 @@ do_install () {
 		install -m 0755 ${WORKDIR}/busybox-httpd ${D}${sysconfdir}/init.d/
 		install -d ${D}/srv/www
 	fi
+	if grep -q "CONFIG_WATCHDOG=y" ${B}/.config; then
+		install -m 0755 ${WORKDIR}/watchdog ${D}${sysconfdir}/init.d/
+	fi
 	if grep -q "CONFIG_UDHCPD=y" ${B}/.config; then
 		install -m 0755 ${WORKDIR}/busybox-udhcpd ${D}${sysconfdir}/init.d/
 	fi
@@ -334,6 +341,12 @@ do_install () {
 				install -d ${D}${sysconfdir}/default
 				install -m 0644 ${WORKDIR}/busybox-syslog.default ${D}${sysconfdir}/default/busybox-syslog
 			fi
+		fi
+
+		if grep -q "CONFIG_WATCHDOG=y" ${B}/.config; then
+			install -d ${D}${systemd_unitdir}/system
+			sed 's,@base_sbindir@,${base_sbindir},g' < ${WORKDIR}/watchdog.service.in \
+			> ${D}${systemd_unitdir}/system/watchdog.service
 		fi
 	fi
 

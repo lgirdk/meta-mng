@@ -1,0 +1,9 @@
+[Unit]
+Description=Watchdog daemon
+
+[Service]
+Type=forking
+ExecStart=@base_sbindir@/watchdog -t 5 /dev/watchdog
+
+[Install]
+WantedBy=multi-user.target

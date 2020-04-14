@@ -1,0 +1,19 @@
+#!/bin/sh
+
+case "$1" in
+	start)
+		echo "Starting watchdog daemon"
+		[ -e /var/run ] || ln -s /run /var/run
+		start-stop-daemon --oknodo --start --pidfile /var/run/watchdog.pid --exec /sbin/watchdog -- -t 5 /dev/watchdog
+		;;
+	stop)
+		echo -n "Stopping watchdog daemon... "
+		start-stop-daemon --oknodo --stop --pidfile /var/run/watchdog.pid --exec /sbin/watchdog
+		;;
+	*)
+		echo "Usage: $0 {start|stop}"
+		exit 1
+		;;
+esac
+
+exit 0

@@ -31,6 +31,8 @@ SRC_URI = "http://www.busybox.net/downloads/busybox-${PV}.tar.bz2;name=tarball \
            file://inittab \
            file://rcS \
            file://rcK \
+           file://watchdog \
+           file://watchdog.service.in \
            file://makefile-libbb-race.patch \
            file://0001-testsuite-check-uudecode-before-using-it.patch \
            file://0001-testsuite-use-www.example.org-for-wget-test-cases.patch \
