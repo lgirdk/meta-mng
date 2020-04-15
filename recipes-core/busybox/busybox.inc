@@ -377,6 +377,10 @@ python do_package_prepend () {
                 alt_name = 'lbracket'
             if alt_name == 'klogd' or alt_name == 'syslogd':
                 d.appendVar('ALTERNATIVE_%s-syslog' % (pn), ' ' + alt_name)
+            elif alt_name == 'udhcpc':
+                d.appendVar('ALTERNATIVE_%s-udhcpc' % (pn), ' ' + alt_name)
+            elif alt_name == 'udhcpd':
+                d.appendVar('ALTERNATIVE_%s-udhcpd' % (pn), ' ' + alt_name)
             else:
                 d.appendVar('ALTERNATIVE_%s' % (pn), ' ' + alt_name)
             d.setVarFlag('ALTERNATIVE_LINK_NAME', alt_name, alt_link_name)
