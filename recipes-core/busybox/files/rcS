@@ -1,5 +1,11 @@
 #!/bin/sh
 
+if [ ! -d /dev/shm ]
+then
+	mkdir /dev/shm
+	chmod 777 /dev/shm
+fi
+
 if [ -e /proc/sys/fs/mqueue ]
 then
 	mkdir -p /dev/mqueue

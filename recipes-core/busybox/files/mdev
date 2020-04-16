@@ -1,12 +1,5 @@
 #!/bin/sh
 
-if [ ! -d /dev/shm ]
-then
-	echo "Creating /dev/shm..."
-	mkdir /dev/shm
-	chmod 777 /dev/shm
-fi
-
 touch /dev/mdev.seq
 #sysctl -w kernel.hotplug=/sbin/mdev
 echo "/sbin/mdev" > /proc/sys/kernel/hotplug
