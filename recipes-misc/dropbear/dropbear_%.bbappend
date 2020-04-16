@@ -3,6 +3,10 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI += "file://dropbear_rsa_host_key"
 
+INHIBIT_UPDATERCD_BBCLASS = "1"
+
+SYSTEMD_AUTO_ENABLE = "disable"
+
 do_install_append() {
 
 	# There are various issues and solutions for SSH host keys in embedded
