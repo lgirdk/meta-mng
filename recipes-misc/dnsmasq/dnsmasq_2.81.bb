@@ -1,8 +1,7 @@
 require dnsmasq.inc
 
-SRC_URI[dnsmasq-2.81.md5sum] = "e43808177a773014b5892ccba238f7a8"
-SRC_URI[dnsmasq-2.81.sha256sum] = "3c28c68c6c2967c3a96e9b432c0c046a5df17a426d3a43cffe9e693cf05804d0"
+SRC_URI[dnsmasq-2.81.md5sum] = "2642c3f17f4a9762a83dd70daa6cfeb6"
+SRC_URI[dnsmasq-2.81.sha256sum] = "749ca903537c5197c26444ac24b0dce242cf42595fdfe6b9a5b9e4c7ad32f8fb"
 SRC_URI += "\
     file://lua.patch \
 "
-
