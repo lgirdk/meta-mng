@@ -14,6 +14,12 @@ PACKAGECONFIG_remove = "rtc"
 
 # ----------------------------------------------------------------------------
 
+# The tftp server is used to support netboot and is not required for RDKB
+
+CFLAGS += "-DNO_TFTP"
+
+# ----------------------------------------------------------------------------
+
 # By default the Puma6 kernel config has inotify support disabled. However, for
 # mng we have a kernel config change to enable it.
 
