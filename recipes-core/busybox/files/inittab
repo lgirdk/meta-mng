@@ -8,6 +8,8 @@
 ::sysinit:/bin/mkdir -p /dev/pts
 ::sysinit:/bin/mount -t devpts devpts /dev/pts
 ::sysinit:/bin/mount -a
+::sysinit:/bin/ln -s /run /var/run
+::sysinit:/bin/mkdir -p /var/lib/misc /var/lock /var/log /var/tmp
 
 ::sysinit:/etc/init.d/rcS
 
