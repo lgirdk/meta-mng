@@ -12,6 +12,10 @@ DISTRO_FEATURES_remove = "systemd"
 # are not useful without systemd anyway).
 PACKAGECONFIG_remove_class-target = "user-session"
 
+# The RDKB usage of D-Bus causes failures in D-Bus's internal sanity checks.
+# As a temporary workaround, disable them.
+EXTRA_OECONF += "--disable-checks"
+
 do_install_append_class-target () {
 
 	# If /usr/share/dbus-1/system.conf exists (D-Bus 1.9.18 and later?)
