@@ -14,3 +14,11 @@ S = "${WORKDIR}/git"
 inherit autotools
 
 PARALLEL_MAKE = ""
+
+# Create separate packages for the libraries - which means the main package
+# will now contain only the cgi-fcgi app (a CGI -> FastCGI bridge).
+
+PACKAGES =+ "libfcgi libfcgi++"
+
+FILES_libfcgi = "${libdir}/libfcgi${SOLIBS}"
+FILES_libfcgi++ = "${libdir}/libfcgi++${SOLIBS}"
