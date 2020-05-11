@@ -1,0 +1,28 @@
+From ee8d91a7537abe0677b63c7e01669a752dc0bf32 Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Mon, 11 May 2020 23:48:20 +0000
+Subject: [PATCH] disable liblzma dependency
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ lang/c/CMakeLists.txt | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/lang/c/CMakeLists.txt b/lang/c/CMakeLists.txt
+index 11cbf018e..59f702fe1 100644
+--- a/lang/c/CMakeLists.txt
++++ b/lang/c/CMakeLists.txt
+@@ -162,7 +162,9 @@ else (SNAPPY_FOUND AND ZLIB_FOUND)
+ endif (SNAPPY_FOUND AND ZLIB_FOUND)
+ 
+ find_package(PkgConfig)
+-pkg_check_modules(LZMA liblzma)
++
++# Hardcode to disabled
++set(LZMA_FOUND false)
+ if (LZMA_FOUND)
+     set(LZMA_PKG liblzma)
+     add_definitions(-DLZMA_CODEC)
+-- 
+2.24.0
+
