@@ -21,10 +21,23 @@ EXTRA_OECONF += "--libdir=${base_libdir} --sbindir=${base_sbindir} \
                 --disable-libblkid --enable-verbose-makecmds \
                 --with-crond-dir=no --with-systemd-unit-dir=no"
 
+EXTRA_OECONF += " \
+    --disable-elf-shlibs \
+    --disable-testio-debug \
+    --disable-backtrace \
+    --disable-debugfs \
+    --disable-imager \
+    --disable-resizer \
+    --disable-defrag \
+"
+
 EXTRA_OECONF_darwin = "--libdir=${base_libdir} --sbindir=${base_sbindir} --enable-bsd-shlibs"
 
 PACKAGECONFIG ??= ""
 PACKAGECONFIG[fuse] = '--enable-fuse2fs,--disable-fuse2fs,fuse'
+
+CPPFLAGS += "-ffunction-sections -fdata-sections"
+LDFLAGS += "-Wl,--gc-sections"
 
 # make locale rules sometimes fire, sometimes don't as git doesn't preserve
 # file mktime. Touch the files introducing non-determinism to the build
