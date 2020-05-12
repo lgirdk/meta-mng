@@ -1,0 +1,36 @@
+From 4bccdd4ca3d4627fdc4938f3c1fd7375b7b54344 Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Tue, 12 May 2020 02:30:41 +0000
+Subject: [PATCH] fix --enable-lto when cross compiling
+
+The --enable-lto sanity checks test for gcc-ar and gcc-ranlib and
+fail if the host toolchain is old enough that they are not found.
+
+When cross compiling it should check for the cross compiler versions
+instead. Setting to $AR and $RANLIB should archieve that, assuming
+these variables are exported by the build environment (they are for
+OE, but may not be in other cases).
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ configure.ac | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index cf03444d..cd252d6c 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1338,8 +1338,8 @@ if test "$enable_lto" = "yes" || test "$enable_lto" = "probe"; then
+ 		[AC_MSG_RESULT([yes])]
+ 		[lto_cflags=$LTO_FLAGS]
+ 		[lto_ldflags=$LTO_FLAGS]
+-		[AC_PATH_PROG(gcc_ar, gcc-ar,,)]
+-		[AC_PATH_PROG(gcc_ranlib, gcc-ranlib,,)],
++		[AC_PATH_PROG(gcc_ar, $AR,,)]
++		[AC_PATH_PROG(gcc_ranlib, $RANLIB,,)],
+ 		[AC_MSG_RESULT([no])])
+ 	if test -x "$gcc_ar" && test -x "$gcc_ranlib"; then
+ 		have_lto=yes
+-- 
+2.24.0
+
