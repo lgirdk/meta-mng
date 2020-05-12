@@ -56,6 +56,15 @@ do_install () {
 	rm -f ${D}${base_sbindir}/fsck
 	rm -f ${D}${base_sbindir}/findfs
 
+	# By default the e2fsck binares are hard links. That's fine and works
+	# well but can cause confusion... symlinks are easier to understand.
+	rm -f ${D}${base_sbindir}/fsck.ext2
+	rm -f ${D}${base_sbindir}/fsck.ext3
+	rm -f ${D}${base_sbindir}/fsck.ext4
+	ln -s e2fsck ${D}${base_sbindir}/fsck.ext2
+	ln -s e2fsck ${D}${base_sbindir}/fsck.ext3
+	ln -s e2fsck ${D}${base_sbindir}/fsck.ext4
+
 	# e2initrd_helper and the pkgconfig files belong in libdir
 	if [ ! ${D}${libdir} -ef ${D}${base_libdir} ]; then
 		install -d ${D}${libdir}
