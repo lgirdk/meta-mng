@@ -4,3 +4,8 @@
 # liblzma).
 
 PACKAGECONFIG_remove = "xz"
+
+# We don't need systemd to be involved in running fsck, so remove util-linux
+# fsck from RRECOMMENDS to save space.
+
+RRECOMMENDS_${PN}_remove = "util-linux-fsck"
