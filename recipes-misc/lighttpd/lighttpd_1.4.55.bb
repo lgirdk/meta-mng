@@ -67,9 +67,16 @@ do_install_append() {
 		-e 's,@SYSCONFDIR@,${sysconfdir},g' \
 		-e 's,@BASE_BINDIR@,${base_bindir},g' \
 		${D}${systemd_unitdir}/system/lighttpd.service
-	#For FHS compliance, create symbolic links to /var/log and /var/tmp for logs and temporary data
-	ln -sf ${localstatedir}/log ${D}/www/logs
-	ln -sf ${localstatedir}/tmp ${D}/www/var
+
+	# Since /www may be packaged separately (and not always installed) we
+	# can't rely on the /www/logs -> /var/log symlink to redirect log files.
+	# It's safer to set the log paths to /var/log directly. Note that this
+	# sed command is a fallback to support custom lighttpd.conf files (the
+	# default lighttpd.conf has already been updated).
+
+	sed -e 's|/www/var/|${localstatedir}/tmp/|g' \
+	    -e 's|/www/logs/|${localstatedir}/log/|g' \
+	    -i ${D}${sysconfdir}/lighttpd/lighttpd.conf
 }
 
 FILES_${PN} += "${sysconfdir} /www"
