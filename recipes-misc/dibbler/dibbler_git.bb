@@ -12,6 +12,7 @@ SRCREV = "5ed0ae8b0e8c78620d0e0e090f20f4b6123fec0b"
 
 SRC_URI = "git://github.com/tomaszmrugalski/dibbler \
            file://dibbler_fix_getSize_crash.patch \
+           file://dibbler_crash_fix.patch \
 "
 
 S = "${WORKDIR}/git"
