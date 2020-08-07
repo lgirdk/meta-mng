@@ -1,0 +1,44 @@
+From d0094b1aa943b14ffc1fc6033ea3c07284b397fb Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Fri, 7 Aug 2020 16:19:58 -0700
+Subject: [PATCH] traceroute: round up too-small packet sizes ( non standard
+ tweak )
+
+Round up explicit packet sizes which are too small (instead of
+treating them as a fatal error). Since the minimum packet size is not
+fixed this simplifies range checking in code which calls traceroute
+based on configurable parameters set via TR069 etc.
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ networking/traceroute.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/networking/traceroute.c b/networking/traceroute.c
+index 06d3f19da..b71c0b653 100644
+--- a/networking/traceroute.c
++++ b/networking/traceroute.c
+@@ -908,8 +908,18 @@ common_traceroute_main(int op, char **argv)
+ 	dest_lsa = xhost2sockaddr(argv[0], port);
+ #endif
+ 	packlen = minpacket;
+-	if (argv[1])
+-		packlen = xatoul_range(argv[1], minpacket, 32 * 1024);
++	if (argv[1]) {
++		/*
++		   Warning: non-standard modification. Round up explicit packet
++		   sizes which are too small (instead of treating them as a
++		   fatal error). Since the minimum packet size is not fixed this
++		   simplifies range checking in code which calls traceroute
++		   based on configurable parameters set via TR069 etc.
++		*/
++		packlen = xatoul_range(argv[1], 0, 32 * 1024);
++		if (packlen < minpacket)
++			packlen = minpacket;
++	}
+ 
+ 	/* Ensure the socket fds won't be 0, 1 or 2 */
+ 	bb_sanitize_stdio();
+-- 
+2.24.0
+

@@ -37,6 +37,7 @@ SRC_URI = "http://www.busybox.net/downloads/busybox-${PV}.tar.bz2;name=tarball \
            file://0001-testsuite-use-www.example.org-for-wget-test-cases.patch \
            file://0001-du-l-works-fix-to-use-145-instead-of-144.patch \
            file://0001-Remove-stime-function-calls.patch \
+           file://0001-traceroute-round-up-too-small-packet-sizes-non-stand.patch \
 "
 SRC_URI_append_libc-musl = " file://musl.cfg "
 
