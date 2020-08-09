@@ -1,3 +1,6 @@
+FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+
+SRC_URI += "file://rtadv.patch"
 
 INHIBIT_UPDATERCD_BBCLASS = "1"
 
