@@ -19,4 +19,14 @@ EXTRA_OECMAKE += "\
     -DBUILD_SHARED_AND_STATIC_LIBS=On \
 "
 
+do_install_append() {
+
+	# Create a symlink to support RDKB components which expect cJSON.h to
+	# be found in the toplevel sysroot ${includedir} rather than within the
+	# cjson subdirectory. Fixme: The real solution would be to fix those
+	# recipes so that this symlink is not required.
+
+	ln -s cjson/cJSON.h ${D}${includedir}/cJSON.h
+}
+
 BBCLASSEXTEND = "native nativesdk"
