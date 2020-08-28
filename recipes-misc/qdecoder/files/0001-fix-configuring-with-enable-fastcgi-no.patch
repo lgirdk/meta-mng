@@ -1,0 +1,37 @@
+From c9cc9d2533d97c7581751c286f548901a6969d36 Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Thu, 14 May 2020 11:15:50 -0700
+Subject: [PATCH] fix configuring with --enable-fastcgi=no
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ configure.ac | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 8b7f495..605aa96 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -106,7 +106,7 @@ if test $ac_compiler_gnu = yes; then
+ #	AC_MSG_FAILURE([GCC is required.])
+ fi
+ AC_PROG_CC_C99
+-if test $ac_cv_prog_cc_c99 = no; then
++if test "$ac_cv_prog_cc_c99" = "no"; then
+ 	AC_MSG_FAILURE([Compiler does not support C99 mode.])
+ fi
+ 
+@@ -129,8 +129,8 @@ AC_TYPE_OFF_T
+ ## Checks for library functions.
+ #AC_CHECK_FUNCS([socket sendfile])
+ 
+-AC_ARG_ENABLE([fastcgi],[AS_HELP_STRING([--enable-fastcgi=/FASTCGI_INCLUDE_DIR_PATH/], [enable FastCGI supports])],[enableval=yes],[enableval=no])
+-if test "$enableval" = yes; then
++AC_ARG_ENABLE([fastcgi],[AS_HELP_STRING([--enable-fastcgi=/FASTCGI_INCLUDE_DIR_PATH/], [enable FastCGI supports])],[enable_fastcgi=$enableval],[enable_fastcgi=no])
++if test "$enable_fastcgi" != "no" ; then
+ 	AC_CHECK_HEADER([$enable_fastcgi/fcgi_stdio.h],[enableval=yes],[enableval=no])
+ 	if test "$enableval" = yes; then
+ 		AC_MSG_NOTICE(['fastcgi' feature is enabled])
+-- 
+2.24.0
+
