@@ -37,3 +37,10 @@ IMAGE_INSTALL += " \
 "
 
 # ----------------------------------------------------------------------------
+
+# The kernel module doesn't seem to build with new qemu kernels?
+# Exclude it as temporary workaround.
+
+IMAGE_INSTALL_remove_qemuall = "ccsp-hotspot-kmod"
+
+# ----------------------------------------------------------------------------
