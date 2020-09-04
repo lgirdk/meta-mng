@@ -68,7 +68,8 @@ do_install () {
     if ${@bb.utils.contains('DISTRO_FEATURES','systemd','true','false',d)}
     then
         install -d ${D}${systemd_unitdir}/system
-        if [ "${@bb.utils.filter('PACKAGECONFIG', 'resolvconf', d)}" ]; then
+        if ${@bb.utils.contains('PACKAGECONFIG','resolvconf','true','false',d)}
+        then
             install -m 0644 ${WORKDIR}/dnsmasq-resolvconf.service ${D}${systemd_unitdir}/system/dnsmasq.service
         else
             install -m 0644 ${WORKDIR}/dnsmasq-noresolvconf.service ${D}${systemd_unitdir}/system/dnsmasq.service
@@ -77,12 +78,14 @@ do_install () {
         install -m 0644 ${WORKDIR}/dnsmasq-resolved.conf ${D}${sysconfdir}/systemd/resolved.conf.d/
     fi
 
-    if [ "${@bb.utils.filter('PACKAGECONFIG', 'dbus', d)}" ]; then
+    if ${@bb.utils.contains('PACKAGECONFIG','dbus','true','false',d)}
+    then
         install -d ${D}${sysconfdir}/dbus-1/system.d
         install -m 644 dbus/dnsmasq.conf ${D}${sysconfdir}/dbus-1/system.d/
     fi
 
-    if [ "${@bb.utils.filter('PACKAGECONFIG', 'resolvconf', d)}" ]; then
+    if ${@bb.utils.contains('PACKAGECONFIG','resolvconf','true','false',d)}
+    then
         install -d ${D}${sysconfdir}/resolvconf/update.d
         install -m 0755 ${WORKDIR}/dnsmasq.resolvconf ${D}${sysconfdir}/resolvconf/update.d/dnsmasq
 
