@@ -26,3 +26,5 @@ DEBIAN_NOAUTONAME_${PN}-tools = "1"
 
 PACKAGES =+ "${PN}-tools"
 FILES_${PN}-tools = "${bindir}/*"
+
+FILES_${PN}-dev += "${libdir}/cmake"
