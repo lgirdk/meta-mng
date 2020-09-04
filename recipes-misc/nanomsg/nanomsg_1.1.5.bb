@@ -12,6 +12,8 @@ SECTION = "libs/networking"
 SRC_URI = "git://github.com/nanomsg/nanomsg.git;protocol=https"
 SRCREV = "1749fd7b039165a91b8d556b4df18e3e632ad830"
 
+SRC_URI += "file://nanomsg-size.patch"
+
 S = "${WORKDIR}/git"
 
 inherit cmake pkgconfig
