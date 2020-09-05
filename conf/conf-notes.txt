@@ -1,3 +1,4 @@
 Common bitbake targets are:
 
-  core-image-base       <-- Generic console based image
+  mng-image-base        <-- Generic console based image
+  mng-image-rdkb        <-- Generic console based image + RDKB packages
