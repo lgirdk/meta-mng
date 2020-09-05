@@ -12,7 +12,7 @@ SRC_URI = "${SOURCEFORGE_MIRROR}/pupnp/${BP}.tar.bz2 \
            file://sepbuildfix.patch \
 "
 
-SRC_URI[md5sum] = "513adadb07fa039a8aeb0ceb7b7b0f6e"
-SRC_URI[sha256sum] = "af3f3c0846a1d75baeadae4aa5a2bda427567e2a1fb4559bf73ccff0a4f9a39b"
+SRC_URI[md5sum] = "530e91e96119ee32a9523a73572b8d8f"
+SRC_URI[sha256sum] = "0bdfacb7fa8d99b78343b550800ff193264f92c66ef67852f87f042fd1a1ebbc"
 
 inherit autotools
