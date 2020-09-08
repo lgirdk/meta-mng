@@ -34,9 +34,13 @@ do_install_append () {
 	install -m 644 ${S}/source/dmltad/diag*.h ${D}${includedir}/ccsp/
 
 	install -d ${D}/usr/ccsp/tad
-	install -m 755 ${S}/scripts/selfheal_reset_counts.sh ${D}/usr/ccsp/tad/
+	install -m 755 ${S}/scripts/*.sh ${D}/usr/ccsp/tad/
 	install -m 755 ${S}/source/CpuMemFrag/cpumemfrag_cron.sh ${D}/usr/ccsp/tad/
 	install -m 755 ${S}/source/CpuMemFrag/log_buddyinfo.sh ${D}/usr/ccsp/tad/
+
+	install -d ${D}${sbindir}
+	install -m 755 ${S}/scripts/arping_peer ${D}${sbindir}/
+	install -m 755 ${S}/scripts/ping_peer ${D}${sbindir}/
 
 	ln -sf /usr/bin/CcspTandDSsp ${D}/usr/ccsp/tad/CcspTandDSsp
 }
