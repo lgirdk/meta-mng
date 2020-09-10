@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=175792518e4ac015ab6696d16c4f607e"
 
 require ccsp_common.inc
 
-DEPENDS += "utopia telemetry cimplog"
+DEPENDS += "utopia telemetry cimplog halinterface"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
@@ -27,11 +27,6 @@ LDFLAGS += " \
     -lcimplog \
     -pthread \
 "
-
-do_install_append () {
-	install -d ${D}/${includedir}
-	install -m 644 ${S}/source/include/Tr69_Tlv.h ${D}/${includedir}/
-}
 
 FILES_${PN} += "/usr/ccsp"
 
