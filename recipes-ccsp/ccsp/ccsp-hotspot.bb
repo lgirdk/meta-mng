@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=7fd38647ff87fdac48b3fb87e20c1b07"
 
 require ccsp_common.inc
 
-DEPENDS += "libnetfilter-queue utopia ccsp-lm-lite telemetry"
+DEPENDS += "utopia telemetry ccsp-lm-lite libnetfilter-queue"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 

@@ -4,8 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=175792518e4ac015ab6696d16c4f607e"
 
 require ccsp_common.inc
 
-DEPENDS += "hal-cm hal-dhcpv4c hal-ethsw hal-moca hal-mso_mgmt hal-mta hal-platform hal-vlan hal-wifi utopia cimplog"
-DEPENDS += "telemetry"
+DEPENDS += "utopia telemetry cimplog"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 

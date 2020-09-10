@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=175792518e4ac015ab6696d16c4f607e"
 
 require recipes-ccsp/ccsp/ccsp_common.inc
 
-DEPENDS += "utopia hal-cm hal-dhcpv4c hal-ethsw hal-moca hal-mso_mgmt hal-mta hal-platform hal-vlan hal-wifi"
+DEPENDS += "utopia hal-mta hal-platform"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
