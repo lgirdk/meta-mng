@@ -11,6 +11,10 @@ SRC_URI[sha256sum] = "83d411560a1cd36ea132bd81d8d9885efe9285c6bc6685c4b71e69a0c4
 CLEANBROKEN = "1"
 
 do_compile() {
+	${CC} ${CFLAGS} -ffunction-sections -fdata-sections -I${S}/src -c src/duktape.c -o src/duktape.o
+	${CC} ${CFLAGS} -ffunction-sections -fdata-sections -I${S}/src -c extras/print-alert/duk_print_alert.c -o extras/print-alert/duk_print_alert.o
+	${AR} rcs libduktape.a src/duktape.o extras/print-alert/duk_print_alert.o
+
 	${CC} ${CFLAGS} -I${S}/src -fPIC -c src/duktape.c -o src/duktape_pic.o
 	${CC} ${CFLAGS} -I${S}/src -fPIC -c extras/print-alert/duk_print_alert.c -o extras/print-alert/duk_print_alert_pic.o
 	${CC} ${LDFLAGS} -shared -Wl,-soname,libduktape.so.${PV} src/duktape_pic.o extras/print-alert/duk_print_alert_pic.o -o libduktape.so.${PV} -lm
@@ -18,6 +22,7 @@ do_compile() {
 
 do_install () {
 	install -d ${D}${libdir}
+	install -m 0644 libduktape.a ${D}${libdir}/
 	install -m 0644 libduktape.so.${PV} ${D}${libdir}/
 	ln -s libduktape.so.${PV} ${D}${libdir}/libduktape.so
 
