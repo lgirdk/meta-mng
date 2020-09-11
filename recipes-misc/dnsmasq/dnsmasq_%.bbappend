@@ -1,4 +1,10 @@
 
+FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}:"
+
+SRC_URI += "file://0001-add-ACS-discovery-and-client-DB-WIP.patch"
+
+# ----------------------------------------------------------------------------
+
 # Disable rtc support for embedded systems which don't have an RTC
 # which keeps time over reboots. Causes dnsmasq to use uptime
 # for timing, and keep lease lengths rather than expiry times

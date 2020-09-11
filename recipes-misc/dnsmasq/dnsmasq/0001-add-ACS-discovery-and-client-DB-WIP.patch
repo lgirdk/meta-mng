@@ -1,0 +1,227 @@
+From b4600a3582fd2966c350a1ef54919354892eae0a Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Fri, 11 Sep 2020 14:58:41 -0700
+Subject: [PATCH] add ACS discovery and client DB ( * WIP * )
+
+An original buggy version of this patch was received without comments
+etc. More cleanup and review still required.
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ src/rfc2131.c | 166 +++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 163 insertions(+), 3 deletions(-)
+
+diff --git a/src/rfc2131.c b/src/rfc2131.c
+index fc54aab..8023f3a 100644
+--- a/src/rfc2131.c
++++ b/src/rfc2131.c
+@@ -25,6 +25,24 @@
+ static void add_extradata_opt(struct dhcp_lease *lease, unsigned char *opt);
+ #endif
+ 
++#define VENDOR_CLIENT_FILE "/tmp/dhcp_vendor_clients.txt"
++#define VENDOR_CLIENT_TEMP_FILE "/tmp/dhcp_vendor_clients_temp.txt"
++#define MAC_STR_LEN 18
++
++#define VENDOR_CLASS_LEN       64
++#define VENDOR_ENTERPRISE_LEN  4
++#define VENDOR_MAX_BUFFER_SIZE 512
++#define VENDOR_OPT_CLASS_TYPE  3
++#define VENDOR_OPT_LEN_OFFSET  1
++#define VENDOR_OPT_MIN_LEN     1
++#define VENDOR_OPT_OUI_TYPE    1
++#define VENDOR_OPT_SERIAL_TYPE 2
++#define VENDOR_OPT_VAL_OFFSET  2
++#define VENDOR_OUI_LEN         6
++#define VENDOR_SERIAL_LEN      64
++
++static void add_client (char *mac, char *oui, char *serial_num, char *prod_class);
++
+ static int sanitise(unsigned char *opt, char *buf);
+ static struct in_addr server_id(struct dhcp_context *context, struct in_addr override, struct in_addr fallback);
+ static unsigned int calc_time(struct dhcp_context *context, struct dhcp_config *config, unsigned char *opt);
+@@ -93,13 +111,11 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
+   unsigned char *agent_id = NULL, *uuid = NULL;
+   unsigned char *emac = NULL;
+   int vendor_class_len = 0, emac_len = 0;
+-  struct dhcp_netid known_id, iface_id, cpewan_id;
++  struct dhcp_netid known_id, iface_id, cpewan_id, acs_id;
+   struct dhcp_opt *o;
+   unsigned char pxe_uuid[17];
+   unsigned char *oui = NULL, *serial = NULL;
+-#ifdef HAVE_SCRIPT
+   unsigned char *class = NULL;
+-#endif
+ 
+   subnet_addr.s_addr = override.s_addr = 0;
+ 
+@@ -170,15 +186,119 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
+ 		     the gateway id back. Note that the device class is optional */
+ 		  if (oui && serial)
+ 		    {
++		      char vendor_mac[MAC_STR_LEN+1];
++		      char vendor_oui[VENDOR_OUI_LEN+1];
++		      char vendor_serial[VENDOR_SERIAL_LEN+1];
++		      char vendor_class[VENDOR_CLASS_LEN+1];
++		      unsigned int optlen;
++		      int x = 0;
++		      int bad_packet = 0;
++
+ 		      cpewan_id.net = "cpewan-id";
+ 		      cpewan_id.next = netid;
+ 		      netid = &cpewan_id;
++
++		      /* The oui, serial and class which dnsmasq parsed are not precise,
++		         we re-parse the data here for vendor clients db*/
++
++		      vendor_mac[0] = 0;
++		      vendor_oui[0] = 0;
++		      vendor_serial[0] = 0;
++		      vendor_class[0] = 0;
++
++		      while (oui[x] != OPTION_END || x < elen)
++		      {
++		          if (oui[x] == VENDOR_OPT_OUI_TYPE)
++		          {
++		              optlen = oui[x+VENDOR_OPT_LEN_OFFSET];
++
++		              if (optlen != VENDOR_OUI_LEN)
++		              {
++		                  bad_packet = 1;
++		                  break;
++		              }
++		              memcpy(vendor_oui, &(oui[x+VENDOR_OPT_VAL_OFFSET]), optlen);
++		              vendor_oui[optlen] = 0;
++		              /* oui must formatted as a 6 hexadecimal-digit */
++		              if ((strlen(vendor_oui) != VENDOR_OUI_LEN) || (strspn(vendor_oui,"0123456789abcdefABCDEF") != VENDOR_OUI_LEN))
++		              {
++		                  bad_packet = 1;
++		                  break;
++		              }
++		              x += VENDOR_OPT_VAL_OFFSET + optlen;
++		          }
++		          else if (oui[x] == VENDOR_OPT_SERIAL_TYPE)
++		          {
++		              optlen = oui[x+VENDOR_OPT_LEN_OFFSET];
++
++		              if ((optlen == 0) || (optlen > VENDOR_SERIAL_LEN))
++		              {
++		                  bad_packet = 1;
++		                  break;
++		              }
++		              memcpy(vendor_serial, &(oui[x+VENDOR_OPT_VAL_OFFSET]), optlen);
++			      vendor_serial[optlen] = 0;
++		              if ((strlen(vendor_serial) < VENDOR_OPT_MIN_LEN) || (strlen(vendor_serial) > VENDOR_SERIAL_LEN))
++		              {
++		                  bad_packet = 1;
++		                  break;
++		              }
++		              x += VENDOR_OPT_VAL_OFFSET + optlen;
++		          }
++		          else if (oui[x] == VENDOR_OPT_CLASS_TYPE)
++		          {
++		              optlen = oui[x+VENDOR_OPT_LEN_OFFSET];
++
++		              if (optlen > VENDOR_CLASS_LEN)
++		              {
++		                  bad_packet = 1;
++		                  break;
++		              }
++		              /* product class is optional */
++		              memcpy(vendor_class, &(oui[x+VENDOR_OPT_VAL_OFFSET]), optlen);
++			      vendor_class[optlen] = 0;
++		              x += VENDOR_OPT_VAL_OFFSET + optlen;
++		          }
++		          else
++		          {
++		              bad_packet = 1;
++		              break;
++		          }
++		      }
++
++		      /* client must have oui and serial values (product class is optional) */
++		      if (!bad_packet && vendor_oui[0] && vendor_serial[0])
++		      {
++		          unsigned char *vmac;
++		          int vmac_len = 0;
++
++		          vmac = extended_hwaddr(mess->htype, mess->hlen, mess->chaddr, clid_len, clid, &vmac_len);
++		          print_mac(vendor_mac, vmac, vmac_len);
++		          add_client(vendor_mac, vendor_oui, vendor_serial, class ? vendor_class : "");
++		      }
+ 		    }
+ 		  break;
+ 		}
+ 	    }
+ 	}
+       
++        /* Add ACS Discovery support for option 124/125*/
++        if ((opt = option_find(mess, sz, OPTION_VENDOR_IDENT, VENDOR_ENTERPRISE_LEN+1)))
++        {
++            unsigned int elen, offset, len = option_len(opt);
++            for (offset = 0; offset < (len - VENDOR_ENTERPRISE_LEN+1 ); offset += elen + VENDOR_ENTERPRISE_LEN+1 )
++            {
++                elen = option_uint(opt, offset + VENDOR_ENTERPRISE_LEN , 1);
++                if (option_uint(opt, offset, VENDOR_ENTERPRISE_LEN) == BRDBAND_FORUM_IANA)
++                {
++                    acs_id.net = "acs-id";
++                    acs_id.next = netid;
++                    netid = &acs_id;
++                    break;
++                }
++            }
++        }
++
+       if ((opt = option_find(mess, sz, OPTION_AGENT_ID, 1)))
+ 	{
+ 	  /* Any agent-id needs to be copied back out, verbatim, as the last option
+@@ -2742,6 +2862,46 @@ static void apply_delay(u32 xid, time_t recvtime, struct dhcp_netid *netid)
+ 
+ #endif
+   
++static void add_client (char *mac, char *oui, char *serial_num, char *prod_class)
++{
++    char buffer[VENDOR_MAX_BUFFER_SIZE] = {0};
++    int foundClient = 0;
++    FILE *fp, *fp_tmp;
++
++    fp_tmp = fopen(VENDOR_CLIENT_TEMP_FILE,"w");
++
++    if (fp_tmp)
++    {
++        fp = fopen(VENDOR_CLIENT_FILE,"r");
++
++    	if (fp)
++    	{
++    	    while( fscanf(fp, "%s", buffer) != EOF )
++    	    {
++    		if (strstr(buffer, mac)!= 0)
++    		{
++    		    /* update vendor client entry */
++    		    fprintf(fp_tmp,"%s;%s;%s;%s\n",  mac, oui, serial_num, prod_class);
++    		    foundClient = 1;
++    		}
++    		else
++    		{
++    		    fprintf(fp_tmp,"%s\n", buffer);
++    		}
++    		memset(buffer, 0, VENDOR_MAX_BUFFER_SIZE);
++    	    }
++    	    fclose(fp);
++    	    unlink(VENDOR_CLIENT_FILE);
++    	}
++    	if (!foundClient)
++    	{
++    	    /* new vendor client entry */
++    	    fprintf(fp_tmp,"%s;%s;%s;%s\n",  mac, oui, serial_num, prod_class);
++    	}
++    	fclose(fp_tmp);
++    	rename(VENDOR_CLIENT_TEMP_FILE, VENDOR_CLIENT_FILE);
++    }
++}
+ 
+   
+   
+-- 
+2.24.0
+
