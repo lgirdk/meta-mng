@@ -51,7 +51,7 @@ RCONFLICTS_${PN}-syslog = "rsyslog sysklogd syslog-ng"
 
 CONFFILES_${PN}-mdev = "${sysconfdir}/mdev.conf"
 
-RRECOMMENDS_${PN} = "${PN}-udhcpc ${PN}-watchdog"
+RRECOMMENDS_${PN} = "${PN}-udhcpc"
 
 RDEPENDS_${PN} = "${@["", "busybox-inittab"][(d.getVar('VIRTUAL-RUNTIME_init_manager', True) == 'busybox')]}"
 
