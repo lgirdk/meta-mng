@@ -26,10 +26,12 @@ LDFLAGS += " \
 
 do_install_append () {
 	install -d ${D}/usr/ccsp/psm
-	ln -sf ${bindir}/PsmSsp ${D}/usr/ccsp/PsmSsp
+	install -m 755 ${S}/scripts/bbhm_patch.sh ${D}/usr/ccsp/psm/
 
 	install -d ${D}/usr/ccsp/config
 	install -m 644 ${S}/config/bbhm_def_cfg_qemu.xml ${D}/usr/ccsp/config/bbhm_def_cfg.xml
+
+	ln -sf ${bindir}/PsmSsp ${D}/usr/ccsp/PsmSsp
 }
 
 FILES_${PN} += "/usr/ccsp"
