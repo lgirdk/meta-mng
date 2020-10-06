@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=175792518e4ac015ab6696d16c4f607e"
 
 require ccsp_common.inc
 
-DEPENDS += "utopia hal-moca curl"
+DEPENDS += "utopia hal-moca curl msgpack-c trower-base64"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
@@ -23,6 +23,8 @@ CFLAGS += " \
     -I${STAGING_INCDIR}/ulog \
     -I${STAGING_INCDIR}/utapi \
     -I${STAGING_INCDIR}/utctx \
+    -I${STAGING_INCDIR}/msgpackc \
+    -I${STAGING_INCDIR}/trower-base64 \
 "
 
 CFLAGS += " \
@@ -33,6 +35,8 @@ CFLAGS += " \
 LDFLAGS += " \
     -lutctx \
     -lutapi \
+    -lmsgpackc \
+    -ltrower-base64 \
 "
 
 do_compile_prepend () {
