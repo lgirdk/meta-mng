@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=19774cd4dd519f099bc404798ceeab19"
 
 require ccsp_common_internal.inc
 
-DEPENDS += "openssl rbus-core"
+DEPENDS += "openssl rbus-core zlib"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
