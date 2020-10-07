@@ -87,6 +87,7 @@ do_install_append () {
 	install -m 755 ${S}/arch/intel_usg/boards/arm_shared/scripts/redirect_url.sh ${D}${sysconfdir}/
 	install -m 755 ${S}/arch/intel_usg/boards/arm_shared/scripts/restart_services.sh ${D}${sysconfdir}/
 	install -m 755 ${S}/arch/intel_usg/boards/arm_shared/scripts/revert_redirect.sh ${D}${sysconfdir}/
+	install -m 755 ${S}/arch/intel_usg/boards/arm_shared/scripts/start_lighttpd.sh ${D}${sysconfdir}/
 	install -m 755 ${S}/arch/intel_usg/boards/arm_shared/scripts/whitelist.sh ${D}${sysconfdir}/
 
 	install -d ${D}/usr/ccsp/pam
