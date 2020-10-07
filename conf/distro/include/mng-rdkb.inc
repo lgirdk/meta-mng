@@ -11,6 +11,7 @@ DISTROOVERRIDES .= ":broadband"
 # ----------------------------------------------------------------------
 
 DISTRO_FEATURES_append = " dslite"
+DISTRO_FEATURES_append = " fcgi"
 DISTRO_FEATURES_append = " snmppa"
 
 # ----------------------------------------------------------------------
