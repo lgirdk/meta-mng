@@ -42,6 +42,8 @@ CFLAGS += " \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wbCfgTestApp', '-DWEBCFG_TEST_SIM', '', d)} \
 "
 
+CFLAGS += "-D_DHCPV6_DEFAULT_STATELESS_"
+
 LDFLAGS += " \
     -lutctx \
     -lutapi \
