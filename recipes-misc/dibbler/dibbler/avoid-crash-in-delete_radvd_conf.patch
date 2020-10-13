@@ -1,0 +1,37 @@
+From 690930fe9a06c1bddcaca7a088dbf25cc7497ec9 Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Mon, 12 Oct 2020 21:41:49 -0700
+Subject: [PATCH] avoid crash in delete_radvd_conf()
+
+It's not clear that this is the correct solution, but apparently the
+crash can still be triggered and this patch (based on a similar patch
+found in the RDK) seems to help. To be reviewed.
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ Port-linux/lowlevel-options-linux.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/Port-linux/lowlevel-options-linux.c b/Port-linux/lowlevel-options-linux.c
+index de111b14..c1350ee6 100644
+--- a/Port-linux/lowlevel-options-linux.c
++++ b/Port-linux/lowlevel-options-linux.c
+@@ -501,7 +501,15 @@ void delete_radvd_conf(const char* ifname, const char* prefixPlain, int prefixLe
+     rename(RADVD_FILE,RADVD_FILE".old");
+ 
+     f = fopen(RADVD_FILE".old","r");
++    if (!f) {
++        sprintf(error_message(), "Unable to open %s file.", RADVD_FILE".old");
++        return;
++    }
+     f2 = fopen(RADVD_FILE,"w");
++    if (!f2) {
++        sprintf(error_message(), "Unable to open %s file.", RADVD_FILE);
++        return;
++    }
+ 
+     snprintf(buf2, 511, "### %s start ###\n", ifname);
+     while (fgets(buf,511,f)) {
+-- 
+2.24.0
+
