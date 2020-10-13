@@ -43,7 +43,6 @@ do_install_append () {
 
 	install -m 755 ${S}/scripts/aphealth.sh ${D}/usr/ccsp/wifi/
 	install -m 755 ${S}/scripts/aphealth_log.sh ${D}/usr/ccsp/wifi/
-	install -m 755 ${S}/scripts/stahealth_log.sh ${D}/usr/ccsp/wifi/
 	install -m 755 ${S}/scripts/br0_ip.sh ${D}/usr/ccsp/wifi/
 	install -m 755 ${S}/scripts/br106_addvlan.sh ${D}/usr/ccsp/wifi/
 	install -m 755 ${S}/scripts/lfp.sh ${D}/usr/ccsp/wifi/
@@ -72,14 +71,13 @@ do_install_append () {
 	install -d ${D}${systemd_unitdir}/system
 	install -D -m 644 ${S}/scripts/systemd/wifi-telemetry.target ${D}${systemd_unitdir}/system/
 	install -D -m 644 ${S}/scripts/systemd/wifi-telemetry-cron.service ${D}${systemd_unitdir}/system/
-	install -D -m 644 ${S}/scripts/systemd/wifi-telemetry-sta.service ${D}${systemd_unitdir}/system/
 
 	if ${@bb.utils.contains('DISTRO_FEATURES','systemd','true','false',d)}; then
 		install -D -m 755 ${S}/scripts/wifiTelemetrySetup.sh ${D}/usr/ccsp/wifi/wifiTelemetrySetup.sh
 	fi
 }
 
-SYSTEMD_SERVICE_${PN} += "wifi-telemetry.target wifi-telemetry-cron.service wifi-telemetry-sta.service"
+SYSTEMD_SERVICE_${PN} += "wifi-telemetry.target wifi-telemetry-cron.service"
 
 FILES_${PN} += "/usr/ccsp"
 
