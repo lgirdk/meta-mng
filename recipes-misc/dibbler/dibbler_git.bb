@@ -8,7 +8,7 @@ DEPENDS = "flex-native"
 
 PV = "1.0.1+1.0.2RC1+git${SRCPV}"
 
-SRCREV = "5ed0ae8b0e8c78620d0e0e090f20f4b6123fec0b"
+SRCREV = "a7c6cf58a88a510cb00841351e75030ce78d36bf"
 
 SRC_URI = "git://github.com/tomaszmrugalski/dibbler \
            file://dibbler_fix_getSize_crash.patch \
