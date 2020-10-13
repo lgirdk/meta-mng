@@ -1,0 +1,42 @@
+From 4c0fbd12b02164b797c343385942ac7e51c8c32e Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Mon, 12 Oct 2020 22:29:28 -0700
+Subject: [PATCH] always use erouter for DUID generation
+
+If there are multiple interfaces and the DUID is being derived from
+the MAC address then it's not predictable which MAC address will be
+used. Add a cable modem specific hack to try to make the DUID
+consistent by ensuring that the erouter0 MAC address is always used.
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ CfgMgr/CfgMgr.cpp | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/CfgMgr/CfgMgr.cpp b/CfgMgr/CfgMgr.cpp
+index 5cb907d6..6006ec71 100644
+--- a/CfgMgr/CfgMgr.cpp
++++ b/CfgMgr/CfgMgr.cpp
+@@ -226,6 +226,19 @@ bool TCfgMgr::setDUID(const std::string& filename, TIfaceMgr & ifaceMgr) {
+           continue;
+         }
+ 
++        /*
++           If there are multiple interfaces and the DUID is being derived from
++           the MAC address then it's not predictable which MAC address will be
++           used. Add a cable modem specific hack to try to make the DUID
++	   consistent by ensuring that the erouter0 MAC address is always used.
++        */
++        std::size_t isErouter = realIface->getFullName().find("erouter0");
++        if ( isErouter == std::string::npos ) {
++          Log(Info) << "DUID creation:  Interface " << realIface->getFullName()
++                    << " skipped: Not erouter0." << LogEnd;
++          continue;
++        }
++
+         found=true;
+     }
+ 
+-- 
+2.24.0
+

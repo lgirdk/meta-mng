@@ -1,4 +1,10 @@
 
+FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
+
+SRC_URI += "file://always-use-erouter-for-DUID-generation.patch"
+
+# ----------------------------------------------------------------------------
+
 # Dibbler is written in C++, therefore by default the dibbler packages all have
 # a runtime dependency on libstdc++ (a ~1MB library on the target).
 #
@@ -9,3 +15,5 @@
 
 # CPPFLAGS += "-ffunction-sections -fdata-sections"
 # LDFLAGS += "-Wl,--gc-sections -static-libstdc++"
+
+# ----------------------------------------------------------------------------
