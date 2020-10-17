@@ -25,6 +25,9 @@ do_install_append() {
 	then
 		install -d ${D}${bindir}
 		install -m 0755 ${S}/conf/rbus_log_capture.sh ${D}${bindir}/
+
+		install -d ${D}${systemd_unitdir}/system/rbus.service.d
+		install -m 0644 ${S}/conf/rbus_rdkb.conf ${D}${systemd_unitdir}/system/rbus.service.d/
 	fi
 
 	install -d ${D}${systemd_unitdir}/system
@@ -36,5 +39,7 @@ do_install_append() {
 }
 
 SYSTEMD_SERVICE_${PN} = "rbus.service rbus_session_mgr.service rbus_log.service rbus_monitor.path rbus_monitor.service"
+
+FILES_${PN} += "${systemd_unitdir}/system/rbus.service.d/rbus_rdkb.conf"
 
 FILES_${PN}-dev += "${libdir}/cmake"
