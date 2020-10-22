@@ -191,6 +191,7 @@ do_install_append () {
 #   ln -sf /usr/bin/15_ftp_server               ${D}${sysconfdir}/utopia/registration.d/15_ftp_server
     ln -sf /usr/bin/15_hotspot                  ${D}${sysconfdir}/utopia/registration.d/15_hotspot
 #   ln -sf /usr/bin/15_http_server              ${D}${sysconfdir}/utopia/registration.d/15_http_server
+    ln -sf /usr/bin/15_misc                     ${D}${sysconfdir}/utopia/registration.d/15_misc
 #   ln -sf /usr/bin/15_qos                      ${D}${sysconfdir}/utopia/registration.d/15_qos
     ln -sf /usr/bin/15_ssh_server               ${D}${sysconfdir}/utopia/registration.d/15_ssh_server
 #   ln -sf /usr/bin/15_switchpmon               ${D}${sysconfdir}/utopia/registration.d/15_switchpmon
@@ -208,7 +209,6 @@ do_install_append () {
     ln -sf /usr/bin/10_mcastproxy               ${D}${sysconfdir}/utopia/post.d/10_mcastproxy
     ln -sf /usr/bin/10_mldproxy                 ${D}${sysconfdir}/utopia/post.d/10_mldproxy
     ln -sf /usr/bin/15_igd                      ${D}${sysconfdir}/utopia/post.d/15_igd
-    ln -sf /usr/bin/15_misc                     ${D}${sysconfdir}/utopia/post.d/15_misc
 
     # ------------------------------------------------------------------------
 }
