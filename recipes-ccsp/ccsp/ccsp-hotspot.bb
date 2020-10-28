@@ -14,9 +14,12 @@ SRCREV ?= "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 
-inherit autotools pkgconfig
+inherit autotools pkgconfig siteinfo
 
 EXTRA_OECONF += "${CCSP_CONFIG_ARCH} ${CCSP_CONFIG_PLATFORM}"
+
+# Workaround for dhcpsnooper.c which relies on #ifdef __686__ to detect little endian targets
+CFLAGS += "${@oe.utils.conditional('SITEINFO_ENDIANNESS', 'le', '-D__686__', '', d)}"
 
 LDFLAGS += "-ltelemetry_msgsender"
 
