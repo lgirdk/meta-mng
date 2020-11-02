@@ -1,4 +1,4 @@
-From 5ef0867e3b6087d2064422f6cfda7e46fcfd1001 Mon Sep 17 00:00:00 2001
+From fcd84bc26df016ea8f355f4efdc47d224f333d1e Mon Sep 17 00:00:00 2001
 From: Andre McCurdy <armccurdy@gmail.com>
 Date: Wed, 14 Aug 2019 20:40:52 -0700
 Subject: [PATCH] fix address family data type for nfct_query() and
@@ -14,16 +14,16 @@ although that hasn't been confirmed.
 
 Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
 ---
- src/conntrack.c       | 23 ++++++++++++++++-------
+ src/conntrack.c       | 21 +++++++++++++++------
  src/internal_bypass.c |  4 ++--
  src/netlink.c         | 14 ++++++++++----
- 3 files changed, 28 insertions(+), 13 deletions(-)
+ 3 files changed, 27 insertions(+), 12 deletions(-)
 
 diff --git a/src/conntrack.c b/src/conntrack.c
-index 06f60e8..68f854d 100644
+index f65926b..90aa335 100644
 --- a/src/conntrack.c
 +++ b/src/conntrack.c
-@@ -2630,12 +2630,14 @@ int main(int argc, char *argv[])
+@@ -2664,12 +2664,14 @@ int main(int argc, char *argv[])
  		break;
  
  	case EXP_LIST:
@@ -39,7 +39,7 @@ index 06f60e8..68f854d 100644
  		nfct_close(cth);
  
  		if (dump_xml_header_done == 0) {
-@@ -2643,6 +2645,7 @@ int main(int argc, char *argv[])
+@@ -2677,6 +2679,7 @@ int main(int argc, char *argv[])
  			fflush(stdout);
  		}
  		break;
@@ -47,7 +47,7 @@ index 06f60e8..68f854d 100644
  
  	case CT_CREATE:
  		if ((options & CT_OPT_ORIG) && !(options & CT_OPT_REPL))
-@@ -2691,11 +2694,11 @@ int main(int argc, char *argv[])
+@@ -2725,11 +2728,11 @@ int main(int argc, char *argv[])
  
  		nfct_callback_register(cth, NFCT_T_ALL, update_cb, tmpl.ct);
  
@@ -61,7 +61,7 @@ index 06f60e8..68f854d 100644
  	case CT_DELETE:
  		cth = nfct_open(CONNTRACK, 0);
  		ith = nfct_open(CONNTRACK, 0);
-@@ -2764,22 +2767,25 @@ int main(int argc, char *argv[])
+@@ -2798,21 +2801,24 @@ int main(int argc, char *argv[])
  		cth = nfct_open(CONNTRACK, 0);
  		if (!cth)
  			exit_error(OTHER_PROBLEM, "Can't open handler");
@@ -84,13 +84,11 @@ index 06f60e8..68f854d 100644
  		fprintf(stderr, "%s v%s (conntrack-tools): ",PROGNAME,VERSION);
  		fprintf(stderr,"expectation table has been emptied.\n");
  		break;
--		
 +	}
-+
+ 
  	case CT_EVENT:
  		if (options & CT_OPT_EVENT_MASK) {
- 			unsigned int nl_events = 0;
-@@ -2892,15 +2898,18 @@ try_proc_count:
+@@ -2948,15 +2954,18 @@ try_proc_count:
  		break;
  	}
  	case EXP_COUNT:
@@ -171,5 +169,5 @@ index ddf4cf4..5014d5b 100644
 +	return nfexp_send(h, NFCT_Q_DUMP, &af);
  }
 -- 
-1.9.1
+2.24.0
 
