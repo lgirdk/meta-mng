@@ -42,7 +42,10 @@ CFLAGS += " \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wbCfgTestApp', '-DWEBCFG_TEST_SIM', '', d)} \
 "
 
-CFLAGS += "-D_DHCPV6_DEFAULT_STATELESS_"
+CFLAGS += " \
+    -D_DHCPV6_DEFAULT_STATELESS_ \
+    -D_DISABLE_WIFI_HEALTH_STATS_TO_NVRAM_ \
+"
 
 LDFLAGS += " \
     -lutctx \
