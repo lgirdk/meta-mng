@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=175792518e4ac015ab6696d16c4f607e"
 
 require recipes-ccsp/ccsp/ccsp_common.inc
 
-DEPENDS += "cjson curl rdklist libunpriv rbus"
+DEPENDS += "cjson curl rdklist libunpriv rbus utopia"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
@@ -35,10 +35,12 @@ do_install_append () {
 	install -d ${D}/usr/ccsp/telemetry
 	install -m 644 ${S}/config/CcspDmLib.cfg ${D}/usr/ccsp/telemetry/
 	install -m 644 ${S}/config/T2Agent.cfg ${D}/usr/ccsp/telemetry/
+	install -m 644 ${S}/source/bulkdata/conf/DCMresponse.txt ${D}/usr/ccsp/telemetry/
 
 	install -d ${D}/lib/rdk
 	install -m 755 ${S}/source/commonlib/t2Shared_api.sh ${D}/lib/rdk
 	install -m 755 ${S}/source/interChipHelper/scripts/interChipUtils.sh ${D}/lib/rdk/
+	install -m 755 ${S}/source/bulkdata/scripts/autodownload_dcmconfig.sh ${D}/lib/rdk/
 }
 
 FILES_${PN} += "/usr/ccsp /lib/rdk"
