@@ -14,6 +14,7 @@ SRC_URI = "git://github.com/tomaszmrugalski/dibbler \
            file://dibbler_fix_getSize_crash.patch \
            file://dibbler_crash_fix.patch \
            file://avoid-crash-in-delete_radvd_conf.patch \
+           file://fix-misguided-and-broken-usage-of-clock_gettime-CLOC.patch \
 "
 
 S = "${WORKDIR}/git"
