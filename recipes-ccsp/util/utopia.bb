@@ -158,7 +158,6 @@ do_install_append () {
     install -d ${D}${sysconfdir}/utopia/post.d
     install -d ${D}${sysconfdir}/utopia/registration.d
 
-#   ln -sf /usr/bin/01_init                     ${D}${sysconfdir}/utopia/registration.d/01_init
 #   ln -sf /usr/bin/01_system                   ${D}${sysconfdir}/utopia/registration.d/01_system
     ln -sf /usr/bin/02_bridge                   ${D}${sysconfdir}/utopia/registration.d/02_bridge
     ln -sf /usr/bin/02_forwarding               ${D}${sysconfdir}/utopia/registration.d/02_forwarding
