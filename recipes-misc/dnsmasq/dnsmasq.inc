@@ -16,9 +16,10 @@ SRC_URI = "http://www.thekelleys.org.uk/dnsmasq/${@['archive/', ''][float(d.getV
            file://dnsmasq.resolvconf \
            file://dnsmasq-resolvconf-helper \
            file://99_dnsmasq \
+           file://0001-update-default-user-group-nobody-dip-dnsmasq-dnsmasq.patch \
 "
 
-inherit pkgconfig update-rc.d systemd
+inherit pkgconfig update-rc.d systemd useradd
 
 PACKAGECONFIG ?= "rtc"
 
@@ -99,6 +100,9 @@ INITSCRIPT_NAME = "dnsmasq"
 INITSCRIPT_PARAMS = "defaults"
 
 CONFFILES_${PN} = "${sysconfdir}/dnsmasq.conf"
+
+USERADD_PACKAGES = "${PN}"
+USERADD_PARAM_${PN} = "--system --home /nonexistent -M --shell /bin/false --no-user-group --gid nogroup dnsmasq"
 
 RPROVIDES_${PN} += "${PN}-systemd"
 RREPLACES_${PN} += "${PN}-systemd"

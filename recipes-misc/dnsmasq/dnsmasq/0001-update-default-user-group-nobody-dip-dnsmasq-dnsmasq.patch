@@ -1,0 +1,50 @@
+From d0d7609a528efe147dcc6b253b3ed40e6f2bd26c Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Mon, 16 Nov 2020 15:52:22 -0800
+Subject: [PATCH] update default user/group ( nobody/dip -> dnsmasq/nogroup )
+
+Generally daemons should run under their own individual user/group
+IDs (instead of a generic unprivileged user) in order to isolate
+themselves from one another.
+
+Note that in full desktop distros the "dip" group enables access to
+/etc/ppp/resolv.conf (which is not normally world readable). We no
+longer rely on or support that.
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ src/config.h  | 4 ++--
+ src/dnsmasq.c | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/config.h b/src/config.h
+index 7187ffa..4a195c0 100644
+--- a/src/config.h
++++ b/src/config.h
+@@ -45,8 +45,8 @@
+ #define ETHERSFILE "/etc/ethers"
+ #define DEFLEASE 3600 /* default DHCPv4 lease time, one hour */
+ #define DEFLEASE6 (3600*24) /* default lease time for DHCPv6. One day. */
+-#define CHUSER "nobody"
+-#define CHGRP "dip"
++#define CHUSER "dnsmasq"
++#define CHGRP "nogroup"
+ #define TFTP_MAX_CONNECTIONS 50 /* max simultaneous connections */
+ #define LOG_MAX 5 /* log-queue length */
+ #define RANDFILE "/dev/urandom"
+diff --git a/src/dnsmasq.c b/src/dnsmasq.c
+index 2306c48..d60e091 100644
+--- a/src/dnsmasq.c
++++ b/src/dnsmasq.c
+@@ -463,7 +463,7 @@ int main (int argc, char **argv)
+   if (baduser)
+     die(_("unknown user or group: %s"), baduser, EC_BADCONF);
+ 
+-  /* implement group defaults, "dip" if available, or group associated with uid */
++  /* implement group defaults, value defined by CHGRP if available, or group associated with uid */
+   if (!daemon->group_set && !gp)
+     {
+       if (!(gp = getgrnam(CHGRP)) && ent_pw)
+-- 
+2.24.0
+
