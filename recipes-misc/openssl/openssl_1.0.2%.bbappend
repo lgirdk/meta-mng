@@ -26,11 +26,8 @@ EXTRA_OECONF_append_class-target = " \
 
 # Public Key Ciphers ( ** Skip "no-dsa" for now since it's required by ccsp-common-library ** )
 #
-EXTRA_OECONF_append_class-target = " \
-    no-ec \
-    no-ecdh \
-    no-ecdsa \
-"
+#EXTRA_OECONF_append_class-target = " \
+#"
 
 # Obsolete SSL versions
 #
