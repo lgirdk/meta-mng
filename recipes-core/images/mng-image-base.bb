@@ -22,6 +22,7 @@ IMAGE_INSTALL += " \
 IMAGE_INSTALL += " \
     dropbear \
     lrzsz \
+    openssl-bin \
     procps \
     tinymembench \
     ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', '', 'strace', d)} \
