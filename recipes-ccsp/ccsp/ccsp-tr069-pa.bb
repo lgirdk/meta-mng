@@ -33,6 +33,7 @@ do_install_append () {
 	install -m 644 ${S}/config/ccsp_tr069_pa_certificate_cfg_arm.xml  ${D}/usr/ccsp/tr069pa/ccsp_tr069_pa_certificate_cfg.xml
 	install -m 644 ${S}/config/ccsp_tr069_pa_cfg_arm.xml              ${D}/usr/ccsp/tr069pa/ccsp_tr069_pa_cfg.xml
 	install -m 644 ${S}/config/ccsp_tr069_pa_mapper_arm.xml           ${D}/usr/ccsp/tr069pa/ccsp_tr069_pa_mapper.xml
+	install -m 644 ${S}/config/custom_mapper.xml                      ${D}/usr/ccsp/tr069pa/custom_mapper.xml
 	install -m 644 ${S}/config/sdm_arm.xml                            ${D}/usr/ccsp/tr069pa/sdm.xml
 	install -m 644 ${S}/arch/intel_usg/config/url                     ${D}/usr/ccsp/tr069pa/url
 
