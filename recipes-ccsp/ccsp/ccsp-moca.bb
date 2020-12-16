@@ -48,6 +48,7 @@ do_install_append () {
 	install -m 644 ${S}/config/CcspMoCA.cfg ${D}/usr/ccsp/moca/
 	install -m 644 ${S}/config/CcspMoCADM.cfg ${D}/usr/ccsp/moca/
 	install -m 755 ${S}/scripts/MoCA_isolation.sh ${D}/usr/ccsp/moca/
+	install -m 755 ${S}/scripts/moca_whitelist_ctl.sh ${D}/usr/ccsp/moca/
 }
 
 FILES_${PN} += "/usr/ccsp"
