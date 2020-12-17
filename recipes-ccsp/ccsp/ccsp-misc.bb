@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=175792518e4ac015ab6696d16c4f607e"
 
 require ccsp_common.inc
 
-DEPENDS += "hal-platform trower-base64"
+DEPENDS += "hal-platform trower-base64 rdklist utopia"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
@@ -22,6 +22,10 @@ EXTRA_OECONF += " \
     ${@bb.utils.contains('DISTRO_FEATURES','multipartUtility','--enable-multipartUtilEnable=yes','',d)} \
     ${@bb.utils.contains('DISTRO_FEATURES','notifylease','--enable-notifylease','',d)} \
     ${@bb.utils.contains('DISTRO_FEATURES','wbCfgTestApp','--enable-wbCfgTestAppEnable','',d)} \
+"
+
+CFLAGS += " \
+    -I${STAGING_INCDIR}/syscfg \
 "
 
 do_install_append () {
