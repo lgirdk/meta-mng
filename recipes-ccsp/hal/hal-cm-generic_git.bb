@@ -9,10 +9,9 @@ RPROVIDES_${PN} = "hal-cm"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
-SRC_URI = "${LGI_RDKB_GIT}/hal.git;protocol=${LGI_RDKB_GIT_PROTOCOL};branch=${LGI_RDKB_GIT_BRANCH};name=cmhal"
+SRC_URI = "${LGI_RDKB_GIT}/hal.git;protocol=${LGI_RDKB_GIT_PROTOCOL};branch=${LGI_RDKB_GIT_BRANCH}"
 
-SRCREV_cmhal ?= "${AUTOREV}"
-SRCREV_FORMAT = "cmhal"
+SRCREV ?= "${AUTOREV}"
 
 S = "${WORKDIR}/git/source/cm"
 

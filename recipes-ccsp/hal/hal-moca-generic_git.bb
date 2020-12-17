@@ -9,10 +9,9 @@ RPROVIDES_${PN} = "hal-moca"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
-SRC_URI = "${LGI_RDKB_GIT}/hal.git;protocol=${LGI_RDKB_GIT_PROTOCOL};branch=${LGI_RDKB_GIT_BRANCH};name=mocahal"
+SRC_URI = "${LGI_RDKB_GIT}/hal.git;protocol=${LGI_RDKB_GIT_PROTOCOL};branch=${LGI_RDKB_GIT_BRANCH}"
 
-SRCREV_mocahal ?= "${AUTOREV}"
-SRCREV_FORMAT = "mocahal"
+SRCREV ?= "${AUTOREV}"
 
 S = "${WORKDIR}/git/source/moca"
 

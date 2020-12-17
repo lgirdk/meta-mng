@@ -9,10 +9,9 @@ RPROVIDES_${PN} = "hal-wifi"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
-SRC_URI = "${LGI_RDKB_GIT}/hal.git;protocol=${LGI_RDKB_GIT_PROTOCOL};branch=${LGI_RDKB_GIT_BRANCH};name=wifihal"
+SRC_URI = "${LGI_RDKB_GIT}/hal.git;protocol=${LGI_RDKB_GIT_PROTOCOL};branch=${LGI_RDKB_GIT_BRANCH}"
 
-SRCREV_wifihal ?= "${AUTOREV}"
-SRCREV_FORMAT = "wifihal"
+SRCREV ?= "${AUTOREV}"
 
 S = "${WORKDIR}/git/source/wifi"
 

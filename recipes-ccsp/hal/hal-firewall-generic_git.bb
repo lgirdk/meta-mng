@@ -9,10 +9,9 @@ RPROVIDES_${PN} = "hal-firewall"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
-SRC_URI = "${LGI_RDKB_GIT}/hal.git;protocol=${LGI_RDKB_GIT_PROTOCOL};branch=${LGI_RDKB_GIT_BRANCH};name=firewallhal"
+SRC_URI = "${LGI_RDKB_GIT}/hal.git;protocol=${LGI_RDKB_GIT_PROTOCOL};branch=${LGI_RDKB_GIT_BRANCH}"
 
-SRCREV_firewallhal ?= "${AUTOREV}"
-SRCREV_FORMAT = "firewallhal"
+SRCREV ?= "${AUTOREV}"
 
 S = "${WORKDIR}/git/source/firewall"
 

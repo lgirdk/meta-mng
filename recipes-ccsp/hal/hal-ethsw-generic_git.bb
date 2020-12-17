@@ -9,10 +9,9 @@ RPROVIDES_${PN} = "hal-ethsw"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
-SRC_URI = "${LGI_RDKB_GIT}/hal.git;protocol=${LGI_RDKB_GIT_PROTOCOL};branch=${LGI_RDKB_GIT_BRANCH};name=ethswhal"
+SRC_URI = "${LGI_RDKB_GIT}/hal.git;protocol=${LGI_RDKB_GIT_PROTOCOL};branch=${LGI_RDKB_GIT_BRANCH}"
 
-SRCREV_ethswhal ?= "${AUTOREV}"
-SRCREV_FORMAT = "ethswhal"
+SRCREV ?= "${AUTOREV}"
 
 S = "${WORKDIR}/git/source/ethsw"
 

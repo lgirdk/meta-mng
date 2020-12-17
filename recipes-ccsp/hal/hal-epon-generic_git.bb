@@ -9,10 +9,9 @@ RPROVIDES_${PN} = "hal-epon"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
-SRC_URI = "${LGI_RDKB_GIT}/hal.git;protocol=${LGI_RDKB_GIT_PROTOCOL};branch=${LGI_RDKB_GIT_BRANCH};name=eponhal"
+SRC_URI = "${LGI_RDKB_GIT}/hal.git;protocol=${LGI_RDKB_GIT_PROTOCOL};branch=${LGI_RDKB_GIT_BRANCH}"
 
-SRCREV_eponhal ?= "${AUTOREV}"
-SRCREV_FORMAT = "eponhal"
+SRCREV ?= "${AUTOREV}"
 
 S = "${WORKDIR}/git/source/epon"
 

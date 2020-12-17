@@ -9,10 +9,9 @@ RPROVIDES_${PN} = "hal-platform"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
-SRC_URI = "${LGI_RDKB_GIT}/hal.git;protocol=${LGI_RDKB_GIT_PROTOCOL};branch=${LGI_RDKB_GIT_BRANCH};name=platformhal"
+SRC_URI = "${LGI_RDKB_GIT}/hal.git;protocol=${LGI_RDKB_GIT_PROTOCOL};branch=${LGI_RDKB_GIT_BRANCH}"
 
-SRCREV_platformhal ?= "${AUTOREV}"
-SRCREV_FORMAT = "platformhal"
+SRCREV ?= "${AUTOREV}"
 
 S = "${WORKDIR}/git/source/platform"
 
