@@ -32,6 +32,10 @@ PACKAGECONFIG[resolvconf] = ",,,resolvconf"
 PACKAGECONFIG[dnssec] = ",,nettle gmp"
 PACKAGECONFIG[rtc] = ",,"
 
+ASNEEDED = ""
+
+LDFLAGS_append_libc-glibc = " -lmcheck"
+
 EXTRA_OEMAKE = "\
     'COPTS=${@bb.utils.contains('PACKAGECONFIG', 'dbus', '-DHAVE_DBUS', '', d)} \
            ${@bb.utils.contains('PACKAGECONFIG', 'idn', '-DHAVE_IDN', '', d)} \
