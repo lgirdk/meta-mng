@@ -16,8 +16,12 @@ SRC_URI += "file://0001-include-fingerprint-information-in-dhcp-server-lease.pat
 # created, or an old one destroyed. (Because those are the only times 
 # it changes.) This vastly reduces the number of file writes, and makes
 # it viable to keep the lease file on a flash filesystem.
+#
+# Unfortunately, there is code within RDKB which expects to parse the
+# dnsmasq leases file to support Device.Hosts.Host.1.LeaseTimeRemaining
+# etc, so we can't make use of this option. Fixme: to be reviewed.
 
-PACKAGECONFIG_remove = "rtc"
+# PACKAGECONFIG_remove = "rtc"
 
 # ----------------------------------------------------------------------------
 
