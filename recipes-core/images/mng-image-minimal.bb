@@ -11,6 +11,8 @@ IMAGE_INSTALL_append_qemuall = " strace"
 
 BAD_RECOMMENDATIONS += "ca-certificates"
 
+BAD_RECOMMENDATIONS += "openssl-conf"
+
 SPLASH = ""
 
 inherit image
