@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57"
 
 require ccsp_common.inc
 
-DEPENDS += "utopia hal-moca telemetry avro-c cimplog curl libparodus libxml2 msgpack-c nanomsg trower-base64 util-linux wrp-c"
+DEPENDS += "utopia hal-ethsw hal-moca telemetry avro-c cimplog curl libparodus libxml2 msgpack-c nanomsg trower-base64 util-linux wrp-c"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
