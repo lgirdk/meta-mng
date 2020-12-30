@@ -1,0 +1,37 @@
+From 59f6b912ece72279c67ae06a10edfbd206d56417 Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Tue, 29 Dec 2020 16:56:21 -0800
+Subject: [PATCH] fix build when openssl is configured without MD4 support
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ src/sys-crypto-md.h | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/src/sys-crypto-md.h b/src/sys-crypto-md.h
+index 4b320ed..126778a 100644
+--- a/src/sys-crypto-md.h
++++ b/src/sys-crypto-md.h
+@@ -347,10 +347,18 @@ SHA256_Update(SHA256_CTX *ctx, const void *data, size_t length)
+ 
+ #elif defined(USE_OPENSSL_CRYPTO)
+ 
+-#include <openssl/md4.h>
++/*
++   If openssl is configured without MD4 support then #include <openssl/md4.h>
++   will fail (as the header is not installed). Therefore include opensslconf.h
++   first to give access to all the OPENSSL_NO_xxx definitions. md4.h can then
++   be included conditionally if OPENSSL_NO_MD4 is not defined.
++*/
++#include <openssl/opensslconf.h>
++
+ #include <openssl/md5.h>
+ #include <openssl/sha.h>
+ #ifndef OPENSSL_NO_MD4
++#include <openssl/md4.h>
+ #define USE_LIB_CRYPTO_MD4
+ #endif
+ #ifndef OPENSSL_NO_MD5
+-- 
+2.24.0
+

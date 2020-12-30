@@ -17,11 +17,11 @@ SRC_URI = "http://download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-${PV}.t
         file://lighttpd.conf \
         file://lighttpd \
         file://0001-Use-pkg-config-for-pcre-dependency-instead-of-config.patch \
-        file://0001-drop-dependency-on-Openssl-md4-support-temp-solution.patch \
+        file://0001-fix-build-when-openssl-is-configured-without-md4-sup.patch \
         "
 
-SRC_URI[md5sum] = "be4bda2c28bcbdac6eb941528f6edf03"
-SRC_URI[sha256sum] = "6a0b50e9c9d5cc3d9e48592315c25a2d645858f863e1ccd120507a30ce21e927"
+SRC_URI[md5sum] = "9d94f68c8106bfcdfe7aafa0a13f45a8"
+SRC_URI[sha256sum] = "e4ce84cd79e8ae8ba193c7a7cc79c4afba9a076b443ef9f8d4bcd13a3354df77"
 
 PACKAGECONFIG ??= "openssl pcre zlib \
     ${@bb.utils.contains('DISTRO_FEATURES', 'ipv6', 'ipv6', '', d)} \
