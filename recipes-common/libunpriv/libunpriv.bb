@@ -13,3 +13,9 @@ SRCREV ?= "${AUTOREV}"
 S = "${WORKDIR}/git"
 
 inherit autotools pkgconfig
+
+do_install_append () {
+	# Install the RDKB specific version of process-capabilities.json
+	install -d ${D}${sysconfdir}/security/caps
+	install -m 644 ${S}/source/process-capabilities_rdkb.json ${D}${sysconfdir}/security/caps/process-capabilities.json
+}
