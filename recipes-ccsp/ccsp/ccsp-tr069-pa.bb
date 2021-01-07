@@ -24,8 +24,6 @@ CFLAGS += " \
 
 LDFLAGS += " \
     -ltelemetry_msgsender \
-    -lcjson \
-    -lm \
 "
 
 do_install_append () {
