@@ -1,0 +1,116 @@
+From 95baf12b7b55eeabe0bf6e3bd62863f5a06d2a12 Mon Sep 17 00:00:00 2001
+From: Tarun Saha <tsaha@libertyglobal.com>
+Date: Thu, 7 Jan 2021 13:45:32 -0800
+Subject: [PATCH] add client support for SOL_MAX_RT option
+
+References:
+
+ - IETF RFC 3315 "Dynamic Host Configuration Protocol for IPv6 (DHCPv6)" Section 14: Reliability of Client Initiated Message Exchanges
+   https://tools.ietf.org/html/rfc3315#section-14
+
+ - IETF RFC 3315 "Dynamic Host Configuration Protocol for IPv6 (DHCPv6)" Section 17.1.2: Transmission of Solicit Message
+   https://tools.ietf.org/html/rfc3315#section-17.1.2
+
+ - IETF RFC 7083 "DHCPv6 SOL_MAX_RT Option" Section 6: Updates for SOL_MAX_RT and INF_MAX_RT Options to RFC 3315
+   https://tools.ietf.org/html/rfc7083#section-6
+
+Test procedure:
+
+ 1.  Configure DHCPv6 server to use Max Solicit Timeout Option (82)
+ 2.  Wait for DHCPv6 client's current non-temporary address binding
+     to expire
+ 3.  Do not respond to Renew, Rebind or Solicit messages from client
+ 4.  Verify client sends Solicit message
+ 5.  Verify client uses the value of the Max Solicit Timeout option
+     returned by the DHCPv6 server to limit the maximum delay for
+     retransmissions of its Solicit message
+---
+ ClntMessages/ClntMsg.cpp        |  3 +++
+ ClntMessages/ClntMsgSolicit.cpp | 13 ++++++++++++-
+ ClntMessages/ClntMsgSolicit.h   |  1 +
+ Misc/DHCPConst.h                |  2 ++
+ 4 files changed, 18 insertions(+), 1 deletion(-)
+
+diff --git a/ClntMessages/ClntMsg.cpp b/ClntMessages/ClntMsg.cpp
+index 84c9c5de..c48efd0f 100644
+--- a/ClntMessages/ClntMsg.cpp
++++ b/ClntMessages/ClntMsg.cpp
+@@ -223,6 +223,9 @@ TClntMsg::TClntMsg(int iface, SPtr<TIPv6Addr> addr, char* buf, int bufSize)
+ 	    Log(Warning) << "Option " << code<< " in message "
+ 			 << MsgType << " is not supported." << LogEnd;
+ 	    break;
++	case OPTION_SOL_MAX_RT:
++	    ptr = new TOptInteger(code, length, buf+pos, bufSize, this);
++	    break;
+ 	default:
+ 	    ptr = parseExtraOption(buf+pos, code, length);
+ 	    if (!ptr)
+diff --git a/ClntMessages/ClntMsgSolicit.cpp b/ClntMessages/ClntMsgSolicit.cpp
+index 06be83f0..6ace86e8 100644
+--- a/ClntMessages/ClntMsgSolicit.cpp
++++ b/ClntMessages/ClntMsgSolicit.cpp
+@@ -27,9 +27,12 @@
+ #include "ClntOptElapsed.h"
+ #include "ClntOptPreference.h"
+ #include "OptEmpty.h"
++#include "OptGeneric.h"
+ #include <cmath>
+ #include "Logger.h"
+ 
++unsigned int TClntMsgSolicit::SolMaxRT = SOL_MAX_RT;
++
+ TClntMsgSolicit::TClntMsgSolicit(int iface, SPtr<TIPv6Addr> addr,
+ 				 List(TClntCfgIA) iaLst, 
+ 				 SPtr<TClntCfgTA> ta,
+@@ -38,7 +41,7 @@ TClntMsgSolicit::TClntMsgSolicit(int iface, SPtr<TIPv6Addr> addr,
+     :TClntMsg(iface, addr, SOLICIT_MSG)
+ {
+     IRT=SOL_TIMEOUT;
+-    MRT=SOL_MAX_RT;
++    MRT=TClntMsgSolicit::SolMaxRT;
+     MRC=0; //these both below mean there is no ending condition and transactions
+     MRD=0; //lasts till receiving answer
+     RT=0;
+@@ -119,6 +122,14 @@ void TClntMsgSolicit::answer(SPtr<TClntMsg> msg)
+ 	return;
+     }
+ 
++    SPtr<TOpt> ptrOpt = msg->getOption(OPTION_SOL_MAX_RT);
++    if (ptrOpt) {
++        SPtr<TOptInteger> solMaxRtOpt = SPtr_cast<TOptInteger>(ptrOpt);
++        TClntMsgSolicit::SolMaxRT = solMaxRtOpt->getValue();
++        MRT = TClntMsgSolicit::SolMaxRT;
++        Log(Info) << "Received SOL_MAX_RT from server: " << TClntMsgSolicit::SolMaxRT << LogEnd;
++    }
++
+     switch (msg->getType()) {
+     case ADVERTISE_MSG:
+     {
+diff --git a/ClntMessages/ClntMsgSolicit.h b/ClntMessages/ClntMsgSolicit.h
+index 4789f95d..e4fba0c3 100644
+--- a/ClntMessages/ClntMsgSolicit.h
++++ b/ClntMessages/ClntMsgSolicit.h
+@@ -26,6 +26,7 @@ public:
+                   List(TClntCfgPD) pdLst, bool rapid=false,
+ 		  bool remoteAutoconf = false);
+ 
++    static unsigned int SolMaxRT;
+     void answer(SPtr<TClntMsg> msg);
+ 
+     void doDuties();
+diff --git a/Misc/DHCPConst.h b/Misc/DHCPConst.h
+index 2786d5cb..7f04a976 100644
+--- a/Misc/DHCPConst.h
++++ b/Misc/DHCPConst.h
+@@ -156,6 +156,8 @@
+ // draft-ietf-softwire-ds-lite-tunnel-option-10, approved by IESG
+ #define OPTION_AFTR_NAME        64
+ 
++#define OPTION_SOL_MAX_RT       82
++
+ // RFC6939
+ #define OPTION_CLIENT_LINKLAYER_ADDR 79
+ 
+-- 
+2.24.0
+
