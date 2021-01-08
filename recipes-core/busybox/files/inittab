@@ -10,16 +10,13 @@
 ::sysinit:/bin/mount -a
 ::sysinit:/bin/ln -s /run /var/run
 ::sysinit:/bin/mkdir -p /var/lib/misc /var/lock /var/log /var/tmp
+::sysinit:/bin/hostname -F /etc/hostname
 
 ::sysinit:/etc/init.d/rcS
 
 # Stuff to do before rebooting
-::ctrlaltdel:/sbin/reboot
 ::shutdown:/etc/init.d/rcK
 ::shutdown:/bin/umount -a -r
 
 # Stuff to do when restarting the init process
 ::restart:/sbin/init
-
-# set hostname
-null::sysinit:/bin/busybox hostname -F /etc/hostname
