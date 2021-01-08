@@ -1,0 +1,28 @@
+From af1365d60809e34b06049fa1c15ff45811e82a65 Mon Sep 17 00:00:00 2001
+From: Jordan Bayles <jophba@chromium.org>
+Date: Mon, 16 Sep 2019 12:27:59 -0700
+Subject: [PATCH] Issue 1021: Fix clang 10 compilation (#1023)
+
+This patch fixes an implicit long to double conversion, fixing
+compilation on the as-of-yet unreleased clang v10.
+---
+ src/lib_json/json_value.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/lib_json/json_value.cpp b/src/lib_json/json_value.cpp
+index 91d4802..62b9475 100644
+--- a/src/lib_json/json_value.cpp
++++ b/src/lib_json/json_value.cpp
+@@ -69,8 +69,7 @@ template <typename T, typename U>
+ static inline bool InRange(double d, T min, U max) {
+   // The casts can lose precision, but we are looking only for
+   // an approximate range. Might fail on edge cases though. ~cdunn
+-  //return d >= static_cast<double>(min) && d <= static_cast<double>(max);
+-  return d >= min && d <= max;
++  return d >= static_cast<double>(min) && d <= static_cast<double>(max);
+ }
+ #else  // if !defined(JSON_USE_INT64_DOUBLE_CONVERSION)
+ static inline double integerToDouble(Json::UInt64 value) {
+-- 
+2.24.0
+
