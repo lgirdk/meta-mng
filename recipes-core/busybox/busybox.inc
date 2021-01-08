@@ -1,6 +1,6 @@
 SUMMARY = "Tiny versions of many common UNIX utilities in a single small executable"
 DESCRIPTION = "BusyBox combines tiny versions of many common UNIX utilities into a single small executable. It provides minimalist replacements for most of the utilities you usually find in GNU fileutils, shellutils, etc. The utilities in BusyBox generally have fewer options than their full-featured GNU cousins; however, the options that are included provide the expected functionality and behave very much like their GNU counterparts. BusyBox provides a fairly complete POSIX environment for any small or embedded system."
-HOMEPAGE = "http://www.busybox.net"
+HOMEPAGE = "https://www.busybox.net"
 BUGTRACKER = "https://bugs.busybox.net/"
 
 DEPENDS += "kern-tools-native virtual/crypt"
@@ -129,7 +129,9 @@ do_prepare_config () {
 		${S}/.config.oe-tmp > ${S}/.config
 	fi
 	sed -i 's/CONFIG_IFUPDOWN_UDHCPC_CMD_OPTIONS="-R -n"/CONFIG_IFUPDOWN_UDHCPC_CMD_OPTIONS="-R -b"/' ${S}/.config
-	sed -i 's|${DEBUG_PREFIX_MAP}||g' ${S}/.config
+	if [ -n "${DEBUG_PREFIX_MAP}" ]; then
+		sed -i 's|${DEBUG_PREFIX_MAP}||g' ${S}/.config
+	fi
 }
 
 # returns all the elements from the src uri that are .cfg files
