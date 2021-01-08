@@ -6,7 +6,7 @@ DEPENDS = "msgpack-c rdk-logger"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
-SRC_URI = "${LGI_RDKB_GIT}/rbuscore.git;protocol=${LGI_RDKB_GIT_PROTOCOL};branch=${LGI_RDKB_GIT_BRANCH}"
+SRC_URI = "${LGI_RDKB_GIT}/rbuscore${LGI_RDKB_GIT_SUFFIX};protocol=${LGI_RDKB_GIT_PROTOCOL}${LGI_RDKB_GIT_EXTRAOPT}"
 
 SRCREV ?= "${AUTOREV}"
 

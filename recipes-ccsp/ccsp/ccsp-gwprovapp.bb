@@ -8,7 +8,7 @@ DEPENDS += "utopia telemetry cimplog halinterface hal-cm"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
-SRC_URI = "${LGI_RDKB_GIT}/gwprovapp.git;protocol=${LGI_RDKB_GIT_PROTOCOL};branch=${LGI_RDKB_GIT_BRANCH}"
+SRC_URI = "${LGI_RDKB_GIT}/gwprovapp${LGI_RDKB_GIT_SUFFIX};protocol=${LGI_RDKB_GIT_PROTOCOL}${LGI_RDKB_GIT_EXTRAOPT}"
 
 SRCREV ?= "${AUTOREV}"
 
