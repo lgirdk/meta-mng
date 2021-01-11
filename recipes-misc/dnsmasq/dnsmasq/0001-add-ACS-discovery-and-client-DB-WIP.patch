@@ -79,7 +79,7 @@ index fc54aab..8023f3a 100644
 +		      vendor_serial[0] = 0;
 +		      vendor_class[0] = 0;
 +
-+		      while (oui[x] != OPTION_END || x < elen)
++		      while (x < elen && mess_type == DHCPREQUEST) // Allow all feasible Manageable Devices to be added into the dhcp_vendor_client file
 +		      {
 +		          if (oui[x] == VENDOR_OPT_OUI_TYPE)
 +		          {
