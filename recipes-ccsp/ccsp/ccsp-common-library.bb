@@ -71,6 +71,8 @@ do_install_append () {
 	install -m 755 ${S}/scripts/rbusFlagSync.sh ${D}/usr/ccsp/
 	install -m 755 ${S}/scripts/rbus_status_logger.sh ${D}/usr/ccsp/
 
+	install -m 644 ${S}/source/ccsp/components/CCSP_AliasMgr/custom_mapper.xml ${D}/usr/ccsp/
+
 	install -d ${D}/usr/ccsp/cm
 	install -d ${D}/usr/ccsp/mta
 	install -d ${D}/usr/ccsp/pam
