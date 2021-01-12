@@ -22,7 +22,6 @@ PROJECT_BRANCH ?= "default"
 python create_version_file() {
     version_file = os.path.join(d.getVar("IMAGE_ROOTFS", True), 'version.txt')
     image_name = d.getVar("IMAGE_NAME", True)
-    machine = d.getVar("MACHINE", True).upper()
     branch = d.getVar("PROJECT_BRANCH", True)
     release_version = d.getVar("RELEASE_VERSION", True) or '0.0.0.0'
     release_spin = d.getVar("RELEASE_SPIN", True) or '0'
