@@ -1,0 +1,393 @@
+#!/bin/bash
+
+# author: Sly Midnight
+# This script was tested on OpenBSD, but it is likely to work on other BSDs as well.
+
+source /etc/utopia/service.d/log_env_var.sh
+source /etc/utopia/service.d/log_capture_path.sh
+LOGFILE=/var/lib/dibbler/client.sh-log
+
+# uncomment this to get full list of available variables
+set >> $LOGFILE
+RESOLV_CONF="/etc/resolv.conf"
+RESOLV_CONF_TMP="/tmp/resolv_tmp.conf"
+R=""
+
+mta_dhcp_option_received=0
+echo "-----------" >> $LOGFILE
+
+convertval()
+{
+    IP_MODE=$2
+    LEN=$3
+    # For ipv4 we need to convert value into decimal
+    if [ "$IP_MODE" = "v4" ];then
+        APPEND_TO_VAL="."
+        hex=`echo $1 | sed "s/.\{$LEN\}/& /g"`
+        for i in $hex
+        do
+                dec_val=`echo -en $((16#$i))`
+                formatted_val="$formatted_val""$dec_val""$APPEND_TO_VAL"
+        done
+    else
+        # Add : after 4 characters to get the ipv6 address
+        formatted_val=`echo $1 | sed "s/.\{$LEN\}/&:/g"`
+    fi
+    echo "$formatted_val" | sed 's/.$//'
+
+    #echo "${bkup::-1}"
+}
+
+parse_dhcp_option()
+{
+
+    dhcp_option_val=$1
+    dhcp_option_val=`echo "${dhcp_option_val//:}"`
+
+    # to count number of characters in suboption value in a dhcp option
+    VAL=2
+
+    OPTION_FORMAT=""
+    IP_MODE=$2
+    if [ "$IP_MODE" = "v4" ]; then
+        LEN=2
+    else
+        LEN=4
+    fi
+    EQUAL="="
+    PRINT_FROM_INDEX=$((LEN+1))
+    while [ "$dhcp_option_val" != "" ]
+    do
+        SUBOPTION=`echo $dhcp_option_val | awk '{print substr ($0, 0, LEN)}' LEN=$LEN`
+
+        dhcp_option_val=`echo "$dhcp_option_val" | awk '{print substr($0,CUR)}' CUR=$PRINT_FROM_INDEX`
+        SUBOPTION_LENGTH=`echo $dhcp_option_val | awk '{print substr ($0, 0, LEN)}' LEN=$LEN`
+        dhcp_option_val=`echo "$dhcp_option_val" | awk '{print substr($0,CUR)}' CUR=$PRINT_FROM_INDEX`
+        SUBOPTION_LENGTH=`echo $((16#$SUBOPTION_LENGTH))`
+        #SUBOPTION_LENGTH=`echo "ibase=16; $SUBOPTION_LENGTH" | bc`
+
+        LENGTH=`echo $(($SUBOPTION_LENGTH * $VAL))`
+        SUBOPTION_VALUE=`echo "$dhcp_option_val" | awk '{print substr ($0, 0, v1)}' v1=$LENGTH`
+       # SUBOPTION_VALUE=`convertval $SUBOPTION_VALUE $IP_MODE $LEN`
+        if [ "$OPTION_FORMAT" = "" ];then
+                OPTION_FORMAT="$SUBOPTION""$EQUAL""$SUBOPTION_VALUE"
+        else
+                OPTION_FORMAT="$OPTION_FORMAT"" ""$SUBOPTION""$EQUAL""$SUBOPTION_VALUE"
+        fi
+
+        SUBOPTION_LENGTH=$((LENGTH+1))
+        dhcp_option_val=`echo "$dhcp_option_val" | cut -c "$SUBOPTION_LENGTH"-`
+        done
+
+     echo "$OPTION_FORMAT"
+
+}
+RESOLV_CONF_override_needed=0
+
+if [ "$OPTION_NEXT_HOP" != "" ]; then
+
+    ip -6 route del default > /dev/null 2>&1
+    ip -6 route add default via ${OPTION_NEXT_HOP} dev $IFACE
+    echo "Added default route via ${OPTION_NEXT_HOP} on interface $IFACE/$IFINDEX" >> $LOGFILE
+
+fi
+
+if [ "$OPTION_NEXT_HOP_RTPREFIX" != "" ]; then
+
+    NEXT_HOP=`echo ${OPTION_NEXT_HOP_RTPREFIX} | awk '{print $1}'`
+    NETWORK=`echo ${OPTION_NEXT_HOP_RTPREFIX} | awk '{print $2}'`
+    #LIFETIME=`echo ${OPTION_NEXT_HOP_RTPREFIX} | awk '{print $3}'`
+    METRIC=`echo ${OPTION_NEXT_HOP_RTPREFIX} | awk '{print $4}'`
+
+    if [ "$NETWORK" == "::/0" ]; then
+
+        ip -6 route del default > /dev/null 2>&1
+        ip -6 route add default via ${OPTION_NEXT_HOP} dev $IFACE
+        echo "Added default route via  ${OPTION_NEXT_HOP} on interface $IFACE/$IFINDEX" >> $LOGFILE
+
+    else
+
+        ip -6 route add ${NETWORK} nexthop via ${NEXT_HOP} dev $IFACE weight ${METRIC}
+        echo "Added nexthop to network ${NETWORK} via ${NEXT_HOP} on interface $IFACE/$IFINDEX, metric ${METRIC}" >> $LOGFILE
+
+    fi
+
+fi
+
+if [ "$OPTION_RTPREFIX" != "" ]; then
+
+    ONLINK=`echo ${OPTION_RTPREFIX} | awk '{print $1}'`
+    METRIC=`echo ${OPTION_RTPREFIX} | awk '{print $3}'`
+    ip -6 route add ${ONLINK} dev $IFACE onlink metric ${METRIC}
+    echo "Added route to network ${ONLINK} on interface $IFACE/$IFINDEX onlink, metric ${METRIC}" >> $LOGFILE
+
+fi
+
+
+if [ "$ADDR1" != "" ]; then
+    echo "Address ${ADDR1} (operation $1) to client $REMOTE_ADDR on inteface $IFACE/$IFINDEX" >> $LOGFILE
+    sysevent set ipv6-status up
+    sysevent set wan6_ipaddr "${ADDR1}"
+    sysevent set wan_service-status started
+    service_routed route-set
+
+else
+    echo "Address received as NULL" >> $LOGFILE
+    ADDR1="NULL"
+    ADDR1PREF=0
+    ADDR1VALID=0
+fi
+ADDR1T1=$((ADDR1PREF * 50 / 100))
+ADDR1T2=$((ADDR1PREF * 80 / 100))
+
+if [ "$SRV_OPTION31" != "" ]; then
+  echo "Option Sntp Server  ${SRV_OPTION31} (operation $1) to client $REMOTE_ADDR on inteface $IFACE/$IFINDEX" >> $LOGFILE
+  OLD_SRV_OPTION31=`sysevent get wan6_ntp_srv`
+  if [ "$SRV_OPTION31" != "$OLD_SRV_OPTION31" ]; then
+    sysevent set wan6_ntp_srv "$SRV_OPTION31"
+    if [ -f /usr/ccsp/updateTimesyncdConf.sh ]; then
+      /usr/ccsp/updateTimesyncdConf.sh
+    else
+      sed -i "/\<NTP\>/ s/$/ $SRV_OPTION31/" "/etc/systemd/timesyncd.conf"
+    fi
+  fi
+fi
+
+suboption=""
+suboption_data=""
+if [ "$SRV_OPTION17" != "" ]; then
+  for j in $SRV_OPTION17; do
+    suboption=`echo $j | cut -d = -f 1`
+    suboption_data=`echo $j | cut -d = -f 2`
+    case "$suboption" in
+        "vendor")
+        echo "Suboption vendor-id is $suboption_data in option $SRV_OPTION17" >> $LOGFILE
+        sysevent set ipv6-vendor-id "$suboption_data"
+        ;;
+        "38")
+        echo "Suboption TimeOffset is  $suboption_data in option $SRV_OPTION17" >> $LOGFILE
+        sysevent set ipv6-timeoffset "$suboption_data"
+        ;;
+        "39")
+         echo "Suboption IP Mode Preference is  $suboption_data in option $SRV_OPTION17" 
+         sysevent set wan6_ippref "$suboption_data"
+            Mta_Ip_Pref=`sysevent get MTA_IP_PREF`
+            if [ "$Mta_Ip_Pref" = "" ];then
+                echo "Setting MTA_IP_PREF value to $suboption_data" 
+                sysevent set MTA_IP_PREF $suboption_data
+                mta_dhcp_option_received=1
+            else
+                echo "Mta_Ip_Pref value is already set to $Mta_Ip_Pref"
+            fi
+        ;;
+        "2")
+        echo "Suboption Device Type is $suboption_data in option $SRV_OPTION17" >> $LOGFILE
+        sysevent set ipv6-device-type "$suboption_data"
+        ;;
+        "3")
+        echo "Suboption List of Embedded Components in eDOCSIS Device is $suboption_data in option $SRV_OPTION17" >> $LOGFILE
+        sysevent set ipv6-embd-comp-in-device "$suboption_data"
+        ;;
+        "2170")
+        echo "Suboption List of Embedded Components in eDOCSIS Device is $suboption_data in option $SRV_OPTION17" 
+                  parsed_value=""
+                  parsed_value=`parse_dhcp_option $suboption_data v6`
+                  echo "SUBOPT2170 parsed value is $parsed_value"
+
+                  suboption=""
+                  suboption_data=""
+                  for val in $parsed_value; do
+
+                        suboption=`echo $val | cut -d = -f 1`
+                        suboption_data=`echo $val | cut -d = -f 2`
+                        case "$suboption" in
+                        "0001")
+                                echo "Suboption is $suboption and value is $suboption_data"
+                                mta_v4_primary=`sysevent get MTA_DHCPv4_PrimaryAddress`
+                                if [ "$mta_v4_primary" = "" ] ;then
+                                       echo "Setting MTA_DHCPv4_PrimaryAddress value as $suboption_data "
+                                        sysevent set MTA_DHCPv4_PrimaryAddress $suboption_data
+                                       mta_dhcp_option_received=1
+                                fi
+                        ;;
+                        "0002")
+
+                                echo "Suboption is $suboption and value is $suboption_data"
+                                mta_v4_secondary=`sysevent get MTA_DHCPv4_SecondaryAddress`
+                                if [ "$mta_v4_secondary" = "" ] ;then
+                                        echo "Setting MTA_DHCPv4_SecondaryAddress value as $suboption_data "
+                                        sysevent set MTA_DHCPv4_SecondaryAddress $suboption_data
+                                       mta_dhcp_option_received=1
+                                fi
+
+                        ;;
+                        esac
+
+                   done
+                   ;;
+        "2171")
+        echo "Suboption List of Embedded Components in eDOCSIS Device is $suboption_data in option $SRV_OPTION17" 
+                 parsed_value=""
+                 parsed_value=`parse_dhcp_option $suboption_data v6`
+                 echo "SUBOPT2171 parsed value is $parsed_value"
+
+                  suboption=""
+                  suboption_data=""
+                  for val in $parsed_value; do
+
+                        suboption=`echo $val | cut -d = -f 1`
+                        suboption_data=`echo $val | cut -d = -f 2`
+                        case "$suboption" in
+                        "0001")
+                                echo "Suboption is $suboption and value is $suboption_data"
+                                mta_v4_primary=`sysevent get MTA_DHCPv6_PrimaryAddress`
+                                if [ "$mta_v4_primary" = "" ] ;then
+                                                 echo "Setting MTA_DHCPv6_PrimaryAddress value as $suboption_data "
+                                        sysevent set MTA_DHCPv6_PrimaryAddress $suboption_data
+                                               mta_dhcp_option_received=1
+                                fi
+                        ;;
+                        "0002")
+
+                                echo "Suboption is $suboption and value is $suboption_data"
+                                mta_v4_secondary=`sysevent get MTA_DHCPv6_SecondaryAddress`
+                                if [ "$mta_v4_secondary" = "" ] ;then
+                                        echo "Setting MTA_DHCPv6_SecondaryAddress value as $suboption_data "
+                                        sysevent set MTA_DHCPv6_SecondaryAddress $suboption_data
+                                               mta_dhcp_option_received=1
+                                fi
+
+                        ;;
+                       esac
+
+                   done
+        ;;
+
+     esac
+  done
+fi
+
+if [ "$mta_dhcp_option_received" -eq 1 ];then
+        echo "Setting dhcp_mta_option event as received"
+        sysevent set dhcp_mta_option received
+        mta_dhcp_option_received=0
+fi
+
+if [ "$SRV_OPTION23" != "" ] && [ "$SRV_OPTION23" != ":: " ]; then
+     cp $RESOLV_CONF $RESOLV_CONF_TMP
+     echo "comapring old and new dns IPV6 configuration " >> $CONSOLEFILE
+     RESOLV_CONF_override_needed=0
+     for i in $SRV_OPTION23; do
+        new_ipv6_dns_server="nameserver $i"
+        dns_matched=`grep "$new_ipv6_dns_server" "$RESOLV_CONF_TMP"`
+        if [ "$dns_matched" = "" ]; then
+                echo "$new_ipv6_dns_server is not present in old dns config so resolv_conf file overide is required " >> $CONSOLEFILE
+                RESOLV_CONF_override_needed=1
+                break
+        fi
+     done
+
+   if [ "$RESOLV_CONF_override_needed" -eq 1 ]; then
+     dns=`sysevent get wan6_ns`
+     if [ "$dns" != "" ]; then
+        echo "Removing old DNS IPV6 SERVER configuration from resolv.conf " >> $CONSOLEFILE
+        for i in $dns; do
+                dns_server="nameserver $i"
+                sed -i "/$dns_server/d" "$RESOLV_CONF_TMP"
+        done
+     fi
+        for i in $SRV_OPTION23; do
+         R="${R}nameserver $i
+"
+        done
+
+        echo -n "$R" >> "$RESOLV_CONF_TMP"
+        echo "Adding new IPV6 DNS SERVER to resolv.conf " >> $CONSOLEFILE
+        N=""
+        while read line; do
+        N="${N}$line
+"
+        done < $RESOLV_CONF_TMP
+
+        echo -n "$N" > "$RESOLV_CONF"
+
+        if [ -f /tmp/ipv6_renew_dnsserver_restart ]; then
+                echo "After renew change in IPV6 dns config so restarting dhcp-server(dnsmasq) " >> $CONSOLEFILE
+                sysevent set dhcp_server-stop
+                sysevent set dhcp_server-start
+        fi
+        touch /tmp/ipv6_renew_dnsserver_restart
+   else
+
+	echo "old and new IPV6 dns config are same no resolv_conf file override required " >> $CONSOLEFILE
+   fi
+       rm -rf $RESOLV_CONF_TMP
+
+     sysevent set wan6_ns "$SRV_OPTION23"
+     sysevent set ipv6_nameserver "$SRV_OPTION23"
+fi
+
+if [ "$SRV_OPTION24" != "" ]; then
+    sysevent set wan6_domain $SRV_OPTION24
+fi
+
+if [ "$SRV_OPTION64" != "" ]; then
+    sysevent set dslite_dhcpv6_endpointname $SRV_OPTION64
+    sysevent set dslite_option64-status "received"
+    echo "DHCP DS-Lite Option 64 received value: $SRV_OPTION64" >> $LOGFILE
+else
+    sysevent set dslite_dhcpv6_endpointname ""
+    sysevent  set dslite_option64-status "not received"
+    echo "DHCP DS-Lite Option 64 not received" >> $LOGFILE
+fi
+
+if [ "$PREFIX1" != "" ]; then
+    echo "Prefix ${PREFIX1} (operation $1) to client $REMOTE_ADDR on inteface $IFACE/$IFINDEX" >> $LOGFILE
+
+    PREV_PREFIX=`sysevent get wan6_prefix`
+    PREV_PREFIXLEN=`sysevent get wan6_prefixlen`
+    if [ "$PREV_PREFIX" != "$PREFIX1" ]; then
+    	ip -6 addr del ${PREV_PREFIX}1/${PREV_PREFIXLEN} dev brlan0
+    fi
+
+    sysevent set wan6_prefix $PREFIX1
+    sysevent set wan6_prefixlen $PREFIX1LEN
+   # ip -6 addr add ${PREFIX1}1/${PREFIX1LEN} dev brlan0
+else
+    echo "Prefix received as NULL" >> $LOGFILE
+    PREFIX1="NULL"
+    PREFIX1PREF=0
+    PREFIX1VALID=0
+fi
+PREFIX1T1=$((PREFIX1PREF * 50 / 100))
+PREFIX1T2=$((PREFIX1PREF * 80 / 100))
+
+dns=`sysevent get wan6_ns`
+
+if [ -f /tmp/.ipv6dnsserver ]; then
+    for i in $dns; do
+        result=`grep $i /tmp/.ipv6dnsserver`
+        if [ "$result" == "" ];then
+            utc_time=`date -u`
+            uptime=`cat /proc/uptime | awk '{ print $1 }' | cut -d"." -f1`
+            echo "$utc_time DNS_server_IP_changed:$uptime" >> $CONSOLEFILE
+            echo $dns > /tmp/.ipv6dnsserver
+        fi
+    done
+else
+    echo $dns > /tmp/.ipv6dnsserver
+fi
+
+
+
+#if [ -f /usr/ccsp/updateResolvConf.sh ]; then
+#    /usr/ccsp/updateResolvConf.sh
+#fi
+
+# Send notification to CCSP PAM
+# RDK-B has not defined HAL for Ipv6 yet so this is a means to notify
+echo "dibbler-client add ${ADDR1} 1 ${ADDR1T1} ${ADDR1T2} ${ADDR1PREF} ${ADDR1VALID} ${PREFIX1} ${PREFIX1LEN} 1 ${PREFIX1T1} ${PREFIX1T2} ${PREFIX1PREF} ${PREFIX1VALID} " >> /tmp/ccsp_common_fifo
+
+# sample return code. Dibbler will just print it out.
+exit 3
+
