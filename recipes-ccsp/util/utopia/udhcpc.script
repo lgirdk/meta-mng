@@ -83,6 +83,8 @@ compare_and_remove_old_config()
 				get_old_dns_server=$(sysevent get ipv4_${interface}_dns_$counter)
 				ipv4_dns_server="nameserver $get_old_dns_server"
 				sed -i "/$ipv4_dns_server/d" "$RESOLV_CONF_TMP"
+				#delete ip rule for old dns server(s)
+				ip -4 rule del to $ipv4_dns_server lookup erouter
 				counter=$((counter+1))
 			done
 		fi
@@ -557,6 +559,11 @@ case "$1" in
 					sysevent set dhcp_server-start
 				fi
 				touch /tmp/ipv4_renew_dnsserver_restart
+
+				#Update ip rule new IPv4 DNS server(s)
+				for i in $dns; do
+					ip -4 rule add to $i lookup erouter
+				done
 			else
 				echo "NOT Adding new IPV4 DNS SERVER to resolv.conf " >> $CONSOLEFILE
 			fi

@@ -323,6 +323,16 @@ if [ "$SRV_OPTION23" != "" ] && [ "$SRV_OPTION23" != ":: " ]; then
    fi
        rm -rf $RESOLV_CONF_TMP
 
+   #Remove old IPv6 DNS list
+   for i in $(sysevent get wan6_ns); do
+       ip -6 rule del to $i lookup erouter
+   done
+
+   #Add new DNS list as received in DHCPv6 option-23
+   for i in $SRV_OPTION23; do
+       ip -6 rule add to $i lookup erouter
+   done
+
      sysevent set wan6_ns "$SRV_OPTION23"
      sysevent set ipv6_nameserver "$SRV_OPTION23"
 fi
