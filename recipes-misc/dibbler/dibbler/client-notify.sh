@@ -16,6 +16,13 @@ R=""
 mta_dhcp_option_received=0
 echo "-----------" >> $LOGFILE
 
+if [ "$1" = "expire" ]; then
+    sysevent set dhcpv6_server-status "down"
+    sysevent set zebra-restart
+else
+    sysevent set dhcpv6_server-status "up"
+fi
+
 convertval()
 {
     IP_MODE=$2
