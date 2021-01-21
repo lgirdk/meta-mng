@@ -19,6 +19,8 @@ echo "-----------" >> $LOGFILE
 if [ "$1" = "expire" ]; then
     sysevent set dhcpv6_server-status "down"
     sysevent set zebra-restart
+    # Exiting here in case of 'expire' event, as CCSP doesn't handle delete event for prefix/address.
+    exit 0
 else
     sysevent set dhcpv6_server-status "up"
 fi

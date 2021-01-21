@@ -17,6 +17,7 @@ SRC_URI = "git://github.com/tomaszmrugalski/dibbler \
            file://fix-misguided-and-broken-usage-of-clock_gettime-CLOC.patch \
            file://add-client-support-for-SOL_MAX_RT-option.patch \
            file://client-notify-prefix-expiry-event.patch \
+           file://prepend-ipv6-dnsserver.patch \
 "
 
 S = "${WORKDIR}/git"
