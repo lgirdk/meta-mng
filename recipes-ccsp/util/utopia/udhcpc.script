@@ -72,6 +72,13 @@ compare_and_remove_old_config()
 		fi
 	done
 
+	#OFW-332: check if domain name changes.
+	prev_domain_name=$(sysevent get dhcp_domain)
+	if [ -n "$prev_domain_name" ] && [ "$domain" != "$prev_domain_name" ] ; then
+		echo "domain name is different new $domain vs old $prev_domain_name" >> $CONSOLEFILE
+		over_ride_RESOLV_CONF=1
+	fi
+
 	if [ "$over_ride_RESOLV_CONF" -eq 1 ]; then
 		get_dns_number=$(sysevent get ipv4_${interface}_dns_number)
 		sed -i '/domain/d' "$RESOLV_CONF_TMP"
@@ -89,7 +96,7 @@ compare_and_remove_old_config()
 			done
 		fi
 	else
-		echo "old and new IPV4 dns config are same no resolv_conf file override required " >> $CONSOLEFILE
+		echo "old and new IPV4 dns config and domain name are same no resolv_conf file override required " >> $CONSOLEFILE
 	fi
 }
 
@@ -141,6 +148,9 @@ save_dhcp_offer()
 	echo $gw_n
 	sysevent set ipv4_${interface}_gw_number "${gw_n}"
 
+	#OFW-332 set dhcp_domain earlier than dhcp_server-start/stop, so the new value would be used when dhcp server is restarted
+	sysevent set dhcp_domain $domain
+
 	## test
 	sysevent get ipv4_${interface}_subnet
 	sysevent get ipv4_${interface}_ipaddr
@@ -150,6 +160,8 @@ save_dhcp_offer()
 	sysevent get ipv4_${interface}_start_time
 	sysevent get ipv4_${interface}_dns_number
 	sysevent get ipv4_${interface}_gw_number
+	sysevent get wan_dhcp_dns
+	sysevent get dhcp_domain
 
 	idx=0
 	while [ $idx -lt $dns_n ]; do
@@ -569,7 +581,6 @@ case "$1" in
 			fi
 			rm -rf $RESOLV_CONF_TMP
 
-			sysevent set dhcp_domain $domain
 		fi
 		;;
 esac
