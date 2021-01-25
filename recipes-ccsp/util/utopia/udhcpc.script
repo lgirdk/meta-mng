@@ -102,7 +102,7 @@ save_dhcp_offer()
 	fi
 
 	sysevent set ipv4_${interface}_ipaddr "$ip"
-	sysevent set ipv4_${interface}_subnet "$mask"
+	sysevent set ipv4_${interface}_subnet "$subnet"
 	sysevent set ipv4_${interface}_lease_time "$lease"
 	sysevent set ipv4_${interface}_dhcp_server "$serverid"
 	sysevent set ipv4_${interface}_dhcp_state "$1"
@@ -257,8 +257,8 @@ case "$1" in
 		save_dhcp_offer $1
 		if [ "$have_bin_ip" -eq 1 ]; then
 			ip addr add dev $interface $ip/$mask $BROADCAST
-			echo "***** IP is $ip and mask is $mask  ***********"
-			sysevent set ipv4_wan_subnet $mask
+			echo "***** IP is $ip and mask is $mask subnet $subnet ***********"
+			sysevent set ipv4_wan_subnet $subnet
 			sysevent set ipv4_wan_ipaddr $ip
 			sysevent set current_ipv4_link_state up
 			# these events are being set in service_wan , we don't need to set these events again
