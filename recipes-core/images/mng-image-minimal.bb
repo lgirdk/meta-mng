@@ -34,7 +34,7 @@ python create_version_file() {
         fw.write('BRANCH={0}\n'.format(branch))
         fw.write('VERSION={0}\n'.format(release_version))
         fw.write('SPIN={0}\n'.format(release_spin))
-        fw.write('BUILD-TIME={0}\n'.format(build_time))
+        fw.write('BUILD_TIME={0}\n'.format(build_time))
         fw.write('{0}\n'.format(gen_time))
 }
 
