@@ -116,7 +116,7 @@ do_install_append () {
     install -d ${D}${sysconfdir}/utopia/service.d/service_wan
 
     install -m 755 ${S}/source/scripts/init/system/utopia_init.sh                               ${D}${sysconfdir}/utopia/
-    install -m 755 ${S}/source/scripts/init/service.d/nat_passthrough.sh                        ${D}${sysconfdir}/utopia/nat_passthrough.sh
+
     install -m 755 ${S}/source/scripts/init/service.d/*.sh                                      ${D}${sysconfdir}/utopia/service.d/
     install -m 644 ${S}/source/scripts/init/service.d/event_flags                               ${D}${sysconfdir}/utopia/service.d/
     install -m 755 ${S}/source/scripts/init/service.d/service_firewall/firewall_log_handle.sh   ${D}${sysconfdir}/utopia/service.d/
@@ -128,12 +128,17 @@ do_install_append () {
     install -m 755 ${S}/source/scripts/init/service.d/service_syslog/*.sh                       ${D}${sysconfdir}/utopia/service.d/service_syslog/
     install -m 755 ${S}/source/scripts/init/service.d/service_wan/*.sh                          ${D}${sysconfdir}/utopia/service.d/service_wan/
 
+    # nat_passthrough.sh gets installed into /etc/utopia/service.d by the *.sh
+    # wildcard install above, but it should be in /etc/utopia
+
+    mv ${D}${sysconfdir}/utopia/service.d/nat_passthrough.sh                                    ${D}${sysconfdir}/utopia/
+
     # Over-write the default scripts installed above with the _arm versions.
     # Note that _arm versions are not necessarily ARM CPU specific, but they
     # are generally the most well maintained and up to date.
 
-    install -m 755 ${S}/source/scripts/init/service.d/service_cosa_arm.sh                       ${D}${sysconfdir}/utopia/service.d/service_cosa.sh
-    install -m 755 ${S}/source/scripts/init/service.d/service_dhcpv6_client_arm.sh              ${D}${sysconfdir}/utopia/service.d/service_dhcpv6_client.sh
+    mv -f ${D}${sysconfdir}/utopia/service.d/service_cosa_arm.sh                                ${D}${sysconfdir}/utopia/service.d/service_cosa.sh
+    mv -f ${D}${sysconfdir}/utopia/service.d/service_dhcpv6_client_arm.sh                       ${D}${sysconfdir}/utopia/service.d/service_dhcpv6_client.sh
 
     ln -sf /usr/bin/service_multinet_exec                                                       ${D}${sysconfdir}/utopia/service.d/service_multinet_exec
 
