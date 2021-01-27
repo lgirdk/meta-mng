@@ -27,6 +27,10 @@ SRC_URI += "file://always-use-erouter-for-DUID-generation.patch \
 
 do_install_append () {
 
+	install -d ${D}${base_libdir}/rdk
+	install -m 755 ${WORKDIR}/dibbler-init.sh ${D}${base_libdir}/rdk/
+	install -m 755 ${WORKDIR}/prepare_dhcpv6_config.sh ${D}${base_libdir}/rdk/
+
 	install -d ${D}${sysconfdir}/dibbler
 
 	# This is work in progress. As a temp solution, don't install
@@ -38,8 +42,6 @@ do_install_append () {
 
 	install -m 755 ${WORKDIR}/client-notify.sh ${D}${sysconfdir}/dibbler/client-notify.sh
 
-	install -m 755 ${WORKDIR}/dibbler-init.sh ${D}${sysconfdir}/dibbler/dibbler-init.sh
-	install -m 755 ${WORKDIR}/prepare_dhcpv6_config.sh ${D}${sysconfdir}/dibbler/prepare_dhcpv6_config.sh
 
 	install -m 644 ${WORKDIR}/udhcpc.vendor_specific ${D}${sysconfdir}/dibbler/udhcpc.vendor_specific
 	install -m 644 ${WORKDIR}/client.conf ${D}${sysconfdir}/dibbler/client.conf-basic
@@ -50,7 +52,7 @@ do_install_append () {
 
 FILES_${PN}-client += "${sysconfdir}/dibbler/client.conf-basic ${sysconfdir}/dibbler/client-notify.sh"
 
-FILES_${PN}-server += "${sysconfdir}/dibbler"
+FILES_${PN}-server += "${sysconfdir}/dibbler ${base_libdir}/rdk"
 
 RDEPENDS_${PN}-client += "bash"
 

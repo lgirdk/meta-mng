@@ -70,8 +70,8 @@ echo > /tmp/dibbler/radvd.conf.old
 #ln -s /tmp/dibbler/server.conf /etc/dibbler/server.conf
 
 #Preparing Configuration for dibbler client
-if [ -f /etc/dibbler/prepare_dhcpv6_config.sh ]; then
-   /etc/dibbler/prepare_dhcpv6_config.sh
+if [ -f /lib/rdk/prepare_dhcpv6_config.sh ]; then
+   /lib/rdk/prepare_dhcpv6_config.sh
 fi
 
 
