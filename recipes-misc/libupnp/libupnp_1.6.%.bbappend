@@ -3,6 +3,7 @@ SRC_URI += "file://private-nets_1.6.22.patch \
             file://01-ltmain.sh_1.6.22.patch \
             file://02-wecb_1.6.22.patch \
             file://ixml_header01.patch \
+            file://fix-reply-to-unicast-discovery-message.patch \
 "
 
 EXTRA_OECONF += " \

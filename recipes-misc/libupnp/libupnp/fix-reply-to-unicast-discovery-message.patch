@@ -1,0 +1,44 @@
+From 294293304b6edc8875ee6327230d012ed8d5a908 Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Fri, 5 Feb 2021 00:49:20 +0000
+Subject: [PATCH] fix reply to unicast discovery message
+
+Accept HOST header with unicast address.
+---
+ upnp/src/ssdp/ssdp_server.c | 20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
+
+diff --git a/upnp/src/ssdp/ssdp_server.c b/upnp/src/ssdp/ssdp_server.c
+index 0b2f87f..eb8e032 100644
+--- a/upnp/src/ssdp/ssdp_server.c
++++ b/upnp/src/ssdp/ssdp_server.c
+@@ -640,10 +640,22 @@ static UPNP_INLINE int valid_ssdp_msg(
+ 		     memptr_cmp(&hdr_value, "[ff02::c]:1900") != 0 &&
+ 		     memptr_cmp(&hdr_value, "[FF05::C]:1900") != 0 &&
+ 		     memptr_cmp(&hdr_value, "[ff05::c]:1900") != 0)) {
+-			UpnpPrintf(UPNP_INFO, SSDP, __FILE__, __LINE__,
+-				   "Invalid HOST header from SSDP message\n");
+-
+-			return FALSE;
++			 
++			 FILE *fp;
++             char buf[256];
++     
++             //read output from command
++             fp = popen("syscfg get lan_ipaddr","r"); 
++             fscanf(fp,"%s",buf);
++             fclose(fp);
++             if (strlen(buf) < 16) //sanity check
++                strcat(buf,":1900");
++		     if(memptr_cmp(&hdr_value, buf) != 0 )
++		     {
++		        UpnpPrintf(UPNP_INFO, SSDP, __FILE__, __LINE__,
++				       "Invalid HOST header from SSDP message\n");
++			    return FALSE;    
++		     }
+ 		}
+ 	}
+ 
+-- 
+2.24.0
+
