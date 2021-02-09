@@ -48,7 +48,6 @@ CFLAGS += " \
     -DNTPD_ENABLE \
     -DUSE_NOTIFY_COMPONENT \
     -DUTC_ENABLE \
-    -DXDNS_ENABLE \
     -U_COSA_SIM_ \
     ${@bb.utils.contains('DISTRO_FEATURES', 'bci', '-D_COSA_FOR_BCI_', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'bci', '', '-DFEATURE_SUPPORT_ONBOARD_LOGGING', d)} \
