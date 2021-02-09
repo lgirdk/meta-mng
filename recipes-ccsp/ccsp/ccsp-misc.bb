@@ -26,6 +26,7 @@ EXTRA_OECONF += " \
 
 CFLAGS += " \
     -I${STAGING_INCDIR}/syscfg \
+    -I${STAGING_INCDIR}/trower-base64 \
 "
 
 do_install_append () {
