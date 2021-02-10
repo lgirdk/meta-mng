@@ -1,0 +1,32 @@
+From f8af32991bfc01df129dcc8a669749af4da6dce8 Mon Sep 17 00:00:00 2001
+From: Melanie Rhianna Lewis <melanie.lewis@consult.red>
+Date: Wed, 10 Feb 2021 13:05:06 +0000
+Subject: [PATCH] qdecoder: fixes crash when multipart boundary is missing
+
+When uploading a file via HTTP, if the boundary property is missing from
+the content type header qcgireq.c tries to use a NULL pointer as strstr()
+returns NULL and qdecoder crashes. This fixes that by testing the return
+value of strstr() and aborting the upload if it is NULL.
+---
+ src/qcgireq.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/src/qcgireq.c b/src/qcgireq.c
+index afcf3a6..4d50221 100644
+--- a/src/qcgireq.c
++++ b/src/qcgireq.c
+@@ -368,8 +368,12 @@ static int _parse_multipart(qentry_t *request)
+ 
+     // Force to check the boundary string length to defense overflow attack
+     int maxboundarylen = CONST_STRLEN("--");
+-    maxboundarylen += strlen(strstr(getenv("CONTENT_TYPE"), "boundary=")
+-                             + CONST_STRLEN("boundary="));
++    char *boundaryfieldname = strstr(getenv("CONTENT_TYPE"), "boundary=");
++    if (boundaryfieldname == NULL) {
++        DEBUG("The boundary string is not specified. stopping process.");
++        return amount;
++    }
++    maxboundarylen += strlen(boundaryfieldname + CONST_STRLEN("boundary="));
+     maxboundarylen += CONST_STRLEN("--");
+     maxboundarylen += CONST_STRLEN("\r\n");
+     if (maxboundarylen >= sizeof(boundary)) {
