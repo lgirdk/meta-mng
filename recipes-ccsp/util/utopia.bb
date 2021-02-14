@@ -33,6 +33,7 @@ S = "${WORKDIR}/git"
 inherit autotools pkgconfig useradd update-alternatives
 
 EXTRA_OECONF += "${CCSP_CONFIG_ARCH} ${CCSP_CONFIG_PLATFORM}"
+EXTRA_OECONF += "${@bb.utils.contains('DISTRO_FEATURES', 'multilan', 'MULTILAN_FEATURE=yes', '', d)}"
 
 CFLAGS += " \
     -DCONFIG_BUILD_TRIGGER \
