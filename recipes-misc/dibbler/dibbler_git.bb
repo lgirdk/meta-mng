@@ -39,3 +39,5 @@ FILES_${PN}-client = "${sbindir}/${PN}-client"
 FILES_${PN}-relay = "${sbindir}/${PN}-relay"
 FILES_${PN}-requestor = "${sbindir}/${PN}-requestor"
 FILES_${PN}-server = "${sbindir}/${PN}-server"
+
+RDEPENDS_${PN}-client += "${@bb.utils.contains('PACKAGECONFIG', 'resolvconf', 'resolvconf', '', d)}"
