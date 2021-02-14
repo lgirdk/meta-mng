@@ -1,0 +1,54 @@
+From f71a0f4631432a4d867534f039fe3c65c9d6ec95 Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Sat, 13 Feb 2021 22:28:24 -0800
+Subject: [PATCH] try to support busybox readlink
+
+Busybox readlink doesn't support -m, so try using -f instead. Note
+that while busybox readlink does support the -f option, its behaviour
+matches the coreutils -e option, see:
+
+  https://git.busybox.net/busybox/tree/coreutils/readlink.c
+
+For reference, the help output from coreutils 8.21 readlink:
+
+  Usage: readlink [OPTION]... FILE...
+  Print value of a symbolic link or canonical file name
+
+    -f, --canonicalize            canonicalize by following every symlink in
+                                  every component of the given name recursively;
+                                  all but the last component must exist
+    -e, --canonicalize-existing   canonicalize by following every symlink in
+                                  every component of the given name recursively,
+                                  all components must exist
+    -m, --canonicalize-missing    canonicalize by following every symlink in
+                                  every component of the given name recursively,
+                                  without requirements on components existence
+    -n, --no-newline              do not output the trailing delimiter
+    -q, --quiet,
+    -s, --silent                  suppress most error messages
+    -v, --verbose                 report error messages
+    -z, --zero                    separate output with NUL rather than newline
+        --help     display this help and exit
+        --version  output version information and exit
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ etc/resolvconf/update.d/libc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/etc/resolvconf/update.d/libc b/etc/resolvconf/update.d/libc
+index aa6a263..bc3eb18 100755
+--- a/etc/resolvconf/update.d/libc
++++ b/etc/resolvconf/update.d/libc
+@@ -57,7 +57,7 @@ fi
+ report_warning() { echo "$0: Warning: $*" >&2 ; }
+ 
+ resolv_conf_is_symlinked_to_dynamic_file() {
+-	[ -L ${ETC}/resolv.conf ] && [ "$(readlink -m ${ETC}/resolv.conf)" = "$DYNAMICRSLVCNFFILE" ]
++	[ -L ${ETC}/resolv.conf ] && [ "$(readlink -f ${ETC}/resolv.conf)" = "$DYNAMICRSLVCNFFILE" ]
+ }
+ 
+ if ! resolv_conf_is_symlinked_to_dynamic_file ; then
+-- 
+2.24.0
+

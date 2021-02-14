@@ -13,6 +13,12 @@ RDEPENDS_${PN} = "bash"
 
 SRC_URI = "git://salsa.debian.org/debian/resolvconf.git;protocol=https;branch=unstable \
            file://fix-path-for-busybox.patch \
+           file://0001-try-to-support-busybox-readlink.patch \
+           file://0002-update-a-to-append-to-IFACE-rather-than-over-write.patch \
+           file://0003-allow-more-than-3-nameserver-entries.patch \
+           file://0004-update-interface-order-to-force-nameserver-records-f.patch \
+           file://0005-update-run-resolvconf-resolv.conf-var-tmp-resolv.con.patch \
+           file://0006-use-static-enable-flag-file-ie-updates-are-always-en.patch \
            file://99_resolvconf \
            "
 
@@ -53,6 +59,11 @@ do_install () {
 	install -m 0755 debian/resolvconf.resolvconf.if-down ${D}/${sysconfdir}/network/if-down.d/resolvconf
 	install -m 0644 README ${D}${docdir}/${P}/
 	install -m 0644 man/resolvconf.8 ${D}${mandir}/man8/
+
+	# See also the patch to the resolvconf script to change the
+	# path to then enable-updates file. Using a static file means
+	# the init script doesn't need to be run.
+	touch ${D}${sysconfdir}/${BPN}/enable-updates
 }
 
 pkg_postinst_${PN} () {

@@ -1,0 +1,28 @@
+From 0dc559e90b933fe1b7c04fd6320cc0efdf6a19e5 Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Sat, 13 Feb 2021 23:01:20 -0800
+Subject: [PATCH] update /run/resolvconf/resolv.conf -> /var/tmp/resolv.conf
+
+Fixme: needs explanation.
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ etc/resolvconf/update.d/libc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/etc/resolvconf/update.d/libc b/etc/resolvconf/update.d/libc
+index f46fab6..54b30d6 100755
+--- a/etc/resolvconf/update.d/libc
++++ b/etc/resolvconf/update.d/libc
+@@ -29,7 +29,7 @@ RESOLVCONFDIR="${ETCRESOLVCONF}/resolv.conf.d"
+ BASEFILE="${RESOLVCONFDIR}/base"
+ HEADFILE="${RESOLVCONFDIR}/head"
+ TAILFILE="${RESOLVCONFDIR}/tail"
+-DYNAMICRSLVCNFFILE="/run/resolvconf/resolv.conf"
++DYNAMICRSLVCNFFILE="/var/tmp/resolv.conf"
+ TMPFILE="${DYNAMICRSLVCNFFILE}_new.$$"
+ 
+ # Set unset variables to their defaults
+-- 
+2.24.0
+

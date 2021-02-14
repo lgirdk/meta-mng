@@ -1,0 +1,31 @@
+From 8dfffc4576ca26647394336337f87ab4fda9092e Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Sat, 13 Feb 2021 22:46:22 -0800
+Subject: [PATCH] update -a to append to IFACE rather than over-write
+
+Fixme: needs explanation.
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ bin/resolvconf | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/bin/resolvconf b/bin/resolvconf
+index ad3e615..5de3c33 100755
+--- a/bin/resolvconf
++++ b/bin/resolvconf
+@@ -164,7 +164,10 @@ case "$CMD" in
+ 	cleanup() { rm -f "$IFACE_TMPFILE" ; }
+ 	trap cleanup EXIT
+ 	echo "$NEW_CONTENT" > "$IFACE_TMPFILE"
+-	mv -f "$IFACE_TMPFILE" "$IFACE"
++
++	# append to IFACE instead of replacing. Fixme, why?
++	cat "$IFACE_TMPFILE" >> "$IFACE"
++	rm -f "$IFACE_TMPFILE"
+ 
+ 	if [ -e "$ENABLE_UPDATES_FLAGFILE" ] ; then
+ 		update_and_exit -a "$IFACE"
+-- 
+2.24.0
+

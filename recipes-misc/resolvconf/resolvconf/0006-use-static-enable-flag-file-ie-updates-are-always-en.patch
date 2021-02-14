@@ -1,0 +1,31 @@
+From 80bc2da05a5291ab7533544ada2c20b81537b022 Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Sat, 13 Feb 2021 23:02:57 -0800
+Subject: [PATCH] use static enable flag file (ie updates are always enabled)
+
+Avoid the need to run the resolvconf init script to dynamically
+create the enable-updates file at run time. Instead the resolvconf
+script will now check for /etc/resolvconf/enable-updates, which will
+be statically created at build time from within the OE recipe.
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ bin/resolvconf | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/bin/resolvconf b/bin/resolvconf
+index 5de3c33..f9c0834 100755
+--- a/bin/resolvconf
++++ b/bin/resolvconf
+@@ -10,7 +10,7 @@ echo_usage() { echo "Usage: resolvconf (-d IFACE|-a IFACE|-u|--enable-updates|--
+ PATH=/sbin:/bin:/usr/sbin:/usr/bin
+ MYNAME="${0##*/}"
+ RUN_DIR=/run/resolvconf
+-ENABLE_UPDATES_FLAGFILE="${RUN_DIR}/enable-updates"
++ENABLE_UPDATES_FLAGFILE="/etc/resolvconf/enable-updates"
+ POSTPONED_UPDATE_FLAGFILE="${RUN_DIR}/postponed-update"
+ 
+ report_err() { echo "${MYNAME}: Error: $*" >&2 ; }
+-- 
+2.24.0
+
