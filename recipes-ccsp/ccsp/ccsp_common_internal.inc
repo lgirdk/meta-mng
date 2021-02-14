@@ -33,7 +33,6 @@ CFLAGS += " \
     -D_BBHM_SSE_FILE_IO \
     -D_CCSP_CWMP_TCP_CONNREQ_HANDLER \
     -D_COSA_FOR_COMCAST_ \
-    -D_COSA_HAL_ \
     -D_DEBUG \
     -D_DSLH_STUN_ \
     -D_NO_ANSC_ZLIB_ \
