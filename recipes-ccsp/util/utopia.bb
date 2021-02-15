@@ -146,6 +146,10 @@ do_install_append () {
     mv -f ${D}${sysconfdir}/utopia/service.d/service_cosa_arm.sh                                ${D}${sysconfdir}/utopia/service.d/service_cosa.sh
     mv -f ${D}${sysconfdir}/utopia/service.d/service_dhcpv6_client_arm.sh                       ${D}${sysconfdir}/utopia/service.d/service_dhcpv6_client.sh
 
+    # Over-write the default handle_gre.sh with the handle_gre_lg.sh version
+
+    mv -f ${D}${sysconfdir}/utopia/service.d/service_multinet/handle_gre_lg.sh                  ${D}${sysconfdir}/utopia/service.d/service_multinet/handle_gre.sh
+
     ln -sf /usr/bin/service_multinet_exec                                                       ${D}${sysconfdir}/utopia/service.d/service_multinet_exec
 
     install -d ${D}${sbindir}
