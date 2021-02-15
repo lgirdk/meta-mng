@@ -1,0 +1,28 @@
+From 9ef0eedc9328c743d52313b9b136222a07d66786 Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Sun, 14 Feb 2021 23:33:17 -0800
+Subject: [PATCH] drop flock timeout ( not supported by busybox flock )
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ bin/resolvconf | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/bin/resolvconf b/bin/resolvconf
+index f9c0834..410c65e 100755
+--- a/bin/resolvconf
++++ b/bin/resolvconf
+@@ -57,9 +57,7 @@ cd "${RUN_DIR}/interface"
+ {
+ # Make sure that we do not end up with a broken resolv.conf if resolvconf
+ # is invoked in parallel.
+-LOCK_WAIT_S=10
+-flock -w $LOCK_WAIT_S 9 ||
+-	{ report_err "Run lock held by another process for longer than $LOCK_WAIT_S seconds"; exit 1; }
++flock -x 9
+ 
+ update_and_exit()
+ {
+-- 
+2.24.0
+

@@ -19,6 +19,7 @@ SRC_URI = "git://salsa.debian.org/debian/resolvconf.git;protocol=https;branch=un
            file://0004-update-interface-order-to-force-nameserver-records-f.patch \
            file://0005-update-run-resolvconf-resolv.conf-var-tmp-resolv.con.patch \
            file://0006-use-static-enable-flag-file-ie-updates-are-always-en.patch \
+           file://0007-drop-flock-timeout-not-supported-by-busybox-flock.patch \
            file://99_resolvconf \
            "
 
