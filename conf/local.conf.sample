@@ -240,8 +240,8 @@ CONF_VERSION = "1"
 # debug a remote 'production' system without having to add the debug symbols
 # and sources to remote system.
 
-# IMAGE_GEN_DEBUGFS = "1"
-# IMAGE_FSTYPES_DEBUGFS = "tar.gz"
+IMAGE_GEN_DEBUGFS = "1"
+IMAGE_FSTYPES_DEBUGFS = "tar.gz"
 
 # ----------------------------------------------------------------------------
 
