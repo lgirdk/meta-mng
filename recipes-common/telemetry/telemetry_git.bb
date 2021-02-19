@@ -16,6 +16,14 @@ S = "${WORKDIR}/git"
 
 inherit autotools pkgconfig
 
+EXTRA_OECONF += "--enable-ccspsupport"
+
+CFLAGS += " \
+    -DCCSP_SUPPORT_ENABLED \
+    -DENABLE_RDKB_SUPPORT \
+    -DFEATURE_SUPPORT_WEBCONFIG \
+"
+
 LDFLAGS += " \
     -lprivilege \
     -lpthread \
