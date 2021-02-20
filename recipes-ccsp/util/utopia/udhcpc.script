@@ -552,13 +552,11 @@ case "$1" in
 		fi
 
 		if [ "$over_ride_RESOLV_CONF" -eq 1 ]; then
-		  #Update ip rule new IPv4 DNS server(s)
-		  for i in $dns; do
-		    ip -4 rule add to $i lookup erouter
-		  done
-		fi
+			# Update ip rule new IPv4 DNS server(s)
+			for i in $dns; do
+				ip -4 rule add to $i lookup erouter
+			done
 
-		if [ "$over_ride_RESOLV_CONF" -eq 1 ]; then
 			echo "Adding new IPV4 DNS SERVER to resolv.conf " >> $CONSOLEFILE
 
 			if [ -x /sbin/resolvconf ]; then
