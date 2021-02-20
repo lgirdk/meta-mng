@@ -558,11 +558,12 @@ case "$1" in
 		  done
 		fi
 
-		if [ -x /sbin/resolvconf ]; then
-			echo -n "$R" | /sbin/resolvconf -a "${interface}.udhcpc"
-		else
-			if [ "$over_ride_RESOLV_CONF" -eq 1 ]; then
-				echo "Adding new IPV4 DNS SERVER to resolv.conf " >> $CONSOLEFILE
+		if [ "$over_ride_RESOLV_CONF" -eq 1 ]; then
+			echo "Adding new IPV4 DNS SERVER to resolv.conf " >> $CONSOLEFILE
+
+			if [ -x /sbin/resolvconf ]; then
+				echo -n "$R" | /sbin/resolvconf -a "${interface}.udhcpc"
+			else
 				echo -n "$R" >> $RESOLV_CONF_TMP
 
 				N=""
@@ -572,18 +573,17 @@ case "$1" in
 "
 				done < $RESOLV_CONF_TMP
 				echo -n "$N" > "$RESOLV_CONF"
-				if [ -f /tmp/ipv4_renew_dnsserver_restart ]; then
-					echo "After renew change in IPV4 dns config so restarting dhcp-server(dnsmasq) " >> $CONSOLEFILE
-					sysevent set dhcp_server-stop
-					sysevent set dhcp_server-start
-				fi
-				touch /tmp/ipv4_renew_dnsserver_restart
-
-			else
-				echo "NOT Adding new IPV4 DNS SERVER to resolv.conf " >> $CONSOLEFILE
+				rm -rf $RESOLV_CONF_TMP
 			fi
-			rm -rf $RESOLV_CONF_TMP
 
+			if [ -f /tmp/ipv4_renew_dnsserver_restart ]; then
+				echo "After renew change in IPV4 dns config so restarting dhcp-server(dnsmasq) " >> $CONSOLEFILE
+				sysevent set dhcp_server-stop
+				sysevent set dhcp_server-start
+			fi
+			touch /tmp/ipv4_renew_dnsserver_restart
+		else
+			echo "NOT Adding new IPV4 DNS SERVER to resolv.conf " >> $CONSOLEFILE
 		fi
 		;;
 esac
