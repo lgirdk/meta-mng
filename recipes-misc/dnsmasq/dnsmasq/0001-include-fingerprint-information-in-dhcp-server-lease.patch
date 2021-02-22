@@ -14,7 +14,7 @@ diff --git a/src/dnsmasq.h b/src/dnsmasq.h
 index 4220798..6face73 100644
 --- a/src/dnsmasq.h
 +++ b/src/dnsmasq.h
-@@ -715,6 +715,7 @@ struct dhcp_lease {
+@@ -722,6 +722,7 @@ struct dhcp_lease {
    unsigned char *clid;   /* clientid */
    char *hostname, *fqdn; /* name from client-hostname option or config */
    char *old_hostname;    /* hostname before it moved to another lease */
@@ -22,7 +22,7 @@ index 4220798..6face73 100644
    int flags;
    time_t expires;        /* lease expiry */
  #ifdef HAVE_BROKEN_RTC
-@@ -1428,6 +1429,7 @@ void lease_find_interfaces(time_t now);
+@@ -1448,6 +1449,7 @@ void lease_find_interfaces(time_t now);
  void lease_add_extradata(struct dhcp_lease *lease, unsigned char *data, 
  			 unsigned int len, int delim);
  #endif
@@ -155,7 +155,7 @@ diff --git a/src/rfc2131.c b/src/rfc2131.c
 index 8023f3a..5b82be8 100644
 --- a/src/rfc2131.c
 +++ b/src/rfc2131.c
-@@ -1445,6 +1445,16 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
+@@ -1447,6 +1447,16 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
  	    }
  	}
  

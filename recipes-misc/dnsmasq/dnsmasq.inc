@@ -7,7 +7,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=0636e73ff0215e8d672dc4c32c317bb3 \
                     file://COPYING-v3;md5=d32239bcb673463ab874e80d47fae504"
 
 #at least versions 2.69 and prior are moved to the archive folder on the server
-SRC_URI = "http://www.thekelleys.org.uk/dnsmasq/${@['archive/', ''][float(d.getVar('PV', True).split('.')[1]) > 69]}dnsmasq-${PV}.tar.xz;name=dnsmasq-${PV} \
+SRC_URI = "http://www.thekelleys.org.uk/dnsmasq/${@['archive/', ''][float(d.getVar('PV', True).split('.')[1]) > 69]}dnsmasq-${PV}.tar.xz \
            file://init \
            file://dnsmasq.conf \
            file://dnsmasq-resolvconf.service \
@@ -16,6 +16,7 @@ SRC_URI = "http://www.thekelleys.org.uk/dnsmasq/${@['archive/', ''][float(d.getV
            file://dnsmasq.resolvconf \
            file://dnsmasq-resolvconf-helper \
            file://99_dnsmasq \
+           file://0001-Fix-problem-with-DNS-retries-in-2.83-2.84.patch \
            file://0001-update-default-user-group-nobody-dip-dnsmasq-dnsmasq.patch \
 "
 

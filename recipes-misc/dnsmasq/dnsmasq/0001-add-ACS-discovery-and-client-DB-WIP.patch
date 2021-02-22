@@ -40,7 +40,7 @@ index fc54aab..8023f3a 100644
  static int sanitise(unsigned char *opt, char *buf);
  static struct in_addr server_id(struct dhcp_context *context, struct in_addr override, struct in_addr fallback);
  static unsigned int calc_time(struct dhcp_context *context, struct dhcp_config *config, unsigned char *opt);
-@@ -93,13 +111,11 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
+@@ -96,13 +114,11 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
    unsigned char *agent_id = NULL, *uuid = NULL;
    unsigned char *emac = NULL;
    int vendor_class_len = 0, emac_len = 0;
@@ -55,7 +55,7 @@ index fc54aab..8023f3a 100644
  
    subnet_addr.s_addr = override.s_addr = 0;
  
-@@ -170,15 +186,119 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
+@@ -173,15 +189,119 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
  		     the gateway id back. Note that the device class is optional */
  		  if (oui && serial)
  		    {
@@ -175,7 +175,7 @@ index fc54aab..8023f3a 100644
        if ((opt = option_find(mess, sz, OPTION_AGENT_ID, 1)))
  	{
  	  /* Any agent-id needs to be copied back out, verbatim, as the last option
-@@ -2742,6 +2862,46 @@ static void apply_delay(u32 xid, time_t recvtime, struct dhcp_netid *netid)
+@@ -2787,6 +2907,46 @@ static void apply_delay(u32 xid, time_t recvtime, struct dhcp_netid *netid)
  
  #endif
    
