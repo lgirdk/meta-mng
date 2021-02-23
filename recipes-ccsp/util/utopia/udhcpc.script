@@ -560,6 +560,7 @@ case "$1" in
 			echo "Adding new IPV4 DNS SERVER to resolv.conf " >> $CONSOLEFILE
 
 			if [ -x /sbin/resolvconf ]; then
+				/sbin/resolvconf -d "${interface}.udhcpc"
 				echo -n "$R" | /sbin/resolvconf -a "${interface}.udhcpc"
 			else
 				echo -n "$R" >> $RESOLV_CONF_TMP
