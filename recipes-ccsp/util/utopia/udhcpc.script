@@ -91,7 +91,7 @@ compare_and_remove_old_config()
 				ipv4_dns_server="nameserver $get_old_dns_server"
 				sed -i "/$ipv4_dns_server/d" "$RESOLV_CONF_TMP"
 				#delete ip rule for old dns server(s)
-				ip -4 rule del to $ipv4_dns_server lookup erouter
+				ip -4 rule del to $get_old_dns_server lookup erouter
 				counter=$((counter+1))
 			done
 		fi
