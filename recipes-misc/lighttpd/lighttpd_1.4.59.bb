@@ -20,8 +20,8 @@ SRC_URI = "http://download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-${PV}.t
         file://0001-fix-build-when-openssl-is-configured-without-md4-sup.patch \
         "
 
-SRC_URI[md5sum] = "8d12a31bd3fdd7eab85cf9a6d2cfa92e"
-SRC_URI[sha256sum] = "267feffda13a190ebdce7b15172d8be16da98008457f30fddecd72832d126d0e"
+SRC_URI[md5sum] = "a8838dac90fcddbcc05c0d1877bd8cdf"
+SRC_URI[sha256sum] = "fb953db273daef08edb6e202556cae8a3d07eed6081c96bd9903db957d1084d5"
 
 PACKAGECONFIG ??= "openssl pcre zlib \
     ${@bb.utils.contains('DISTRO_FEATURES', 'ipv6', 'ipv6', '', d)} \
@@ -45,6 +45,7 @@ PACKAGECONFIG[webdav-locks] = "--with-webdav-locks,--without-webdav-locks,util-l
 PACKAGECONFIG[gdbm] = "--with-gdbm,--without-gdbm,gdbm"
 PACKAGECONFIG[memcache] = "--with-memcached,--without-memcached,libmemcached"
 PACKAGECONFIG[lua] = "--with-lua,--without-lua,lua"
+PACKAGECONFIG[zstd] = "--with-zstd,--without-zstd,zstd"
 
 EXTRA_OECONF += "--enable-lfs --without-fam"
 
