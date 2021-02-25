@@ -1,0 +1,22 @@
+From fd0c8dd9bf920a9c6bb1c0d778fa382c755d89cf Mon Sep 17 00:00:00 2001
+From: cd <qmai@libertyglobal.com>
+Date: Wed, 24 Feb 2021 18:29:19 -0800
+Subject: [PATCH] properly format string for SERVER header
+
+---
+ upnp/src/genlib/net/http/httpreadwrite.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/upnp/src/genlib/net/http/httpreadwrite.c b/upnp/src/genlib/net/http/httpreadwrite.c
+index e90aa48..932e334 100644
+--- a/upnp/src/genlib/net/http/httpreadwrite.c
++++ b/upnp/src/genlib/net/http/httpreadwrite.c
+@@ -2162,7 +2162,7 @@ void get_sdk_info(OUT char *info, IN size_t infoSize)
+ 	if (ret_code == -1)
+ 		*info = '\0';
+ 	snprintf(info, infoSize,
+-		"%s/%s, UPnP/1.0, Portable SDK for UPnP devices/"
++		"%s/%s UPnP/1.0 Portable-SDK-for-UPnP-devices/"
+ 		PACKAGE_VERSION "\r\n", sys_info.sysname, sys_info.release);
+ #endif
+ #endif /* UPNP_ENABLE_UNSPECIFIED_SERVER */
