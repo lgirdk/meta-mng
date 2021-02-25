@@ -142,7 +142,7 @@ if [ "$ADDR1" != "" ]; then
 
 else
     echo "Address received as NULL" >> $LOGFILE
-    ADDR1="NULL"
+    ADDR1="::"
     ADDR1PREF=0
     ADDR1VALID=0
 fi
@@ -374,7 +374,7 @@ if [ "$PREFIX1" != "" ]; then
    # ip -6 addr add ${PREFIX1}1/${PREFIX1LEN} dev brlan0
 else
     echo "Prefix received as NULL" >> $LOGFILE
-    PREFIX1="NULL"
+    PREFIX1="::"
     PREFIX1PREF=0
     PREFIX1VALID=0
     PREFIX1LEN=0
