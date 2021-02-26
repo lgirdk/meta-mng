@@ -22,7 +22,6 @@ IMAGE_INSTALL += " \
     ccsp-snmp-pa \
     ccsp-tr069-pa \
     ccsp-wifi-agent \
-    ccsp-xdns \
     notify-comp \
     sysint-broadband \
     test-and-diagnostic \
