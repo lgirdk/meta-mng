@@ -9,6 +9,18 @@ LGI_RDKB_GIT_PROTOCOL ?= "file"
 LGI_RDKB_GIT_EXTRAOPT ?= ";usehead=1"
 
 # ----------------------------------------------------------------------------
+
+# In most cases the UI repos will come from the same place as the RDKB repos,
+# but use separate definitions to handle corner cases where they do not.
+
+LGI_UI_GIT ?= "git://${@os.path.normpath("${COREBASE}/../src")}"
+LGI_UI_GIT_SUFFIX ?= ""
+LGI_UI_GIT_PROTOCOL ?= "file"
+LGI_UI_GIT_EXTRAOPT ?= ";usehead=1"
+
+WEBUI_OFW_REPONAME ?= "webui-ofw"
+
+# ----------------------------------------------------------------------------
 #
 # Even though the protocol is "file" (ie the source repo is already available
 # in the local filesystem) the git fetcher will still create a clone of the
@@ -81,5 +93,8 @@ DL_DIR_pn-syslog-helper                 = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SY
 DL_DIR_pn-telemetry                     = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
 DL_DIR_pn-test-and-diagnostic           = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
 DL_DIR_pn-utopia                        = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
+
+DL_DIR_pn-rest-backend                  = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
+DL_DIR_pn-webui-ofw                     = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
 
 # ----------------------------------------------------------------------------

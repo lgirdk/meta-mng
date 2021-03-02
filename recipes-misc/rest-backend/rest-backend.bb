@@ -1,10 +1,13 @@
 SUMMARY = "Server side javascript REST API implementation"
 LICENSE = "CLOSED"
 
-SRC_URI = "http://localhost:8000/${BP}.tgz"
+PV .= "+git${SRCPV}"
 
-SRC_URI[md5sum] = "adcfdb10632ee6bd15c9042d6ed77984"
-SRC_URI[sha256sum] = "d89744746ac38c6e266826f0a6765823a81b5a898f003e6171ba351915194fae"
+SRC_URI = "${LGI_UI_GIT}/${BPN}${LGI_UI_GIT_SUFFIX};protocol=${LGI_UI_GIT_PROTOCOL}${LGI_UI_GIT_EXTRAOPT}"
+
+SRCREV = "${AUTOREV}"
+
+S = "${WORKDIR}/git"
 
 MIRRORS = "${MIRRORS_PRIVATE}"
 
