@@ -39,6 +39,15 @@ IMAGE_INSTALL += " \
 
 # ----------------------------------------------------------------------------
 
+# Add the webui and remove lighttpd-www (which is otherwise going to clash with
+# it if both are included in the image).
+
+IMAGE_INSTALL += "webui-ofw"
+
+BAD_RECOMMENDATIONS += "lighttpd-www"
+
+# ----------------------------------------------------------------------------
+
 # The kernel module doesn't seem to build with new qemu kernels?
 # Exclude it as temporary workaround.
 
