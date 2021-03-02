@@ -34,6 +34,7 @@ IMAGE_INSTALL += " \
     quagga \
     quagga-ripd \
     quagga-ripngd \
+    lighttpd \
 "
 
 # ----------------------------------------------------------------------------

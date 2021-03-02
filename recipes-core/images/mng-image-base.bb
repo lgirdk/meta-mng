@@ -13,7 +13,6 @@ IMAGE_INSTALL += " \
     iproute2 \
     iptables \
     kernel-modules \
-    lighttpd \
 "
 
 # Debug tools etc. Include tcpdump in non-systemd builds only (where image size
