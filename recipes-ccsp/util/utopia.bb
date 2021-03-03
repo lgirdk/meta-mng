@@ -71,6 +71,11 @@ do_install_append () {
 
     # ------------------------------------------------------------------------
 
+    install -d ${D}${includedir}/ccsp
+    install -m 644 ${S}/source/util/print_uptime/print_uptime.h ${D}${includedir}/ccsp/
+
+    # ------------------------------------------------------------------------
+
     install -d ${D}${sysconfdir}/utopia
     install -m 644 ${WORKDIR}/udhcpc.vendor_specific ${D}${sysconfdir}/
     install -m 755 ${WORKDIR}/udhcpc.script ${D}${sysconfdir}/
