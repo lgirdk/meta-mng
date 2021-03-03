@@ -1,0 +1,26 @@
+From 26541f4b431c0c7a85b60bb0dc4e077ee93b0dde Mon Sep 17 00:00:00 2001
+From: Tarun Saha <tsaha@libertyglobal.com>
+Date: Wed, 3 Mar 2021 06:55:33 -0800
+Subject: [PATCH 1/1] Incorrect dynamic_cast from TOptVendorSpecInfo to
+ TOptVendorData
+
+---
+ SrvMessages/SrvMsg.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/SrvMessages/SrvMsg.cpp b/SrvMessages/SrvMsg.cpp
+index 71fccd38..00d0339a 100644
+--- a/SrvMessages/SrvMsg.cpp
++++ b/SrvMessages/SrvMsg.cpp
+@@ -255,7 +255,7 @@ void TSrvMsg::processOptions(SPtr<TSrvMsg> clientMsg, bool quiet) {
+         }
+         case OPTION_VENDOR_OPTS:
+         {
+-            SPtr<TOptVendorData> v = SPtr_cast<TOptVendorData>(opt);
++            SPtr<TOptVendorSpecInfo> v = SPtr_cast<TOptVendorSpecInfo>(opt);
+             appendVendorSpec(ClientDUID, Iface, v->getVendor(), ORO);
+             break;
+         }
+-- 
+2.17.1
+

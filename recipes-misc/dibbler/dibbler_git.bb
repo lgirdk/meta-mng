@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/tomaszmrugalski/dibbler \
            file://add-client-support-for-SOL_MAX_RT-option.patch \
            file://client-notify-prefix-expiry-event.patch \
            file://RFC-3315-Fix-unicast-request-and-client-IANA-options.patch \
+           file://incorrect-dynamic_cast-to-TOptVendorData.patch \
 "
 
 S = "${WORKDIR}/git"
