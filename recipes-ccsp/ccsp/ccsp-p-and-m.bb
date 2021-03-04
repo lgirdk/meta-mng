@@ -108,8 +108,6 @@ do_install_append () {
 
 FILES_${PN} += "/usr/ccsp"
 
-RPROVIDES_${PN} += "${PN}-ccsp"
-
 # The network_response.sh script calls curl
 RDEPENDS_${PN} += "curl"
 

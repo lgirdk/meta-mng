@@ -21,5 +21,3 @@ CFLAGS += " \
 "
 
 FILES_${PN} += "/usr/ccsp"
-
-RPROVIDES_${PN} += "${PN}-ccsp"

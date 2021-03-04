@@ -41,5 +41,3 @@ do_install_append () {
 }
 
 FILES_${PN} += "/usr/ccsp"
-
-RPROVIDES_${PN} += "${PN}-ccsp"
