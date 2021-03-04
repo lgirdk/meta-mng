@@ -16,8 +16,6 @@ S = "${WORKDIR}/git/notify_comp"
 
 inherit autotools pkgconfig
 
-LDFLAGS += "-lpthread -lstdc++"
-
 do_compile_prepend () {
 	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/scripts/NotifyComponent.xml ${S}/source/NotifyComponent/dm_pack_datamodel.c )
 }
