@@ -135,6 +135,8 @@ fi
 
 if [ "$ADDR1" != "" ]; then
     echo "Address ${ADDR1} (operation $1) to client $REMOTE_ADDR on inteface $IFACE/$IFINDEX" >> $LOGFILE
+    sysevent set ipv6_${IFACE}_start_time $(cut -d. -f1 /proc/uptime)
+    sysevent set ipv6_${IFACE}_pref_lifetime ${ADDR1PREF}
     sysevent set ipv6-status up
     sysevent set wan6_ipaddr "${ADDR1}"
     sysevent set wan_service-status started
