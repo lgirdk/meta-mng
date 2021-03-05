@@ -47,6 +47,10 @@ BAD_RECOMMENDATIONS += "lighttpd-www"
 
 # ----------------------------------------------------------------------------
 
+IMAGE_INSTALL += "${@bb.utils.contains('DISTRO_FEATURES', 'sk', 'packagegroup-sk', '', d)}"
+
+# ----------------------------------------------------------------------------
+
 # The kernel module doesn't seem to build with new qemu kernels?
 # Exclude it as temporary workaround.
 
