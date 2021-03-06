@@ -25,6 +25,7 @@ LIC_FILES_CHKSUM = "file://COPYING.GPLv2;md5=b234ee4d69f5fce4486a80fdaf4a4263 \
 
 SRC_URI = "https://www.ffmpeg.org/releases/${BP}.tar.xz \
            file://mips64_cpu_detection.patch \
+           file://add-support-for-auto-detecting-armv7ve.patch \
            "
 SRC_URI[md5sum] = "5307931aeb7aaee5e1509d9996040661"
 SRC_URI[sha256sum] = "f1f049a82fcfbf156564e73a3935d7e750891fab2abf302e735104fd4050a7e1"

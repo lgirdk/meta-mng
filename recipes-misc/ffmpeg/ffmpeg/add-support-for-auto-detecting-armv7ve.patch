@@ -1,0 +1,36 @@
+From 283bfea084f7328aae71a6e3606b1c9b94636435 Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Sat, 6 Mar 2021 01:10:45 +0000
+Subject: [PATCH] add support for auto detecting armv7ve CPUs
+
+If --cpu= is not specified on the configure command line (or set to
+"generic" as it is with recent versions of OE when using non-CPU
+specific CPU tuning files, such as when building for qemuarm) the
+ffmpeg configure script will try to auto detect the cpu based on the
+preprocessor macros defined internally by the compiler. These tests
+do not currently support armv7ve and so end up -mcpu= (ie an empty
+string) on the compiler command line (Note: issue seen with clang,
+not confirmed with gcc).
+
+  https://gcc.gnu.org/onlinedocs/gcc-10.2.0/gcc/ARM-Options.html#ARM-Options
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ configure | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/configure b/configure
+index aab4bd2..c4da028 100755
+--- a/configure
++++ b/configure
+@@ -4751,6 +4751,7 @@ elif enabled arm; then
+         elif check_arm_arch 7R  7_R;  then echo armv7-r
+         elif check_arm_arch 7M  7_M;  then echo armv7-m
+         elif check_arm_arch 7EM 7E_M; then echo armv7-m
++        elif check_arm_arch 7VE;      then echo armv7ve
+         elif check_arm_arch 8A  8_A;  then echo armv8-a
+         fi
+     }
+-- 
+2.24.0
+
