@@ -35,6 +35,16 @@ ARM_INSTRUCTION_SET_armv4 = "arm"
 ARM_INSTRUCTION_SET_armv5 = "arm"
 ARM_INSTRUCTION_SET_armv6 = "arm"
 
+# Errors seen when linking libavutil.so with clang in OE 3.1
+# | libavutil/adler32.o: file not recognized: file format not recognized
+# | clang-10: error: linker command failed with exit code 1 (use -v to see invocation)
+#
+# Segfaults seen when linking libavutil.so with clang in OE 3.2
+# | clang-12: error: unable to execute command: Segmentation fault (core dumped)
+# | clang-12: error: linker command failed due to signal (use -v to see invocation)
+#
+TOOLCHAIN = "gcc"
+
 # Should be API compatible with libav (which was a fork of ffmpeg)
 # libpostproc was previously packaged from a separate recipe
 PROVIDES = "libav libpostproc"
