@@ -60,11 +60,23 @@ if [ "$DSLite_Enabled" = "1" ];then
 	echo  "        option aftr" >> $OPTION_FILE
 fi
 
+# Add Option: Vendor Class (16) with Enterprise ID: 4491 (0x118b), vendor-class-data: eRouter1.0 (length 0x000a + 0x65526f75746572312e30)
+echo "        option 0016 hex 0x0000118b000a65526f75746572312e30" >> $OPTION_FILE
+
 if [ "$EROUTER_DHCP_OPTION_EMTA_ENABLED" = "true" ] &&  [ "$ethWanMode" = "true" ];then 
         echo -n "        option 0017 hex 0x0000118b000100060027087A087B" >> $OPTION_FILE
 else
         echo -n "        option 0017 hex 0x0000118b" >> $OPTION_FILE
 fi
+
+# Append option 17 suboption 1 : Option Request (1027)
+echo -n "000100020403" >> $OPTION_FILE
+
+# Append option 17 suboption 36 : Device Identifier (erouter0 mac address)
+id_interface="erouter0"
+id_mac=$(tr -d ':' < /sys/class/net/${id_interface}/address)
+echo -n "00240006${id_mac}" >> $OPTION_FILE
+
     while read line
     do
         mode=`echo $line | cut -f1 -d" "`
