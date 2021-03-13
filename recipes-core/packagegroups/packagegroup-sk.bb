@@ -1,4 +1,5 @@
 SUMMARY = "SK dependencies"
+LICENSE = "MIT"
 
 inherit packagegroup
 
