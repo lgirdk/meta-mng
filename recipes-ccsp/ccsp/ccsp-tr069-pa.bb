@@ -38,3 +38,5 @@ do_install_append () {
 }
 
 FILES_${PN} += "/usr/ccsp"
+
+RDEPENDS_${PN} += "ccsp-tr069-cacert"
