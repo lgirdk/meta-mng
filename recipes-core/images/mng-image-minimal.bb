@@ -28,14 +28,12 @@ python create_version_file() {
     stamp = d.getVar("DATETIME", True)
     t = time.strptime(stamp, '%Y%m%d%H%M%S')
     build_time = time.strftime('"%Y-%m-%d %H:%M:%S"', t)
-    gen_time = time.strftime('Generated on %a %b %d  %H:%M:%S UTC %Y', t)
     with open(version_file, 'w') as fw:
         fw.write('imagename:{0}\n'.format(image_name))
         fw.write('BRANCH="{0}"\n'.format(branch))
         fw.write('VERSION="{0}"\n'.format(release_version))
         fw.write('SPIN="{0}"\n'.format(release_spin))
         fw.write('BUILD_TIME={0}\n'.format(build_time))
-        fw.write('{0}\n'.format(gen_time))
 }
 
 create_version_file[vardepsexclude] += "DATETIME"
