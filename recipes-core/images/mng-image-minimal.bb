@@ -17,7 +17,7 @@ inherit image
 
 # ----------------------------------------------------------------------------
 
-PROJECT_BRANCH ?= "default"
+PROJECT_BRANCH ?= "${MNG_VERSIONS}"
 
 python create_version_file() {
     version_file = os.path.join(d.getVar("IMAGE_ROOTFS", True), 'version.txt')
