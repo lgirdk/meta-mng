@@ -25,7 +25,13 @@ S = "${WORKDIR}/git"
 
 inherit autotools
 
-PACKAGECONFIG ??= "bind-reuse debug dns-update resolvconf"
+#
+# Although we do want resolvconf support enabled, resolvconf clashes with
+# systemd, so only enable the resolvconf PACKAGECONFIG for non-systemd builds.
+# This is just a workaround to allow images to be built - a more extensive
+# change will be required to make systemd based builds fully functional.
+#
+PACKAGECONFIG ??= "bind-reuse debug dns-update ${@bb.utils.contains('DISTRO_FEATURES','systemd','','resolvconf',d)}"
 
 PACKAGECONFIG[auth] = "--enable-auth,,,"
 PACKAGECONFIG[bind-reuse] = "--enable-bind-reuse,,,"
