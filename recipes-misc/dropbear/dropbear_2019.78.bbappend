@@ -1,8 +1,15 @@
 
-# Disable ssh client support etc to save space...
+# dropbearconvert is a tool to convert between Dropbear and OpenSSH
+# private key formats. Drop it to save space.
 
 SBINCOMMANDS_remove = "dropbearconvert"
-BINCOMMANDS_remove = "ssh"
+
+# Normally the ssh command (ie used to initiate outgoing connections
+# from the target) is not needed and can be removed to save space.
+# However it may be used in multi-CPU systems for communication
+# between two CPUs, so leave enabled by default.
+
+# BINCOMMANDS_remove = "ssh"
 
 do_configure_prepend() {
 
