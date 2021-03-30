@@ -67,7 +67,6 @@ do_install_append () {
 	install -m 755 ${S}/scripts/cli_start_arm.sh ${D}/usr/ccsp/cli_start.sh
 	install -m 755 ${S}/scripts/cosa_start_arm.sh ${D}/usr/ccsp/cosa_start.sh
 	install -m 755 ${S}/scripts/cosa_start_rem.sh ${D}/usr/ccsp/cosa_start_rem.sh
-	install -m 755 ${S}/scripts/cosa_stop.sh ${D}/usr/ccsp/
 	install -m 755 ${S}/scripts/rbusFlagSync.sh ${D}/usr/ccsp/
 	install -m 755 ${S}/scripts/rbus_status_logger.sh ${D}/usr/ccsp/
 
