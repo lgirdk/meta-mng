@@ -236,3 +236,5 @@ USERADD_PACKAGES = "${PN}"
 USERADD_PARAM_${PN} = "--system --home ${localstatedir}/run/firewall -M --shell /bin/false --user-group firewall"
 
 FILES_${PN} += "/rdklogs"
+
+RDEPENDS_${PN} += "${@bb.utils.contains('DISTRO_FEATURES','ddns_broadband','ez-ipupdate','',d)}"
