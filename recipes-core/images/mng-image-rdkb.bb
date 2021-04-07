@@ -48,6 +48,7 @@ BAD_RECOMMENDATIONS += "lighttpd-www"
 # ----------------------------------------------------------------------------
 
 IMAGE_INSTALL += "${@bb.utils.contains('DISTRO_FEATURES', 'sk', 'packagegroup-sk', '', d)}"
+IMAGE_INSTALL += "${@bb.utils.contains('DISTRO_FEATURES', 'ssam', 'packagegroup-ssam', '', d)}"
 
 # ----------------------------------------------------------------------------
 
