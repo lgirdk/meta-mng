@@ -24,12 +24,6 @@ CFLAGS += " \
     -DFEATURE_SUPPORT_WEBCONFIG \
 "
 
-LDFLAGS += " \
-    -lprivilege \
-    -lpthread \
-    -lstdc++ \
-"
-
 do_compile_prepend () {
 	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/config/TR181-T2-USGv2.XML ${S}/source/t2ssp/dm_pack_datamodel.c )
 }
