@@ -1,0 +1,31 @@
+From 5d248fc3bf6e8490d1a9d89ddc5c29ac709208e8 Mon Sep 17 00:00:00 2001
+From: Tarun Saha <tsaha@libertyglobal.com>
+Date: Sun, 11 Apr 2021 21:05:27 -0700
+Subject: [PATCH] Deleting while iterating through set STL in c++.
+
+---
+ mcproxy/src/proxy/routing.cpp | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/mcproxy/src/proxy/routing.cpp b/mcproxy/src/proxy/routing.cpp
+index 1b58e42..f5e5eb4 100644
+--- a/mcproxy/src/proxy/routing.cpp
++++ b/mcproxy/src/proxy/routing.cpp
+@@ -163,6 +163,13 @@ routing::~routing()
+ 
+     //clean up all added interfaces
+     for (auto e : m_added_ifs) {
+-        del_vif(e, m_interfaces->get_virtual_if_index(e));
++        int vif = m_interfaces->get_virtual_if_index(e);
++
++        m_mrt_sock->del_vif(vif);
++        if (m_table_number > 0) {
++            m_mrt_sock->unbind_vif_form_table(e, m_table_number);
++        }
+     }
++
++    m_added_ifs.clear();
+ }
+-- 
+2.24.0
+
