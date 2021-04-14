@@ -238,3 +238,4 @@ USERADD_PARAM_${PN} = "--system --home ${localstatedir}/run/firewall -M --shell 
 FILES_${PN} += "/rdklogs"
 
 RDEPENDS_${PN} += "${@bb.utils.contains('DISTRO_FEATURES','ddns_broadband','ez-ipupdate','',d)}"
+RDEPENDS_${PN} += "mcproxy"
