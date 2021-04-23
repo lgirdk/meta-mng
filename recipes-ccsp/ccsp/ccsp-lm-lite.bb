@@ -25,6 +25,10 @@ CFLAGS += " \
     -I${STAGING_INCDIR}/trower-base64 \
 "
 
+CFLAGS += " \
+    -DDEVICE_GATEWAY_ASSOCIATION_FEATURE \
+"
+
 LDFLAGS += " \
     -ltelemetry_msgsender \
     -lcurl \
