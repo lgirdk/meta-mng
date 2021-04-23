@@ -1,8 +1,8 @@
 SUMMARY = "RBus core"
 LICENSE = "Apache-2.0"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=175792518e4ac015ab6696d16c4f607e"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=075c59e772e98d304efd052108da3bd7"
 
-DEPENDS = "rtmessage gtest benchmark"
+DEPENDS = "rtmessage msgpack-c gtest benchmark"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
@@ -13,8 +13,6 @@ SRCREV ?= "${AUTOREV}"
 S = "${WORKDIR}/git"
 
 inherit cmake pkgconfig systemd
-
-EXTRA_OECMAKE += "-DBUILD_RBUS=ON"
 
 do_install_append() {
 
