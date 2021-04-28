@@ -1,4 +1,6 @@
 
+DEPENDS += "ccsp-common-library-native"
+
 # ----------------------------------------------------------------------------
 
 DEPENDS += "rdk-logger"
