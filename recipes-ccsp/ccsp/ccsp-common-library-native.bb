@@ -17,10 +17,12 @@ do_configure () {
 }
 
 do_compile () {
-	:
+	${CC} ${CFLAGS} -c ${S}/source/ccsp/components/CCSP_AliasMgr_hosttools/convert_alias_xml.c -o ${B}/convert_alias_xml.o
+	${CC} ${LDFLAGS} ${B}/convert_alias_xml.o -o ${B}/convert_alias_xml
 }
 
 do_install () {
 	install -d ${D}${bindir}
 	install -m 644 ${S}/source/dm_pack/dm_pack_code_gen.py ${D}${bindir}/
+	install -m 755 ${B}/convert_alias_xml ${D}${bindir}/
 }
