@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=19774cd4dd519f099bc404798ceeab19"
 
 require ccsp_common_internal.inc
 
-DEPENDS += "openssl rbus-core zlib"
+DEPENDS += "openssl rbus-core zlib gperf-native"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
@@ -24,6 +24,15 @@ LDFLAGS += " \
     -lrbus-core \
     -lrtMessage \
 "
+
+do_compile_prepend () {
+
+	# Note that convert_alias_xml writes its output to files (with
+	# hardcoded file names) in the current directory.
+	convert_alias_xml ${S}/source/ccsp/components/CCSP_AliasMgr/custom_mapper.xml
+	gperf -C -t -N map_ExternalToInternal custom_map_alias_ext2int.gperf > custom_map_alias_ext2int.c
+	gperf -C -t -N map_InternalToExternal custom_map_alias_int2ext.gperf > custom_map_alias_int2ext.c
+}
 
 do_install_append () {
 
