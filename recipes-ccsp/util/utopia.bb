@@ -40,8 +40,6 @@ CFLAGS += " \
     ${@bb.utils.contains('DISTRO_FEATURES','bci','-DCISCO_CONFIG_TRUE_STATIC_IP -DCISCO_CONFIG_DHCPV6_PREFIX_DELEGATION','',d)} \
 "
 
-LDFLAGS += "-lsecure_wrapper"
-
 do_install_append () {
 
     # ------------------------------------------------------------------------
