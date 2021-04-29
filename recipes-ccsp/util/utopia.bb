@@ -38,7 +38,6 @@ EXTRA_OECONF += "${@bb.utils.contains('DISTRO_FEATURES', 'multilan', 'MULTILAN_F
 CFLAGS += " \
     -DCONFIG_BUILD_TRIGGER \
     ${@bb.utils.contains('DISTRO_FEATURES','bci','-DCISCO_CONFIG_TRUE_STATIC_IP -DCISCO_CONFIG_DHCPV6_PREFIX_DELEGATION','',d)} \
-    ${@bb.utils.contains('DISTRO_FEATURES','meshwifi','-DENABLE_FEATURE_MESHWIFI','',d)} \
 "
 
 LDFLAGS += "-lsecure_wrapper"
