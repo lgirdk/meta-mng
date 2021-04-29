@@ -19,7 +19,6 @@ inherit autotools pkgconfig
 CFLAGS += " \
     ${@bb.utils.contains('DISTRO_FEATURES','bci','-DCISCO_CONFIG_TRUE_STATIC_IP -DCISCO_CONFIG_DHCPV6_PREFIX_DELEGATION','',d)} \
     ${@bb.utils.contains('DISTRO_FEATURES','bci','','-DFEATURE_SUPPORT_ONBOARD_LOGGING',d)} \
-    ${@bb.utils.contains('DISTRO_FEATURES','dslite','-DDSLITE_FEATURE_SUPPORT','',d)} \
 "
 
 LDFLAGS += " \
