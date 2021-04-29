@@ -23,7 +23,6 @@ EXTRA_OECONF += "${@bb.utils.contains('DISTRO_FEATURES','systemd','--enable-noti
 CFLAGS += " \
     -I${STAGING_INCDIR}/cimplog \
     -I${STAGING_INCDIR}/libparodus \
-    ${@bb.utils.contains('DISTRO_FEATURES','meshwifi','-DENABLE_FEATURE_MESHWIFI','',d)} \
 "
 
 LDFLAGS += " \
