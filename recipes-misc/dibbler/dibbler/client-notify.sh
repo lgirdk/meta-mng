@@ -350,6 +350,7 @@ fi
 
 if [ "$SRV_OPTION24" != "" ]; then
     sysevent set wan6_domain $SRV_OPTION24
+    sysevent set ipv6_dnssl $SRV_OPTION24
 fi
 
 if [ "$SRV_OPTION64" != "" ]; then
