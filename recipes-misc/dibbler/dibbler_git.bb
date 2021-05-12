@@ -19,6 +19,7 @@ SRC_URI = "git://github.com/tomaszmrugalski/dibbler \
            file://client-notify-prefix-expiry-event.patch \
            file://RFC-3315-Fix-unicast-request-and-client-IANA-options.patch \
            file://incorrect-dynamic_cast-to-TOptVendorData.patch \
+           file://dhcpdeclinereply_add_global_statuscode.patch \
 "
 
 S = "${WORKDIR}/git"
