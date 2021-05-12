@@ -1,0 +1,26 @@
+From 6143de6099689361b0e9165075dfa433606a2ac1 Mon Sep 17 00:00:00 2001
+From: Tarun Saha <tsaha@libertyglobal.com>
+Date: Mon, 26 Apr 2021 12:47:03 -0700
+Subject: [PATCH] fix mutex_lock on a non-mutable member
+
+Fix build issues with clang.
+---
+ mcproxy/include/proxy/message_queue.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mcproxy/include/proxy/message_queue.hpp b/mcproxy/include/proxy/message_queue.hpp
+index 347a616..15dcb95 100644
+--- a/mcproxy/include/proxy/message_queue.hpp
++++ b/mcproxy/include/proxy/message_queue.hpp
+@@ -47,7 +47,7 @@ private:
+     std::priority_queue<T, std::vector<T>, Compare> m_q;
+     unsigned int m_size;
+ 
+-    std::mutex m_global_lock;
++    mutable std::mutex m_global_lock;
+     std::condition_variable cond_empty;
+ 
+ public:
+-- 
+2.24.0
+

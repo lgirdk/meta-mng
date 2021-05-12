@@ -1,3 +1,22 @@
+From ac9c924e4a204694897ef19db77a36969edb275f Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Wed, 12 May 2021 15:20:02 -0700
+Subject: [PATCH] add cmake
+
+The default mcproxy build environment relies on qmake (part of Qt).
+Import patch from OpenWrt to support building with cmake instead:
+
+  https://github.com/openwrt-routing/packages/tree/master/mcproxy/patches
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ CMakeLists.txt | 51 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 51 insertions(+)
+ create mode 100644 CMakeLists.txt
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+new file mode 100644
+index 0000000..1b862f6
 --- /dev/null
 +++ b/CMakeLists.txt
 @@ -0,0 +1,51 @@
@@ -52,3 +71,6 @@
 +# Installation
 +install(TARGETS mcproxy-bin DESTINATION bin/)
 +
+-- 
+2.24.0
+

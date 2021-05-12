@@ -9,7 +9,9 @@ SRCREV = "93b5ace42268160ebbfff4c61818fb15fa2d9b99"
 
 SRC_URI = "git://github.com/mcproxy/mcproxy;protocol=https \
            file://0001-add-cmake.patch \
-           file://0002-Deleting-while-iterating-through-set-STL-cpp.patch \
+           file://0002-add-local-copy-of-getsourcefilter-setsourcefilter.patch \
+           file://0003-fix-mutex_lock-on-a-non-mutable-member.patch \
+           file://0004-fix-deleting-while-iterating-through-set-STL-in-C.patch \
 "
 
 S = "${WORKDIR}/git"

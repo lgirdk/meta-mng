@@ -1,7 +1,7 @@
-From 5d248fc3bf6e8490d1a9d89ddc5c29ac709208e8 Mon Sep 17 00:00:00 2001
+From d7dc01f197645facbe17894b43c7639f2e638ea4 Mon Sep 17 00:00:00 2001
 From: Tarun Saha <tsaha@libertyglobal.com>
 Date: Sun, 11 Apr 2021 21:05:27 -0700
-Subject: [PATCH] Deleting while iterating through set STL in c++.
+Subject: [PATCH] fix deleting while iterating through set STL in C++
 
 ---
  mcproxy/src/proxy/routing.cpp | 9 ++++++++-
