@@ -8,6 +8,7 @@ RDKROOT := "${@os.path.abspath(os.path.dirname(d.getVar('FILE', True)) + '/../..
 
 BBLAYERS ?= " \
   ${RDKROOT}/meta-mng \
+  ${@'${RDKROOT}/meta-mng-restricted' if os.path.isfile('${RDKROOT}/meta-mng-restricted/conf/layer.conf') else ''} \
   ${BBLAYERS_BSP} \
   ${BBLAYERS_BSP_IF_AVAILABLE} \
   ${RDKROOT}/openembedded-core/meta \
