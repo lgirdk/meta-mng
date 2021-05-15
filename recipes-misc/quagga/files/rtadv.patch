@@ -1,7 +1,21 @@
-Index: quagga-1.2.1/lib/memtypes.h
-===================================================================
---- quagga-1.2.1.orig/lib/memtypes.h
-+++ quagga-1.2.1/lib/memtypes.h
+From 5863fa074c4ac60a43b814dd1fce47e65eee1be5 Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Fri, 14 May 2021 22:32:39 -0700
+Subject: [PATCH] rtadv
+
+Fixme: the origins of this patch are unclear.
+---
+ lib/memtypes.h    |   1 +
+ zebra/interface.c |  14 ++
+ zebra/interface.h |  21 +++
+ zebra/rtadv.c     | 355 ++++++++++++++++++++++++++++++++++++++++++++++
+ zebra/rtadv.h     |  35 +++++
+ 5 files changed, 426 insertions(+)
+
+diff --git a/lib/memtypes.h b/lib/memtypes.h
+index 749b29bb..b5b46842 100644
+--- a/lib/memtypes.h
++++ b/lib/memtypes.h
 @@ -231,6 +231,7 @@ enum
    MTYPE_NHRP_ROUTE,
    MTYPE_VTYSH_CONFIG,
@@ -10,15 +24,14 @@ Index: quagga-1.2.1/lib/memtypes.h
    MTYPE_MAX,
  };
  
-Index: quagga-1.2.1/zebra/interface.c
-===================================================================
---- quagga-1.2.1.orig/zebra/interface.c
-+++ quagga-1.2.1/zebra/interface.c
-@@ -141,7 +141,15 @@ if_zebra_new_hook (struct interface *ifp
+diff --git a/zebra/interface.c b/zebra/interface.c
+index ebb03ae6..95cf4849 100644
+--- a/zebra/interface.c
++++ b/zebra/interface.c
+@@ -141,6 +141,14 @@ if_zebra_new_hook (struct interface *ifp)
      rtadv->DefaultPreference = RTADV_PREF_MEDIUM;
  
      rtadv->AdvPrefixList = list_new ();
--  }    
 +
 +    rtadv->AdvRDNSSFlag = 0;
 +    rtadv->AdvRDNSSLifetime = RTADV_RDNSS_DEFAULT_LIFETIME;
@@ -27,31 +40,29 @@ Index: quagga-1.2.1/zebra/interface.c
 +    rtadv->AdvDNSSLFlag = 0;
 +    rtadv->AdvDNSSLLifetime = RTADV_RDNSS_DEFAULT_LIFETIME;
 +    rtadv->AdvDNSSLList = list_new ();
-+  }
+   }    
  #endif /* HAVE_RTADV */
  
-   /* Initialize installed address chains tree. */
-@@ -801,9 +809,16 @@ nd_dump_vty (struct vty *vty, struct int
+@@ -801,9 +809,15 @@ nd_dump_vty (struct vty *vty, struct interface *ifp)
  	vty_out (vty, "  Home Agent preference is %u%s",
  	         rtadv->HomeAgentPreference, VTY_NEWLINE);
        }
-+      if(rtadv->AdvRDNSSFlag)
-+          vty_out (vty, "  ND router advertisements with RDNSS information.%s",
-+                  VTY_NEWLINE);
-+
++      if (rtadv->AdvRDNSSFlag)
++        vty_out (vty, "  ND router advertisements with RDNSS information.%s",
++                 VTY_NEWLINE);
        if (rtadv->AdvIntervalOption)
        	vty_out (vty, "  ND router advertisements with Adv. Interval option.%s",
  		 VTY_NEWLINE);
 +      if (rtadv->AdvDNSSLFlag)
-+          vty_out (vty, "  ND router advertisements with DNSSL information.%s",
-+                  VTY_NEWLINE);
++        vty_out (vty, "  ND router advertisements with DNSSL information.%s",
++                 VTY_NEWLINE);
      }
  }
  #endif /* HAVE_RTADV */
-Index: quagga-1.2.1/zebra/interface.h
-===================================================================
---- quagga-1.2.1.orig/zebra/interface.h
-+++ quagga-1.2.1/zebra/interface.h
+diff --git a/zebra/interface.h b/zebra/interface.h
+index 223caf80..64396461 100644
+--- a/zebra/interface.h
++++ b/zebra/interface.h
 @@ -183,6 +183,27 @@ struct rtadvconf
       Default: 0 (medium) */
    int DefaultPreference;
@@ -78,26 +89,26 @@ Index: quagga-1.2.1/zebra/interface.h
 +#define RTADV_RDNSS_INFINITY_LIFETIME (0xffffffff)
 +#define RTADV_RDNSS_DEFAULT_LIFETIME RTADV_RDNSS_INFINITY_LIFETIME
  };
-
+ 
  #endif /* HAVE_RTADV */
-Index: quagga-1.2.1/zebra/rtadv.c
-===================================================================
---- quagga-1.2.1.orig/zebra/rtadv.c
-+++ quagga-1.2.1/zebra/rtadv.c
-@@ -145,6 +145,7 @@ rtadv_send_packet (int sock, struct inte
+diff --git a/zebra/rtadv.c b/zebra/rtadv.c
+index 2f62714d..c6559ead 100644
+--- a/zebra/rtadv.c
++++ b/zebra/rtadv.c
+@@ -145,6 +145,7 @@ rtadv_send_packet (int sock, struct interface *ifp)
    u_char all_nodes_addr[] = {0xff,0x02,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
    struct listnode *node;
    u_int16_t pkt_RouterLifetime;
 +  struct nd_opt_route_info *rinfo;
-
+ 
    /*
     * Allocate control message bufffer.  This is dynamic because
-@@ -243,7 +244,31 @@ rtadv_send_packet (int sock, struct inte
-       );
+@@ -244,6 +245,30 @@ rtadv_send_packet (int sock, struct interface *ifp)
        len += sizeof(struct nd_opt_homeagent_info);
      }
-+ if (zif->rtadv.AdvRDNSSFlag)
-+  {
+ 
++  if (zif->rtadv.AdvRDNSSFlag)
++    {
 +      char *addr_ptr;
 +      struct nd_opt_rdnss *ndopt_rdnss;
 +      struct prefix *rdnss_prefix;
@@ -111,23 +122,22 @@ Index: quagga-1.2.1/zebra/rtadv.c
 +
 +      /* Fill in all RDNS server entries */
 +      for (ALL_LIST_ELEMENTS_RO (zif->rtadv.AdvRDNSSList, node, rdnss_prefix))
-+      {
++        {
 +          addr_ptr = (char *)(buf + len);
 +          memcpy(addr_ptr, &rdnss_prefix->u.prefix6, sizeof (struct in6_addr));
 +          len += sizeof (struct in6_addr);
 +          rdnss_entries += 2;
-+      }
++        }
 +      ndopt_rdnss->nd_opt_len = rdnss_entries;
-+  }
-
++    }
 +
    if (zif->rtadv.AdvIntervalOption)
      {
-       struct nd_opt_adv_interval *ndopt_adv =
-@@ -293,6 +318,73 @@ rtadv_send_packet (int sock, struct inte
+       struct nd_opt_adv_interval *ndopt_adv = 
+@@ -293,6 +318,75 @@ rtadv_send_packet (int sock, struct interface *ifp)
        len += sizeof (struct nd_opt_prefix_info);
      }
-
+ 
 +  /* Add route information option for default route */
 +  rinfo = (struct nd_opt_route_info *) (buf + len);
 +  memset(rinfo, 0, sizeof(struct nd_opt_route_info));
@@ -166,12 +176,14 @@ Index: quagga-1.2.1/zebra/rtadv.c
 +      {
 +          zlog_err ("rtadv_send_packet: router advertisement message buffer overflow\n");
 +          return;
-+          ndopt_dnssl->nd_opt_type = ND_OPT_DNSSL;
-+          ndopt_dnssl->nd_opt_len = total_opt_len/8;
-+          ndopt_dnssl->nd_opt_reserved = 0;
-+          ndopt_dnssl->nd_opt_lifetime = htonl(zif->rtadv.AdvRDNSSLifetime);
-+          len_copy += 8;
 +      }
++
++      ndopt_dnssl->nd_opt_type = ND_OPT_DNSSL;
++      ndopt_dnssl->nd_opt_len = total_opt_len/8;
++      ndopt_dnssl->nd_opt_reserved = 0;
++      ndopt_dnssl->nd_opt_lifetime = htonl(zif->rtadv.AdvRDNSSLifetime);
++      len_copy += 8;
++
 +      /* fill n each domain string - the format is in RFC 1035, 3.1 */
 +      /* (((len)(label))+(0x00))+ */
 +      /* test.example.com would be 0x04test0x07example0x03com0x00 */
@@ -198,16 +210,16 @@ Index: quagga-1.2.1/zebra/rtadv.c
    /* Hardware address. */
    if (ifp->hw_addr_len != 0)
      {
-@@ -414,6 +506,8 @@ rtadv_process_packet (u_char *buf, unsig
+@@ -414,6 +508,8 @@ rtadv_process_packet (u_char *buf, unsigned int len, ifindex_t ifindex,
    struct icmp6_hdr *icmph;
    struct interface *ifp;
    struct zebra_if *zif;
 +  uint8_t *opt_str = (uint8_t *) (buf + sizeof(struct nd_router_solicit));
 +  int len_local;
-
+ 
    /* Interface search. */
    ifp = if_lookup_by_index_vrf (ifindex, vrf_id);
-@@ -455,6 +549,34 @@ rtadv_process_packet (u_char *buf, unsig
+@@ -455,6 +551,34 @@ rtadv_process_packet (u_char *buf, unsigned int len, ifindex_t ifindex,
  		 hoplimit);
        return;
      }
@@ -239,10 +251,10 @@ Index: quagga-1.2.1/zebra/rtadv.c
 +      len_local -= optlen;
 +      opt_str += optlen;
 +  }
-
+ 
    /* Check ICMP message type. */
    if (icmph->icmp6_type == ND_ROUTER_SOLICIT)
-@@ -1522,6 +1644,233 @@ ALIAS (no_ipv6_nd_mtu,
+@@ -1522,6 +1646,233 @@ ALIAS (no_ipv6_nd_mtu,
         "Neighbor discovery\n"
         "Advertised MTU\n"
         "MTU in bytes\n")
@@ -473,10 +485,10 @@ Index: quagga-1.2.1/zebra/rtadv.c
 +        "Neighbor discovery\n"
 +        "DNSSL Option\n"
 +        "IPv6 domain search suffix\n")
-
+ 
  /* Write configuration about router advertisement. */
  void
-@@ -1732,6 +2081,10 @@ rtadv_cmd_init (void)
+@@ -1732,6 +2083,10 @@ rtadv_cmd_init (void)
    install_element (INTERFACE_NODE, &ipv6_nd_mtu_cmd);
    install_element (INTERFACE_NODE, &no_ipv6_nd_mtu_cmd);
    install_element (INTERFACE_NODE, &no_ipv6_nd_mtu_val_cmd);
@@ -487,14 +499,14 @@ Index: quagga-1.2.1/zebra/rtadv.c
  }
  
  static int
-Index: quagga-1.2.1/zebra/rtadv.h
-===================================================================
---- quagga-1.2.1.orig/zebra/rtadv.h
-+++ quagga-1.2.1/zebra/rtadv.h
-@@ -69,6 +69,10 @@ extern void rtadv_config_write (struct v
+diff --git a/zebra/rtadv.h b/zebra/rtadv.h
+index 160814b2..015c9822 100644
+--- a/zebra/rtadv.h
++++ b/zebra/rtadv.h
+@@ -69,6 +69,10 @@ extern void rtadv_config_write (struct vty *, struct interface *);
  #define ND_OPT_HA_INFORMATION	8   /* HA Information Option */
  #endif
-
+ 
 +#ifndef ND_OPT_RDNSS
 +#define ND_OPT_RDNSS 25 /* RDNSS option (RFC 5006) */
 +#endif
@@ -502,10 +514,10 @@ Index: quagga-1.2.1/zebra/rtadv.h
  #ifndef HAVE_STRUCT_ND_OPT_ADV_INTERVAL
  struct nd_opt_adv_interval {   /* Advertisement interval option */
          uint8_t        nd_opt_ai_type;
-@@ -96,8 +100,39 @@ struct nd_opt_homeagent_info {  /* Home
+@@ -96,8 +100,39 @@ struct nd_opt_homeagent_info {  /* Home Agent info */
  } __attribute__((__packed__));
  #endif
-
+ 
 +/* see RFC 5006, section 5.1 */
 +struct nd_opt_rdnss {
 +    uint8_t  nd_opt_type;
@@ -516,7 +528,7 @@ Index: quagga-1.2.1/zebra/rtadv.h
 +} __attribute__((__packed__));
 +
  extern const char *rtadv_pref_strs[];
-
+ 
 +/* See RFC 4191 */
 +#define  ND_OPT_ROUTE_INFORMATION  24
 +struct nd_opt_route_info { /* route information */
@@ -540,5 +552,8 @@ Index: quagga-1.2.1/zebra/rtadv.h
 +} __attribute__((__packed__));
 +
  #endif /* HAVE_RTADV */
-
+ 
  extern void rtadv_init (struct zebra_vrf *);
+-- 
+2.24.0
+
