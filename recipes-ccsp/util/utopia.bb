@@ -110,6 +110,7 @@ do_install_append () {
 
     install -d ${D}${sysconfdir}/utopia/service.d
     install -d ${D}${sysconfdir}/utopia/service.d/service_bridge
+    install -d ${D}${sysconfdir}/utopia/service.d/service_cloudui
     install -d ${D}${sysconfdir}/utopia/service.d/service_ddns
     install -d ${D}${sysconfdir}/utopia/service.d/service_dhcp_server
     install -d ${D}${sysconfdir}/utopia/service.d/service_lan
@@ -123,6 +124,7 @@ do_install_append () {
     install -m 644 ${S}/source/scripts/init/service.d/event_flags                               ${D}${sysconfdir}/utopia/service.d/
     install -m 755 ${S}/source/scripts/init/service.d/service_firewall/firewall_log_handle.sh   ${D}${sysconfdir}/utopia/service.d/
     install -m 755 ${S}/source/scripts/init/service.d/service_bridge/*.sh                       ${D}${sysconfdir}/utopia/service.d/service_bridge/
+    install -m 755 ${S}/source/scripts/init/service.d/service_cloudui/*.sh                      ${D}${sysconfdir}/utopia/service.d/service_cloudui/
     install -m 755 ${S}/source/scripts/init/service.d/service_ddns/*.sh                         ${D}${sysconfdir}/utopia/service.d/service_ddns/
     install -m 755 ${S}/source/scripts/init/service.d/service_dhcp_server/*                     ${D}${sysconfdir}/utopia/service.d/service_dhcp_server/
     install -m 755 ${S}/source/scripts/init/service.d/service_lan/*.sh                          ${D}${sysconfdir}/utopia/service.d/service_lan/
