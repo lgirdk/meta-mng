@@ -3,8 +3,8 @@ LICENSE = "CLOSED"
 
 SRC_URI = "http://localhost:8000/${BP}.tgz"
 
-SRC_URI[md5sum] = "a1e3536af8d1643771400378ad59980a"
-SRC_URI[sha256sum] = "60f586a695c30ec4175433c8ba2607e08e19e07f4dc6cd0b48e6fc6578f97c40"
+SRC_URI[md5sum] = "e07727f15bcb2bc2cf288548d50b4ff5"
+SRC_URI[sha256sum] = "b812eee839ae879b59f81870fb6b934c613283d9093ddf85dc8f9b754a3090e3"
 
 inherit allarch
 
