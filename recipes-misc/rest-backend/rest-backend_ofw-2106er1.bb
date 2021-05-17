@@ -17,8 +17,8 @@ do_install() {
     oe_runmake DESTDIR='${D}' install
 
     # Move front.jse to a servable location
-    install -d ${D}/www/pages/rest
-    mv ${D}/www/jse/framework/front.jse ${D}/www/pages/rest
+    install -d ${D}/www/common/rest
+    mv ${D}/www/jse/framework/front.jse ${D}/www/common/rest
 
     # Move saverestore.jse to a servable location
     install -d ${D}/www/pages/saverestore
