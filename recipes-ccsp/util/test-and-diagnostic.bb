@@ -18,6 +18,8 @@ inherit autotools pkgconfig
 
 EXTRA_OECONF += "${CCSP_CONFIG_ARCH}"
 
+EXTRA_OECONF += "--enable-mta"
+
 CFLAGS += " \
     -I${STAGING_INCDIR}/utapi \
     -I${STAGING_INCDIR}/utctx \
