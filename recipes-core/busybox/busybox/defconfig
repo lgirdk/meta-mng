@@ -1023,7 +1023,7 @@ CONFIG_KILL=y
 CONFIG_KILLALL=y
 # CONFIG_KILLALL5 is not set
 # CONFIG_LSOF is not set
-# CONFIG_MPSTAT is not set
+CONFIG_MPSTAT=y
 # CONFIG_NMETER is not set
 # CONFIG_PGREP is not set
 # CONFIG_PKILL is not set
