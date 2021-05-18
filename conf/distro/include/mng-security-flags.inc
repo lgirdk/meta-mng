@@ -10,15 +10,23 @@
 #
 # ----------------------------------------------------------------------------
 
+SECURITY_STACK_PROTECTOR = "-fstack-protector-strong"
+
+SECURITY_STACK_PROTECTOR_pn-gcc-runtime = ""
+SECURITY_STACK_PROTECTOR_pn-glibc = ""
+SECURITY_STACK_PROTECTOR_pn-glibc-testsuite = ""
+
+# ----------------------------------------------------------------------------
+
 # The meta-oe and meta-virtualization layer config files include over-rides
 # which force SECURITY_CFLAGS to SECURITY_NO_PIE_CFLAGS, so even though we
 # don't use it directly here, SECURITY_NO_PIE_CFLAGS still needs to be defined.
 
-SECURITY_NO_PIE_CFLAGS = "${@oe.utils.conditional('DEBUG_BUILD','1','','-D_FORTIFY_SOURCE=2',d)}"
+SECURITY_NO_PIE_CFLAGS = "${SECURITY_STACK_PROTECTOR} ${@oe.utils.conditional('DEBUG_BUILD','1','','-D_FORTIFY_SOURCE=2',d)}"
 
 SECURITY_CFLAGS = "${SECURITY_NO_PIE_CFLAGS}"
 
-SECURITY_LDFLAGS = "-Wl,-z,relro,-z,now"
+SECURITY_LDFLAGS = "${SECURITY_STACK_PROTECTOR} -Wl,-z,relro,-z,now"
 
 # ----------------------------------------------------------------------------
 
