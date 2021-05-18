@@ -214,7 +214,7 @@ do_install_append () {
 #   ln -sf /usr/bin/20_gwreset                  ${D}${sysconfdir}/utopia/registration.d/20_gwreset
     ln -sf /usr/bin/20_routing                  ${D}${sysconfdir}/utopia/registration.d/20_routing
     ln -sf /usr/bin/25_crond                    ${D}${sysconfdir}/utopia/registration.d/25_crond
-    ln -sf /usr/bin/26_potd                     ${D}${sysconfdir}/utopia/registration.d/26_potd
+#   ln -sf /usr/bin/26_potd                     ${D}${sysconfdir}/utopia/registration.d/26_potd
     ln -sf /usr/bin/33_cosa                     ${D}${sysconfdir}/utopia/registration.d/33_cosa
 
     ln -sf /usr/bin/10_firewall                 ${D}${sysconfdir}/utopia/post.d/10_firewall
