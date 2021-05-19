@@ -6,7 +6,7 @@ PV .= "+git${SRCPV}"
 
 SRCREV = "f1364804df1282526816752529a54dbe99d43f10"
 
-SRC_URI = "git://github.com/xmidt-org/trower-base64.git"
+SRC_URI = "git://github.com/xmidt-org/trower-base64.git;branch=main"
 
 S = "${WORKDIR}/git"
 
