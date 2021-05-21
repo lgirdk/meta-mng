@@ -16,7 +16,6 @@ DISTRO_FEATURES_append = " fcgi"
 DISTRO_FEATURES_append = " meshwifi"
 DISTRO_FEATURES_append = " multilan"
 DISTRO_FEATURES_append = " sk"
-DISTRO_FEATURES_append = " snmppa"
 
 # ----------------------------------------------------------------------
 
