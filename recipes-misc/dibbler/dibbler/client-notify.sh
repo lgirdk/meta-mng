@@ -12,6 +12,7 @@ set >> $LOGFILE
 RESOLV_CONF="/etc/resolv.conf"
 RESOLV_CONF_TMP="/tmp/resolv_tmp.conf"
 R=""
+SYSEVENT_SET_CMD=()
 
 mta_dhcp_option_received=0
 echo "-----------" >> $LOGFILE
@@ -19,12 +20,11 @@ echo "-----------" >> $LOGFILE
 # Handle prefix expire event
 if [ "$PREFIX1" != "" ]; then
     if [ "$1" = "expire" ]; then
-        sysevent set dhcpv6_server-status "down"
-        sysevent set zebra-restart
+        sysevent batchset "dhcpv6_server-status=down" "zebra-restart="
         # Exiting here in case of 'expire' event, as CCSP doesn't handle delete event for prefix/address.
         exit 0
     else
-        sysevent set dhcpv6_server-status "up"
+        SYSEVENT_SET_CMD+=(dhcpv6_server-status=up)
     fi
 fi
 
@@ -135,15 +135,13 @@ if [ "$OPTION_RTPREFIX" != "" ]; then
 
 fi
 
-PREV_ADDR=$(sysevent get wan6_ipaddr)
-
 if [ "$ADDR1" != "" ]; then
     echo "Address ${ADDR1} (operation $1) to client $REMOTE_ADDR on inteface $IFACE/$IFINDEX" >> $LOGFILE
-    sysevent set ipv6_${IFACE}_start_time $(cut -d. -f1 /proc/uptime)
-    sysevent set ipv6_${IFACE}_pref_lifetime ${ADDR1PREF}
-    sysevent set ipv6-status up
-    sysevent set wan6_ipaddr "${ADDR1}"
-    sysevent set wan_service-status started
+    SYSEVENT_SET_CMD+=(ipv6_${IFACE}_start_time=$(cut -d. -f1 /proc/uptime))
+    SYSEVENT_SET_CMD+=(ipv6_${IFACE}_pref_lifetime=${ADDR1PREF})
+    SYSEVENT_SET_CMD+=(ipv6-status=up)
+    SYSEVENT_SET_CMD+=(wan6_ipaddr=${ADDR1})
+    SYSEVENT_SET_CMD+=(wan_service-status=started)
     service_routed route-set
 
 else
@@ -159,7 +157,7 @@ if [ "$SRV_OPTION31" != "" ]; then
   echo "Option Sntp Server  ${SRV_OPTION31} (operation $1) to client $REMOTE_ADDR on inteface $IFACE/$IFINDEX" >> $LOGFILE
   OLD_SRV_OPTION31=`sysevent get wan6_ntp_srv`
   if [ "$SRV_OPTION31" != "$OLD_SRV_OPTION31" ]; then
-    sysevent set wan6_ntp_srv "$SRV_OPTION31"
+    SYSEVENT_SET_CMD+=(wan6_ntp_srv=$SRV_OPTION31)
     if [ -f /usr/ccsp/updateTimesyncdConf.sh ]; then
       /usr/ccsp/updateTimesyncdConf.sh
     else
@@ -177,19 +175,19 @@ if [ "$SRV_OPTION17" != "" ]; then
     case "$suboption" in
         "vendor")
         echo "Suboption vendor-id is $suboption_data in option $SRV_OPTION17" >> $LOGFILE
-        sysevent set ipv6-vendor-id "$suboption_data"
+        SYSEVENT_SET_CMD+=(ipv6-vendor-id=$suboption_data)
         ;;
         "38")
         echo "Suboption TimeOffset is  $suboption_data in option $SRV_OPTION17" >> $LOGFILE
-        sysevent set ipv6-timeoffset "$suboption_data"
+        SYSEVENT_SET_CMD+=(ipv6-timeoffset=$suboption_data)
         ;;
         "39")
          echo "Suboption IP Mode Preference is  $suboption_data in option $SRV_OPTION17" 
-         sysevent set wan6_ippref "$suboption_data"
+         SYSEVENT_SET_CMD+=(wan6_ippref=$suboption_data)
             Mta_Ip_Pref=`sysevent get MTA_IP_PREF`
             if [ "$Mta_Ip_Pref" = "" ];then
                 echo "Setting MTA_IP_PREF value to $suboption_data" 
-                sysevent set MTA_IP_PREF $suboption_data
+                SYSEVENT_SET_CMD+=(MTA_IP_PREF=$suboption_data)
                 mta_dhcp_option_received=1
             else
                 echo "Mta_Ip_Pref value is already set to $Mta_Ip_Pref"
@@ -197,11 +195,11 @@ if [ "$SRV_OPTION17" != "" ]; then
         ;;
         "2")
         echo "Suboption Device Type is $suboption_data in option $SRV_OPTION17" >> $LOGFILE
-        sysevent set ipv6-device-type "$suboption_data"
+        SYSEVENT_SET_CMD+=(ipv6-device-type=$suboption_data)
         ;;
         "3")
         echo "Suboption List of Embedded Components in eDOCSIS Device is $suboption_data in option $SRV_OPTION17" >> $LOGFILE
-        sysevent set ipv6-embd-comp-in-device "$suboption_data"
+        SYSEVENT_SET_CMD+=(ipv6-embd-comp-in-device=$suboption_data)
         ;;
         "2170")
         echo "Suboption List of Embedded Components in eDOCSIS Device is $suboption_data in option $SRV_OPTION17" 
@@ -221,7 +219,7 @@ if [ "$SRV_OPTION17" != "" ]; then
                                 mta_v4_primary=`sysevent get MTA_DHCPv4_PrimaryAddress`
                                 if [ "$mta_v4_primary" = "" ] ;then
                                        echo "Setting MTA_DHCPv4_PrimaryAddress value as $suboption_data "
-                                        sysevent set MTA_DHCPv4_PrimaryAddress $suboption_data
+                                       SYSEVENT_SET_CMD+=(MTA_DHCPv4_PrimaryAddress=$suboption_data)
                                        mta_dhcp_option_received=1
                                 fi
                         ;;
@@ -231,7 +229,7 @@ if [ "$SRV_OPTION17" != "" ]; then
                                 mta_v4_secondary=`sysevent get MTA_DHCPv4_SecondaryAddress`
                                 if [ "$mta_v4_secondary" = "" ] ;then
                                         echo "Setting MTA_DHCPv4_SecondaryAddress value as $suboption_data "
-                                        sysevent set MTA_DHCPv4_SecondaryAddress $suboption_data
+                                        SYSEVENT_SET_CMD+=(MTA_DHCPv4_SecondaryAddress=$suboption_data)
                                        mta_dhcp_option_received=1
                                 fi
 
@@ -258,7 +256,7 @@ if [ "$SRV_OPTION17" != "" ]; then
                                 mta_v4_primary=`sysevent get MTA_DHCPv6_PrimaryAddress`
                                 if [ "$mta_v4_primary" = "" ] ;then
                                                  echo "Setting MTA_DHCPv6_PrimaryAddress value as $suboption_data "
-                                        sysevent set MTA_DHCPv6_PrimaryAddress $suboption_data
+                                                 SYSEVENT_SET_CMD+=(MTA_DHCPv6_PrimaryAddress=$suboption_data)
                                                mta_dhcp_option_received=1
                                 fi
                         ;;
@@ -268,7 +266,7 @@ if [ "$SRV_OPTION17" != "" ]; then
                                 mta_v4_secondary=`sysevent get MTA_DHCPv6_SecondaryAddress`
                                 if [ "$mta_v4_secondary" = "" ] ;then
                                         echo "Setting MTA_DHCPv6_SecondaryAddress value as $suboption_data "
-                                        sysevent set MTA_DHCPv6_SecondaryAddress $suboption_data
+                                        SYSEVENT_SET_CMD+=(MTA_DHCPv6_SecondaryAddress=$suboption_data)
                                                mta_dhcp_option_received=1
                                 fi
 
@@ -284,7 +282,7 @@ fi
 
 if [ "$mta_dhcp_option_received" -eq 1 ];then
         echo "Setting dhcp_mta_option event as received"
-        sysevent set dhcp_mta_option received
+        SYSEVENT_SET_CMD+=(dhcp_mta_option=received)
         mta_dhcp_option_received=0
 fi
 
@@ -328,8 +326,8 @@ if [ "$SRV_OPTION23" != "" ] && [ "$SRV_OPTION23" != ":: " ]; then
 
         if [ -f /tmp/ipv6_renew_dnsserver_restart ]; then
                 echo "After renew change in IPV6 dns config so restarting dhcp-server(dnsmasq) " >> $CONSOLEFILE
-                sysevent set dhcp_server-stop
-                sysevent set dhcp_server-start
+                SYSEVENT_SET_CMD+=(dhcp_server-stop=)
+                SYSEVENT_SET_CMD+=(dhcp_server-start=)
         fi
         touch /tmp/ipv6_renew_dnsserver_restart
    else
@@ -348,22 +346,23 @@ if [ "$SRV_OPTION23" != "" ] && [ "$SRV_OPTION23" != ":: " ]; then
        ip -6 rule add to $i lookup erouter
    done
 
-     sysevent set wan6_ns "$SRV_OPTION23"
-     sysevent set ipv6_nameserver "$SRV_OPTION23"
+     SYSEVENT_SET_CMD+=(wan6_ns=$SRV_OPTION23)
+     SYSEVENT_SET_CMD+=(ipv6_nameserver=$SRV_OPTION23)
+     dns=$SRV_OPTION23
 fi
 
 if [ "$SRV_OPTION24" != "" ]; then
-    sysevent set wan6_domain $SRV_OPTION24
-    sysevent set ipv6_dnssl $SRV_OPTION24
+    SYSEVENT_SET_CMD+=(wan6_domain=$SRV_OPTION24)
+    SYSEVENT_SET_CMD+=(ipv6_dnssl=$SRV_OPTION24)
 fi
 
 if [ "$SRV_OPTION64" != "" ]; then
-    sysevent set dslite_dhcpv6_endpointname $SRV_OPTION64
-    sysevent set dslite_option64-status "received"
+    SYSEVENT_SET_CMD+=(dslite_dhcpv6_endpointname=$SRV_OPTION64)
+    SYSEVENT_SET_CMD+=(dslite_option64-status=received)
     echo "DHCP DS-Lite Option 64 received value: $SRV_OPTION64" >> $LOGFILE
 else
-    sysevent set dslite_dhcpv6_endpointname ""
-    sysevent  set dslite_option64-status "not received"
+    SYSEVENT_SET_CMD+=(dslite_dhcpv6_endpointname=)
+    SYSEVENT_SET_CMD+=(dslite_option64-status="not received")
     echo "DHCP DS-Lite Option 64 not received" >> $LOGFILE
 fi
 
@@ -376,8 +375,8 @@ if [ "$PREFIX1" != "" ]; then
     	ip -6 addr del ${PREV_PREFIX}1/${PREV_PREFIXLEN} dev brlan0
     fi
 
-    sysevent set wan6_prefix $PREFIX1
-    sysevent set wan6_prefixlen $PREFIX1LEN
+    SYSEVENT_SET_CMD+=(wan6_prefix=$PREFIX1)
+    SYSEVENT_SET_CMD+=(wan6_prefixlen=$PREFIX1LEN)
    # ip -6 addr add ${PREFIX1}1/${PREFIX1LEN} dev brlan0
 else
     echo "Prefix received as NULL" >> $LOGFILE
@@ -389,7 +388,12 @@ fi
 PREFIX1T1=$((PREFIX1PREF * 50 / 100))
 PREFIX1T2=$((PREFIX1PREF * 80 / 100))
 
-dns=`sysevent get wan6_ns`
+PREV_ADDR=$(sysevent get wan6_ipaddr)
+
+sysevent batchset "${SYSEVENT_SET_CMD[@]}"
+if [ "$ADDR1" != "" ]; then
+    service_routed route-set
+fi
 
 if [ -f /tmp/.ipv6dnsserver ]; then
     for i in $dns; do
