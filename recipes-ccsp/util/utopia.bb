@@ -237,3 +237,5 @@ FILES_${PN} += "/rdklogs"
 
 RDEPENDS_${PN} += "${@bb.utils.contains('DISTRO_FEATURES','ddns_broadband','ez-ipupdate','',d)}"
 RDEPENDS_${PN} += "mcproxy"
+
+RDEPENDS_${PN} += "customer-configs"
