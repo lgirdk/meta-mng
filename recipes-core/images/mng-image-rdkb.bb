@@ -19,7 +19,7 @@ IMAGE_INSTALL += " \
     ccsp-mta-agent \
     ccsp-p-and-m \
     ccsp-psm \
-    ccsp-snmp-pa \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'snmppa', 'ccsp-snmp-pa', '', d)} \
     ccsp-tr069-pa \
     ccsp-wifi-agent \
     notify-comp \
