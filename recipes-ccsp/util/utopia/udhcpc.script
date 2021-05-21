@@ -14,6 +14,7 @@ echo "****************** udhcpc.script called*************"
 RESOLV_CONF="/etc/resolv.conf"
 RESOLV_CONF_TMP="/tmp/resolv_tmp.conf"
 over_ride_RESOLV_CONF=0
+SYSEVENT_SET_CMD=()
 
 [ -n "$broadcast" ] && BROADCAST="broadcast $broadcast" || BROADCAST=""
 [ -n "$subnet" ] && NETMASK="netmask $subnet" || NETMASK=""
@@ -108,12 +109,12 @@ save_dhcp_offer()
 		compare_and_remove_old_config
 	fi
 
-	sysevent set ipv4_${interface}_ipaddr "$ip"
-	sysevent set ipv4_${interface}_subnet "$subnet"
-	sysevent set ipv4_${interface}_lease_time "$lease"
-	sysevent set ipv4_${interface}_dhcp_server "$serverid"
-	sysevent set ipv4_${interface}_dhcp_state "$1"
-	sysevent set ipv4_${interface}_start_time $(cut -d. -f1 /proc/uptime)
+	SYSEVENT_SET_CMD+=(ipv4_${interface}_ipaddr=$ip)
+	SYSEVENT_SET_CMD+=(ipv4_${interface}_subnet=$subnet)
+	SYSEVENT_SET_CMD+=(ipv4_${interface}_lease_time=$lease)
+	SYSEVENT_SET_CMD+=(ipv4_${interface}_dhcp_server=$serverid)
+	SYSEVENT_SET_CMD+=(ipv4_${interface}_dhcp_state=$1)
+	SYSEVENT_SET_CMD+=(ipv4_${interface}_start_time=$(cut -d. -f1 /proc/uptime))
 
 	if [ "$WAN_TYPE" = "EPON" ]; then
 		if [ "$1" = "bound" ]; then
@@ -124,16 +125,16 @@ save_dhcp_offer()
 		fi
 	fi
 
-	sysevent set wan_dhcp_dns "$dns"
+	SYSEVENT_SET_CMD+=(wan_dhcp_dns=$dns)
 
 	dns_n=0
 	for i in $dns; do
 		echo "===$i==="
-		sysevent set ipv4_${interface}_dns_${dns_n} "$i"
+		SYSEVENT_SET_CMD+=(ipv4_${interface}_dns_${dns_n}=$i)
 		dns_n=$((dns_n+1))
 	done
 	echo $dns_n
-	sysevent set ipv4_${interface}_dns_number "${dns_n}"
+	SYSEVENT_SET_CMD+=(ipv4_${interface}_dns_number=$dns_n)
 
 	gw_n=0
 	for i in $router; do
@@ -141,39 +142,15 @@ save_dhcp_offer()
 		if [ "$WAN_TYPE" = "EPON" ]; then
 			sysevent set wan_gw $i
 		fi
-		sysevent set default_router $i
-		sysevent set ipv4_${interface}_gw_${gw_n} "$i"
+		SYSEVENT_SET_CMD+=(default_router=$i)
+		SYSEVENT_SET_CMD+=(ipv4_${interface}_gw_${gw_n}=$i)
 		gw_n=$((gw_n+1))
 	done
 	echo $gw_n
-	sysevent set ipv4_${interface}_gw_number "${gw_n}"
+	SYSEVENT_SET_CMD+=(ipv4_${interface}_gw_number=$gw_n)
 
 	#OFW-332 set dhcp_domain earlier than dhcp_server-start/stop, so the new value would be used when dhcp server is restarted
-	sysevent set dhcp_domain $domain
-
-	## test
-	sysevent get ipv4_${interface}_subnet
-	sysevent get ipv4_${interface}_ipaddr
-	sysevent get ipv4_${interface}_lease_time
-	sysevent get ipv4_${interface}_dhcp_server
-	sysevent get ipv4_${interface}_dhcp_state
-	sysevent get ipv4_${interface}_start_time
-	sysevent get ipv4_${interface}_dns_number
-	sysevent get ipv4_${interface}_gw_number
-	sysevent get wan_dhcp_dns
-	sysevent get dhcp_domain
-
-	idx=0
-	while [ $idx -lt $dns_n ]; do
-		sysevent get ipv4_${interface}_dns_${idx}
-		idx=$((idx+1))
-	done
-
-	idx=0
-	while [ $idx -lt $gw_n ]; do
-		sysevent get ipv4_${interface}_gw_${idx}
-		idx=$((idx+1))
-	done
+	SYSEVENT_SET_CMD+=(dhcp_domain=$domain)
 }
 
 convertval()
@@ -270,9 +247,9 @@ case "$1" in
 		if [ "$have_bin_ip" -eq 1 ]; then
 			ip addr add dev $interface $ip/$mask $BROADCAST
 			echo "***** IP is $ip and mask is $mask subnet $subnet ***********"
-			sysevent set ipv4_wan_subnet $subnet
-			sysevent set ipv4_wan_ipaddr $ip
-			sysevent set current_ipv4_link_state up
+			SYSEVENT_SET_CMD+=(ipv4_wan_subnet=$subnet)
+			SYSEVENT_SET_CMD+=(ipv4_wan_ipaddr=$ip)
+			SYSEVENT_SET_CMD+=(current_ipv4_link_state=up)
 			# these events are being set in service_wan , we don't need to set these events again
 			# sysevent set wan_service-status started
 			# sysevent set wan-status started
@@ -365,33 +342,33 @@ case "$1" in
 		fi
 
 		if [ -n "$serverid" ]; then
-			sysevent set wan_dhcp_svr $serverid
+			SYSEVENT_SET_CMD+=(wan_dhcp_svr=$serverid)
 		fi
 		if [ -n "$lease" ]; then
-			sysevent set wan_lease_time $lease
 			lease_date=$(date +"%Y.%m.%d-%T")
 			lease_expiry=$(date -d"$lease_date:$lease" +"%Y.%m.%d-%T %Z")
-			sysevent set wan_lease_expiry "$lease_expiry"
+			SYSEVENT_SET_CMD+=(wan_lease_time=$lease)
+			SYSEVENT_SET_CMD+=(wan_lease_expiry=$lease_expiry)
 		fi
 		if [ -n "$opt58" ]; then
-			sysevent set wan_renew_time $opt58
 			lease_date=$(date +"%Y.%m.%d-%T")
 			renew_time=$((0x$opt58))
 			lease_renew=$(date -d"$lease_date:$renew_time" +"%Y.%m.%d-%T %Z")
-			sysevent set wan_lease_renew "$lease_renew"
+			SYSEVENT_SET_CMD+=(wan_renew_time=$opt58)
+			SYSEVENT_SET_CMD+=(wan_lease_renew=$lease_renew)
 		fi
 		if [ -n "$opt59" ]; then
-			sysevent set wan_rebind_time $opt59
 			lease_date=$(date +"%Y.%m.%d-%T")
 			bind_time=$((0x$opt59))
 			lease_bind=$(date -d"$lease_date:$bind_time" +"%Y.%m.%d-%T %Z")
-			sysevent set wan_lease_rebind "$lease_bind"
+			SYSEVENT_SET_CMD+=(wan_rebind_time=$opt59)
+			SYSEVENT_SET_CMD+=(wan_lease_rebind=$lease_bind)
 		fi
 		if [ -n "$subnet" ]; then
-			sysevent set wan_mask $subnet
+			SYSEVENT_SET_CMD+=(wan_mask=$subnet)
 		fi
 		if [ -n "$opt100" ]; then
-			sysevent set ipv4_timezone $opt100
+			SYSEVENT_SET_CMD+=(ipv4_timezone=$opt100)
 		fi
 		if [ -n "$opt122" ]; then
 			echo "MTA DHCPv4 address received for OPT122 is $opt122"
@@ -412,7 +389,7 @@ case "$1" in
 					if [ -z "$mta_v4_primary" ]; then
 						mta_dhcp_option_received=1
 						echo "Setting MTA_DHCPv4_PrimaryAddress value as $suboption_data "
-						sysevent set MTA_DHCPv4_PrimaryAddress $suboption_data
+						SYSEVENT_SET_CMD+=(MTA_DHCPv4_PrimaryAddress=$suboption_data)
 					fi
 					;;
 				"02")
@@ -421,7 +398,7 @@ case "$1" in
 					if [ -z "$mta_v4_secondary" ]; then
 						mta_dhcp_option_received=1
 						echo "Setting MTA_DHCPv4_SecondaryAddress value as $suboption_data "
-						sysevent set MTA_DHCPv4_SecondaryAddress $suboption_data
+						SYSEVENT_SET_CMD+=(MTA_DHCPv4_SecondaryAddress=$suboption_data)
 					fi
 					;;
 				esac
@@ -449,7 +426,7 @@ case "$1" in
 					Mta_Ip_Pref=$(sysevent get MTA_IP_PREF)
 					if [ -z "$Mta_Ip_Pref" ]; then
 						echo "Setting MTA_IP_PREF value to $suboption_data"
-						sysevent set MTA_IP_PREF $suboption_data
+						SYSEVENT_SET_CMD+=(MTA_IP_PREF=$suboption_data)
 						mta_dhcp_option_received=1
 					else
 						echo "Mta_Ip_Pref value is already set to $Mta_Ip_Pref"
@@ -471,7 +448,7 @@ case "$1" in
 							mta_v6_primary=$(sysevent get MTA_DHCPv6_PrimaryAddress)
 							if [ -z "$mta_v6_primary" ]; then
 								echo "Setting MTA_DHCPv6_PrimaryAddress value as $suboption_data_124 "
-								sysevent set MTA_DHCPv6_PrimaryAddress $suboption_data_124
+								SYSEVENT_SET_CMD+=(MTA_DHCPv6_PrimaryAddress=$suboption_data_124)
 								mta_dhcp_option_received=1
 							fi
 							;;
@@ -480,7 +457,7 @@ case "$1" in
 							mta_v6_secondary=$(sysevent get MTA_DHCPv6_SecondaryAddress)
 							if [ -z "$mta_v6_secondary" ]; then
 								echo "Setting MTA_DHCPv6_SecondaryAddress value as $suboption_data_124 "
-								sysevent set MTA_DHCPv6_SecondaryAddress $suboption_data_124
+								SYSEVENT_SET_CMD+=(MTA_DHCPv6_SecondaryAddress=$suboption_data_124)
 								mta_dhcp_option_received=1
 							fi
 							;;
@@ -493,13 +470,13 @@ case "$1" in
 
 		if [ "$mta_dhcp_option_received" -eq 1 ]; then
 			echo "Setting dhcp_mta_option event as received"
-			sysevent set dhcp_mta_option received
+			SYSEVENT_SET_CMD+=(dhcp_mta_option=received)
 			mta_dhcp_option_received=0
 		fi
 
 		if [ -n "$timezone" ]; then
 			echo "$0: TimeOffset is $timezone"
-			sysevent set ipv4-timeoffset @$timezone
+			SYSEVENT_SET_CMD+=(ipv4-timeoffset=@$timezone)
 		fi
 
 		if [ -f /tmp/.ipv4dnsserver ]; then
@@ -577,13 +554,14 @@ case "$1" in
 
 			if [ -f /tmp/ipv4_renew_dnsserver_restart ]; then
 				echo "After renew change in IPV4 dns config so restarting dhcp-server(dnsmasq) " >> $CONSOLEFILE
-				sysevent set dhcp_server-stop
-				sysevent set dhcp_server-start
+				SYSEVENT_SET_CMD+=(dhcp_server-stop=)
+				SYSEVENT_SET_CMD+=(dhcp_server-start=)
 			fi
 			touch /tmp/ipv4_renew_dnsserver_restart
 		else
 			echo "NOT Adding new IPV4 DNS SERVER to resolv.conf " >> $CONSOLEFILE
 		fi
+		sysevent batchset "${SYSEVENT_SET_CMD[@]}"
 		;;
 esac
 
