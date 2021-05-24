@@ -20,6 +20,7 @@ SRC_URI = "git://github.com/tomaszmrugalski/dibbler \
            file://RFC-3315-Fix-unicast-request-and-client-IANA-options.patch \
            file://incorrect-dynamic_cast-to-TOptVendorData.patch \
            file://dhcpdeclinereply_add_global_statuscode.patch \
+           file://rfc3315-validate-renew-rebind-addr-req.patch \
 "
 
 S = "${WORKDIR}/git"
