@@ -55,6 +55,7 @@ CFLAGS += " \
     ${@bb.utils.contains('DISTRO_FEATURES', 'interworking', '-DFEATURE_SUPPORT_INTERWORKING', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'meshwifi', '-DFEATURE_SUPPORT_MESH -DENABLE_FEATURE_MESHWIFI', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'multilan', '-DMULTILAN_FEATURE', '', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_wan_manager', '-DFEATURE_RDKB_WAN_MANAGER', '', d)} \
 "
 
 CFLAGS += "-DSAFEC_DUMMY_API"
