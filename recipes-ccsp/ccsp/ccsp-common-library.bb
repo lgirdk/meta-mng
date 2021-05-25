@@ -99,5 +99,3 @@ do_install_append () {
 }
 
 FILES_${PN} += "/usr/ccsp /lib/rdk"
-
-RPROVIDES_${PN} += "ccsp-common-startup"
