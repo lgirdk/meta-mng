@@ -1,0 +1,58 @@
+From 3bb3181e4de7771565694b9552cb841e3f8cbc4f Mon Sep 17 00:00:00 2001
+From: Suresh Putta <suputta@libertyglobal.com>
+Date: Tue, 25 May 2021 18:31:00 -0700
+Subject: [PATCH 2/2] rfc3315 verify renew,rebind full addr
+
+---
+ SrvOptions/SrvOptIA_NA.cpp | 14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
+
+diff --git a/SrvOptions/SrvOptIA_NA.cpp b/SrvOptions/SrvOptIA_NA.cpp
+index 9f8fa8ad..2a6499ea 100644
+--- a/SrvOptions/SrvOptIA_NA.cpp
++++ b/SrvOptions/SrvOptIA_NA.cpp
+@@ -747,20 +747,13 @@ bool TSrvOptIA_NA::isValidAddr(SPtr<TSrvOptIA_NA> optIA, SPtr <TAddrIA> ptrIA)
+         checkCnt++;
+         onLink = cfgIface->confirmAddress(IATYPE_IA, reqAddr->getAddr());
+ 
+-#ifdef RFC3315_VALIDATE_FULL_ADDR
+         if (onLink == ADDRSTATUS_YES) {
+             // walk through addrlst of client and check if reqAddr is owned by client 
+-            ptrIA->firstAddr();
+-            while ( ptrAddr = ptrIA->getAddr() ) {
+-                if (ptrAddr->get()==reqAddr->getAddr())
+-                    break;
+-            }
+-            if (ptrAddr == NULL) { // req address not found in client database
++            if (!ptrIA->getAddr(reqAddr->getAddr())) {
+                 addrOwned=false;
+                 break;
+             }
+         }
+-#endif
+     }
+ 
+     if (!checkCnt){
+@@ -786,8 +779,6 @@ bool TSrvOptIA_NA::isValidAddr(SPtr<TSrvOptIA_NA> optIA, SPtr <TAddrIA> ptrIA)
+         SubOptions.append( SPtr_cast<TOpt>(replyStatus) );
+         return false;
+     }
+-
+-#ifdef RFC3315_VALIDATE_FULL_ADDR
+     else if (addrOwned == false) {
+         /*
+          *
+@@ -803,8 +794,7 @@ bool TSrvOptIA_NA::isValidAddr(SPtr<TSrvOptIA_NA> optIA, SPtr <TAddrIA> ptrIA)
+         SubOptions.append( SPtr_cast<TOpt>(ptrStatus) );
+         return false;
+     }
+-#endif
+ 
+     // valid client addr
+     return true;
+-}
+\ No newline at end of file
++}
+-- 
+2.17.1
+

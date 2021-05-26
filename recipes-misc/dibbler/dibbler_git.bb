@@ -21,6 +21,7 @@ SRC_URI = "git://github.com/tomaszmrugalski/dibbler \
            file://incorrect-dynamic_cast-to-TOptVendorData.patch \
            file://dhcpdeclinereply_add_global_statuscode.patch \
            file://rfc3315-validate-renew-rebind-addr-req.patch \
+           file://rfc3315-verify-renew-rebind-full-addr.patch \
 "
 
 S = "${WORKDIR}/git"
