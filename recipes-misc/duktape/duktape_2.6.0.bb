@@ -23,11 +23,19 @@ do_compile() {
 do_install () {
 	install -d ${D}${libdir}
 	install -m 0644 libduktape.a ${D}${libdir}/
-	install -m 0644 libduktape.so.${PV} ${D}${libdir}/
-	ln -s libduktape.so.${PV} ${D}${libdir}/libduktape.so
+
+	# --------------------------------------------------------------------
+	# Not installing the shared lib forces apps etc linking with
+	# -lduktake to use the static lib instead.
+	# --------------------------------------------------------------------
+
+#	install -m 0644 libduktape.so.${PV} ${D}${libdir}/
+#	ln -s libduktape.so.${PV} ${D}${libdir}/libduktape.so
 
 	install -d ${D}${includedir}/duktape
 	install -m 0644 src/duktape.h ${D}${includedir}/duktape/
 	install -m 0644 src/duk_config.h ${D}${includedir}/duktape/
 	install -m 0644 extras/print-alert/duk_print_alert.h ${D}${includedir}/duktape/
 }
+
+RDEPENDS_${PN}-dev += "${PN}-staticdev"
