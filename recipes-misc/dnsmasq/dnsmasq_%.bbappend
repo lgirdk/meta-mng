@@ -3,6 +3,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}:"
 
 SRC_URI += "file://0001-add-ACS-discovery-and-client-DB-WIP.patch"
 SRC_URI += "file://0001-include-fingerprint-information-in-dhcp-server-lease.patch"
+SRC_URI += "file://0001-add-support-DNS-failover-for-not-implement-error-cod.patch"
 
 # ----------------------------------------------------------------------------
 
