@@ -32,6 +32,9 @@ LDFLAGS += " \
     -ldbus-1 \
 "
 
+CFLAGS += "-ffunction-sections -fdata-sections"
+LDFLAGS += "-Wl,--gc-sections"
+
 do_install() {
 	install -d ${D}${bindir}
 	install -m 755 jse ${D}${bindir}/
