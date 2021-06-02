@@ -1,5 +1,5 @@
 
-dirs755_append = " /rdklogs /minidumps /telemetry"
+dirs755_append = " /rdklogs /minidumps /nvram /nvram2 /telemetry"
 
 do_install_append() {
 
