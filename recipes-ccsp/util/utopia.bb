@@ -104,6 +104,19 @@ do_install_append () {
         install -m 644 ${S}/source/scripts/init/defaults/system_defaults_arm ${D}${sysconfdir}/utopia/system_defaults
     fi
 
+    # Strip whitespace and comments etc from system_defaults
+
+    sed 's/#.*//; s/[ \t]\+$//; /^$/d' -i ${D}${sysconfdir}/utopia/system_defaults
+
+    # Sort all entries but keep Version as the first line since it's searched
+    # for first, before a second pass to parse the rest of the entries.
+
+    grep '^\$\$Version=' ${D}${sysconfdir}/utopia/system_defaults > ${D}${sysconfdir}/utopia/system_defaults_new
+    grep -v '^\$\$Version=' ${D}${sysconfdir}/utopia/system_defaults | LC_ALL=C sort >> ${D}${sysconfdir}/utopia/system_defaults_new
+    mv ${D}${sysconfdir}/utopia/system_defaults_new ${D}${sysconfdir}/utopia/system_defaults
+
+    # ------------------------------------------------------------------------
+
     install -m 644 ${S}/source/scripts/init/syslog_conf/syslog.conf_default ${D}${sysconfdir}/syslog.conf.${BPN}
 
     # ------------------------------------------------------------------------
