@@ -218,7 +218,7 @@ do_install_append () {
 #   ln -sf /usr/bin/15_http_server              ${D}${sysconfdir}/utopia/registration.d/15_http_server
     ln -sf /usr/bin/15_misc                     ${D}${sysconfdir}/utopia/registration.d/15_misc
 #   ln -sf /usr/bin/15_qos                      ${D}${sysconfdir}/utopia/registration.d/15_qos
-    ln -sf /usr/bin/15_ssh_server               ${D}${sysconfdir}/utopia/registration.d/15_ssh_server
+#   ln -sf /usr/bin/15_ssh_server               ${D}${sysconfdir}/utopia/registration.d/15_ssh_server
 #   ln -sf /usr/bin/15_switchpmon               ${D}${sysconfdir}/utopia/registration.d/15_switchpmon
 #   ln -sf /usr/bin/15_wecb                     ${D}${sysconfdir}/utopia/registration.d/15_wecb
 #   ln -sf /usr/bin/15_xhs                      ${D}${sysconfdir}/utopia/registration.d/15_xhs
