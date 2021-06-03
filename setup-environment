@@ -198,7 +198,7 @@ if [ "$_VALID_MACHINES" -ge 1 ]; then
     # ------------------------------------------------------------------------
 
     if [ -z "${_MACH_CONF}" ]; then
-        _MACH_CONF=$( \cd ${_PWD_PREV} && \ls -1 *{,/*}/conf/machine/${MACHINE}.conf 2>/dev/null | grep -v meta-lgi-eos | grep -v meta-lgi-dawn | tail -n1 )
+        _MACH_CONF=$( \cd ${_PWD_PREV} && \ls -1 *{,/*}/conf/machine/${MACHINE}.conf 2>/dev/null | \grep -v meta-lgi-eos | \grep -v meta-lgi-dawn | tail -n1 )
     fi
 
     # ------------------------------------------------------------------------
