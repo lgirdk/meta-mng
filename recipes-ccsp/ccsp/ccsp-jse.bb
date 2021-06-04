@@ -10,6 +10,8 @@ SRC_URI = "${LGI_RDKB_GIT}/${BPN}${LGI_RDKB_GIT_SUFFIX};protocol=${LGI_RDKB_GIT_
 
 SRCREV ?= "${AUTOREV}"
 
+MIRRORS = "${MIRRORS_PRIVATE}"
+
 S = "${WORKDIR}/git"
 
 inherit cmake pkgconfig
