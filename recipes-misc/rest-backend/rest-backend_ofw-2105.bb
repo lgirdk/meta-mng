@@ -6,6 +6,8 @@ SRC_URI = "http://localhost:8000/${BP}.tgz"
 SRC_URI[md5sum] = "fb0fd1ac08a7433ead4fd095121da365"
 SRC_URI[sha256sum] = "9f1a30dbbb8eee92729b6c332dd20113832cfd44fce636bfd5e13cfd0be950a9"
 
+MIRRORS = "${MIRRORS_PRIVATE}"
+
 inherit allarch
 
 do_configure[noexec] = "1"
