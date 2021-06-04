@@ -3,8 +3,8 @@ LICENSE = "CLOSED"
 
 SRC_URI = "http://localhost:8000/${BP}.tgz"
 
-SRC_URI[md5sum] = "fb0fd1ac08a7433ead4fd095121da365"
-SRC_URI[sha256sum] = "9f1a30dbbb8eee92729b6c332dd20113832cfd44fce636bfd5e13cfd0be950a9"
+SRC_URI[md5sum] = "adcfdb10632ee6bd15c9042d6ed77984"
+SRC_URI[sha256sum] = "d89744746ac38c6e266826f0a6765823a81b5a898f003e6171ba351915194fae"
 
 MIRRORS = "${MIRRORS_PRIVATE}"
 
