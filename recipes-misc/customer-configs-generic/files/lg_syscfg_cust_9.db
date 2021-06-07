@@ -5,6 +5,7 @@ CApp_Name=
 Web_UI_Skin=upc
 Website_HelpURL=
 default_erouter_mode=3
+default_LanAllowedSubnet=192.168.0.0
 dhcp_num=155
 dhcp_start=192.168.0.100
 dhcp_end=192.168.0.254
