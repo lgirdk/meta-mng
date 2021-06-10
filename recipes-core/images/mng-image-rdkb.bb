@@ -41,7 +41,7 @@ IMAGE_INSTALL += " \
 # Add the webui and remove lighttpd-www (which is otherwise going to clash with
 # it if both are included in the image).
 
-IMAGE_INSTALL += "webui-ofw"
+IMAGE_INSTALL += "packagegroup-webui"
 
 BAD_RECOMMENDATIONS += "lighttpd-www"
 
