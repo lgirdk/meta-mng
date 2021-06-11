@@ -9,7 +9,6 @@ IMAGE_INSTALL += " \
     ccsp-cr \
     ccsp-dmcli \
     ccsp-eth-agent \
-    ccsp-home-security \
     ccsp-hotspot \
     ccsp-hotspot-kmod \
     ccsp-lm-lite \
