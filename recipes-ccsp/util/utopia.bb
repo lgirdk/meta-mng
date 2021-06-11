@@ -82,7 +82,7 @@ do_install_append () {
 
     # Create alias symlinks for syscfg multicall binary
 
-    for app in create destroy format check ; do
+    for app in create destroy ; do
         ln -sf ${bindir}/syscfg ${D}${bindir}/syscfg_$app
     done
 
