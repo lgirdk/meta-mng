@@ -303,7 +303,7 @@ cat <<EOF
 
 Configuration files have been created for the following configuration:
 
- MACHINE: $MACHINE
+    MACHINE: $MACHINE
 
 EOF
 
