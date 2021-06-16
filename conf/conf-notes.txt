@@ -1,4 +1,3 @@
 Common bitbake targets are:
 
-  mng-image-base        <-- Generic console based image
-  mng-image-rdkb        <-- Generic console based image + RDKB packages
+    ofw             <-- Full image including RDKB packages
