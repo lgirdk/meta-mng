@@ -65,8 +65,10 @@ do_install_append () {
 	install -d ${D}${includedir}/ccsp
 	install -m 644 ${S}/source/TR-181/sbapi/*.h ${D}${includedir}/ccsp/
 
-	install -d ${D}${includedir}/middle_layer_src/wifi
-	install -m 644 ${S}/include/TR-181/ml/*.h ${D}${includedir}/middle_layer_src/wifi/
+	if ${@bb.utils.contains('DISTRO_FEATURES','tdkb','true','false',d)}; then
+		install -d ${D}${includedir}/middle_layer_src/wifi
+		install -m 644 ${S}/include/TR-181/ml/*.h ${D}${includedir}/middle_layer_src/wifi/
+	fi
 
 	install -d ${D}${systemd_unitdir}/system
 	install -D -m 644 ${S}/scripts/systemd/wifi-telemetry.target ${D}${systemd_unitdir}/system/
