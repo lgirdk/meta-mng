@@ -30,11 +30,14 @@ do_install_append () {
 	install -m 644 ${S}/config-arm/CcspCMDM.cfg ${D}/usr/ccsp/cm/CcspCMDM.cfg
 	install -m 644 ${S}/config-arm/CcspCM.cfg ${D}/usr/ccsp/cm/CcspCM.cfg
 
-	install -d ${D}${includedir}/ccsp
-	install -m 644 ${S}/source/TR-181/include/*.h ${D}${includedir}/ccsp/
+	if ${@bb.utils.contains('DISTRO_FEATURES','tdkb','true','false',d)}
+	then
+		install -d ${D}${includedir}/ccsp
+		install -m 644 ${S}/source/TR-181/include/*.h ${D}${includedir}/ccsp/
 
-	install -d ${D}${includedir}/middle_layer_src/cm
-	install -m 644 ${S}/source/TR-181/middle_layer_src/*.h ${D}${includedir}/middle_layer_src/cm/
+		install -d ${D}${includedir}/middle_layer_src/cm
+		install -m 644 ${S}/source/TR-181/middle_layer_src/*.h ${D}${includedir}/middle_layer_src/cm/
+	fi
 }
 
 FILES_${PN} += "/usr/ccsp"
