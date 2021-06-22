@@ -77,8 +77,11 @@ do_install_append () {
 
 	install -d ${D}${includedir}/ccsp
 	install -m 644 ${S}/source/TR-181/include/*.h ${D}${includedir}/ccsp/
-	install -d ${D}${includedir}/middle_layer_src/pam
-	install -m 644 ${S}/source/TR-181/middle_layer_src/*.h ${D}${includedir}/middle_layer_src/pam/
+
+	if ${@bb.utils.contains('DISTRO_FEATURES','tdkb','true','false',d)}; then
+		install -d ${D}${includedir}/middle_layer_src/pam
+		install -m 644 ${S}/source/TR-181/middle_layer_src/*.h ${D}${includedir}/middle_layer_src/pam/
+	fi
 
 	install -d ${D}${sysconfdir}
 	install -m 644 ${S}/arch/intel_usg/boards/arm_shared/scripts/partners_defaults.json ${D}${sysconfdir}/
