@@ -1,29 +1,8 @@
 #!/bin/sh
-##########################################################################
-# If not stated otherwise in this file or this component's Licenses.txt
-# file the following copyright and licenses apply:
-#
-# Copyright 2015 RDK Management
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-##########################################################################
 
 if [ -f /etc/device.properties ];then
      . /etc/device.properties
 fi
-# Fixme: hardcoding is a temporary solution. They should be taken from device.properties
-#BOX_TYPE="MV1"
-#ARM_INTERFACE="erouter0"
 
 VENDOR_SPEC_FILE="/etc/dibbler/udhcpc.vendor_specific"
 OPTION_FILE="/tmp/vendor_spec.txt"
@@ -64,9 +43,9 @@ fi
 echo "        option 0016 hex 0x0000118b000a65526f75746572312e30" >> $OPTION_FILE
 
 if [ "$EROUTER_DHCP_OPTION_EMTA_ENABLED" = "true" ] &&  [ "$ethWanMode" = "true" ];then 
-        echo -n "        option 0017 hex 0x0000118b000100060027087A087B" >> $OPTION_FILE
+	echo -n "        option 0017 hex 0x0000118b000100060027087A087B" >> $OPTION_FILE
 else
-        echo -n "        option 0017 hex 0x0000118b" >> $OPTION_FILE
+	echo -n "        option 0017 hex 0x0000118b" >> $OPTION_FILE
 fi
 
 # Append option 17 suboption 1 : Option Request (1027)
@@ -108,7 +87,6 @@ echo -n "00240006${id_mac}" >> $OPTION_FILE
 if [ "$EROUTER_DHCP_OPTION_EMTA_ENABLED" = "true" ] && [ "$ethWanMode" = "true" ];then 
     echo -n "0027000107" >> $OPTION_FILE
 fi
- 
 
 if [ -f "$DHCP_CONFIG_FILE_TMP" ]; then
     rm -rf $DHCP_CONFIG_FILE_TMP
@@ -119,4 +97,3 @@ cat $OPTION_FILE >> $DHCP_CONFIG_FILE_TMP
 echo >> $DHCP_CONFIG_FILE_TMP
 echo "}" >> $DHCP_CONFIG_FILE_TMP
 
-#get rid of the bad prefix stuffs
