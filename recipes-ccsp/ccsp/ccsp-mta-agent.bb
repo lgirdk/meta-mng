@@ -27,11 +27,14 @@ do_install_append () {
 	install -m 644 ${S}/config/CcspMta.cfg ${D}/usr/ccsp/mta/
 	install -m 644 ${S}/config/CcspMtaLib.cfg ${D}/usr/ccsp/mta/
 
-	install -d ${D}${includedir}/ccsp
-	install -m 644 ${S}/source/TR-181/include/*.h ${D}${includedir}/ccsp/
+	if ${@bb.utils.contains('DISTRO_FEATURES','tdkb','true','false',d)}
+	then
+		install -d ${D}${includedir}/ccsp
+		install -m 644 ${S}/source/TR-181/include/*.h ${D}${includedir}/ccsp/
 
-	install -d ${D}${includedir}/middle_layer_src/mta
-	install -m 644 ${S}/source/TR-181/middle_layer_src/*.h ${D}${includedir}/middle_layer_src/mta/
+		install -d ${D}${includedir}/middle_layer_src/mta
+		install -m 644 ${S}/source/TR-181/middle_layer_src/*.h ${D}${includedir}/middle_layer_src/mta/
+	fi
 }
 
 FILES_${PN} += "/usr/ccsp"
