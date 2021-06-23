@@ -1,0 +1,80 @@
+From 4bce06b283533fb2cb5193f9ed1fbfbc168b4575 Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Tue, 22 Jun 2021 14:15:16 -0700
+Subject: [PATCH] accept truncated ping responses
+
+Currently, google domains (e.g. 8.8.8.8 or 2001:4860:4860::8888)
+return a max of 68 bytes of ping payload data. Payloads larger than
+that are truncated. Update the packet size check for ping replies so
+that:
+
+ - If we sent 68 bytes or more, verify that the reply has at least 68
+   bytes of payload.
+
+ - If we sent less than 68 bytes, verify that the reply has at least
+   the amount of data that we sent.
+
+Without this change, pings with more than 68 [*] bytes of payload
+data timeout and report 100% packet loss.
+
+ [*] For IPv4 the limit was actually 88 rather than 68 due to a
+     separate bug of checking the size limit without accounting for
+     the size of the IPv4 header.
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ networking/ping.c | 27 +++++++++++++++++++++++++--
+ 1 file changed, 25 insertions(+), 2 deletions(-)
+
+diff --git a/networking/ping.c b/networking/ping.c
+index a47342f..a279b5a 100644
+--- a/networking/ping.c
++++ b/networking/ping.c
+@@ -649,9 +649,20 @@ static int unpack4(char *buf, int sz, struct sockaddr_in *from)
+ 	struct icmp *icmppkt;
+ 	struct iphdr *iphdr;
+ 	int hlen;
++	int min_datalen;
++
++	/*
++	   Currently, google domains (e.g. 8.8.8.8) return a max of 68 bytes of
++	   payload data. If we sent 68 bytes or more then check that the reply
++	   has at least 68 bytes of payload. If we sent less than 68 bytes then
++	   check that the reply has at least the amount of data that we sent.
++	*/
++	min_datalen = (datalen > 68) ? 68 : datalen;
++
++//	printf ("sz %d (datalen %d, min_datalen %d)\n", sz, datalen, min_datalen);
+ 
+ 	/* discard if too short */
+-	if (sz < (datalen + ICMP_MINLEN))
++	if (sz < (min_datalen + ICMP_MINLEN + sizeof(struct iphdr)))
+ 		return 0;
+ 
+ 	/* check IP header */
+@@ -685,9 +696,21 @@ static int unpack6(char *packet, int sz, struct sockaddr_in6 *from, int hoplimit
+ {
+ 	struct icmp6_hdr *icmppkt;
+ 	char buf[INET6_ADDRSTRLEN];
++	int min_datalen;
++
++	/*
++	   Currently, google domains (e.g. 2001:4860:4860::8888) return a max
++	   of 68 bytes of payload data. If we sent 68 bytes or more then check
++	   that the reply has at least 68 bytes of payload. If we sent less
++	   than 68 bytes then check that the reply has at least the amount of
++	   data that we sent.
++	*/
++	min_datalen = (datalen > 68) ? 68 : datalen;
++
++//	printf ("sz %d (datalen %d, min_datalen %d)\n", sz, datalen, min_datalen);
+ 
+ 	/* discard if too short */
+-	if (sz < (datalen + sizeof(struct icmp6_hdr)))
++	if (sz < (min_datalen + sizeof(struct icmp6_hdr)))
+ 		return 0;
+ 
+ 	icmppkt = (struct icmp6_hdr *) packet;
+-- 
+2.24.0
+

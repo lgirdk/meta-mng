@@ -41,6 +41,7 @@ SRC_URI = "https://busybox.net/downloads/busybox-${PV}.tar.bz2;name=tarball \
            file://0001-traceroute-round-up-too-small-packet-sizes-non-stand.patch \
            file://0001-ash-fix-unset_var-pattern-repl.patch \
            file://0001-decompress_gunzip-Fix-DoS-if-gzip-is-corrupt.patch \
+           file://0001-accept-truncated-ping-responses.patch \
 "
 SRC_URI_append_libc-musl = " file://musl.cfg "
 
