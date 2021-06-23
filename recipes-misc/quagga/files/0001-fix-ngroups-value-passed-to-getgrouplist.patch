@@ -1,0 +1,29 @@
+From 39fde755aeb0ec82691fcc3e2d14f6993169b04a Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Wed, 23 Jun 2021 16:16:35 -0700
+Subject: [PATCH] fix ngroups value passed to getgrouplist()
+
+The value of ngroups passed to getgrouplist() should be the number of
+elements in the goups array, not its size in bytes
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ lib/privs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/privs.c b/lib/privs.c
+index 7935edb0..83f42170 100644
+--- a/lib/privs.c
++++ b/lib/privs.c
+@@ -717,7 +717,7 @@ zprivs_init(struct zebra_privs_t *zprivs)
+ 
+   if (zprivs->user)
+     {
+-      ngroups = sizeof(groups);
++      ngroups = (int) ZEBRA_NUM_OF(groups);
+       if ( (ngroups = getgrouplist (zprivs->user, zprivs_state.zgid, groups, &ngroups )) < 0 )
+         {
+           /* cant use log.h here as it depends on vty */
+-- 
+2.24.0
+
