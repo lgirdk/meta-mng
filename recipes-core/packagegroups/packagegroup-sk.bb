@@ -26,6 +26,7 @@ RDEPENDS_packagegroup-sk = " \
     curl \
     jq \
     killall \
+    skta \
     packagegroup-sk-build-deps \
 "
 
