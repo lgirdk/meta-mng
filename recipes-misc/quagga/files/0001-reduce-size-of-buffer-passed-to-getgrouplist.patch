@@ -1,0 +1,32 @@
+From 1309ec47828d4627808539bc6cbaf1cf94a55a4f Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Wed, 7 Jul 2021 11:31:12 -0700
+Subject: [PATCH] reduce size of buffer passed to getgrouplist()
+
+NGROUPS_MAX is 64k, so an array of NGROUPS_MAX gid_t values means a
+256k buffer, which is large for a buffer on the stack. We could
+allocate a 256k buffer dynamically but using a hardcoded smaller
+value should be fine too, especially for embedded systems etc where
+groups are not heavily used.
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ lib/privs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/privs.c b/lib/privs.c
+index 83f42170..833ce57f 100644
+--- a/lib/privs.c
++++ b/lib/privs.c
+@@ -668,7 +668,7 @@ zprivs_init(struct zebra_privs_t *zprivs)
+ {
+   struct passwd *pwentry = NULL;
+   struct group *grentry = NULL;
+-  gid_t groups[NGROUPS_MAX];
++  gid_t groups[100]; /* NGROUPS_MAX is 64k. A lower limit should be fine and more reasonable for a buffer on the stack */
+   int i, ngroups = 0;
+   int found = 0;
+ 
+-- 
+2.24.0
+
