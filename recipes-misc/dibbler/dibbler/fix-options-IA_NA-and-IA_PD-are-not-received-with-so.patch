@@ -1,0 +1,47 @@
+From ad1f82b346afee673c879ab98729cd05f5829940 Mon Sep 17 00:00:00 2001
+From: anil shetty <adshetty@libertyglobal.com>
+Date: Wed, 7 Jul 2021 18:07:06 -0700
+Subject: [PATCH] fix: options IA_NA and IA_PD are not received with solicit
+ message
+
+Initially when dibbler client is started, both options IA_NA and
+IA_PD timestamps are initialized at the same time. So the initial
+solicit message does have both options.
+
+When Reply msg is received from the server (i.e. after exchanging
+Advertise and Request msgs), the IN_NA timestamp is reinitialized,
+but the IA_PD timestamp is not initialized. Since the reply msg is
+normally received after 1-2 secs, the IN_NA timestamp differs from
+the IA_PD timestamp by 1-2 secs.
+
+Though the timeout is the same for options, due to the changes in the
+timestamp, the next msg RENEW is sent with IA_PD first and then after
+~2 secs another RENEW msg is sent with option IA_NA.
+
+This causes the next solicit message (test case: DHCPv6 server is
+disconnected and RENEW fails multiple times) to be sent separately
+for IA_NA and IA_PD options.
+
+Fix by initializing IA_PD timestamp in addPrefix(), which is called
+when the Reply message is received.
+
+Ref: cdrouter dhcpv6_pd_100 ( OWF-1487 )
+---
+ AddrMgr/AddrMgr.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/AddrMgr/AddrMgr.cpp b/AddrMgr/AddrMgr.cpp
+index 44002ae9..035e5620 100644
+--- a/AddrMgr/AddrMgr.cpp
++++ b/AddrMgr/AddrMgr.cpp
+@@ -395,6 +395,7 @@ bool TAddrMgr::addPrefix(SPtr<TAddrClient> client, SPtr<TDUID> duid , SPtr<TIPv6
+             Log(Debug) << "PD: Adding PD (iaid=" << IAID << ") to addrDB." << LogEnd;
+     }
+ 
++    ptrPD->setTimestamp();
+     ptrPD->setT1(T1);
+     ptrPD->setT2(T2);
+ 
+-- 
+2.24.0
+

@@ -22,6 +22,7 @@ SRC_URI = "git://github.com/tomaszmrugalski/dibbler \
            file://dhcpdeclinereply_add_global_statuscode.patch \
            file://rfc3315-validate-renew-rebind-addr-req.patch \
            file://rfc3315-verify-renew-rebind-full-addr.patch \
+           file://fix-options-IA_NA-and-IA_PD-are-not-received-with-so.patch \
 "
 
 S = "${WORKDIR}/git"
