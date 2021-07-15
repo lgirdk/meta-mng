@@ -33,15 +33,10 @@ do_install_append () {
 
 	install -d ${D}${sysconfdir}/dibbler
 
-	# This is work in progress. As a temp solution, don't install
-	# /etc/dibbler/server.conf to avoid clashes with the one installed by
-	# the SDK.
-
-	#ln -s /tmp/dibbler/server.conf ${D}${sysconfdir}/dibbler/server.conf
+	ln -s /var/tmp/dhcp6s.conf ${D}${sysconfdir}/dibbler/server.conf
 	install -m 755 ${WORKDIR}/dibbler-server-notify.sh ${D}${sysconfdir}/dibbler/dibbler-server-notify.sh
 
 	install -m 755 ${WORKDIR}/client-notify.sh ${D}${sysconfdir}/dibbler/client-notify.sh
-
 
 	install -m 644 ${WORKDIR}/udhcpc.vendor_specific ${D}${sysconfdir}/dibbler/udhcpc.vendor_specific
 	install -m 644 ${WORKDIR}/client.conf ${D}${sysconfdir}/dibbler/client.conf-basic
