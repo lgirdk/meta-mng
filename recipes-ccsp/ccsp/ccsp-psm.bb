@@ -35,8 +35,6 @@ CCSP_PSM_MANUFACTUREROUI ??= ""
 # ----------------------------------------------------------------------------
 
 do_install_append () {
-	install -d ${D}/usr/ccsp/psm
-	install -m 755 ${S}/scripts/bbhm_patch.sh ${D}/usr/ccsp/psm/
 
 	install -d ${D}/usr/ccsp/config
 	install -m 644 ${S}/config/bbhm_def_cfg_qemu.xml ${D}/usr/ccsp/config/bbhm_def_cfg.xml
