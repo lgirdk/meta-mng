@@ -10,7 +10,7 @@
 #
 # ----------------------------------------------------------------------------
 
-SECURITY_STACK_PROTECTOR = "-fstack-protector-strong"
+SECURITY_STACK_PROTECTOR ?= "-fstack-protector-strong"
 
 SECURITY_STACK_PROTECTOR_pn-gcc-runtime = ""
 SECURITY_STACK_PROTECTOR_pn-glibc = ""
