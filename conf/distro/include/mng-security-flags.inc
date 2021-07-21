@@ -16,6 +16,15 @@ SECURITY_STACK_PROTECTOR_pn-gcc-runtime = ""
 SECURITY_STACK_PROTECTOR_pn-glibc = ""
 SECURITY_STACK_PROTECTOR_pn-glibc-testsuite = ""
 
+# Disabling -fstack-protector-strong for dbus is required to avoid hangs etc
+# (e.g. dmcli commands hang for 60 seconds before returning). The root cause is
+# not fully understood yet but either related to bugs introduced into dbus by
+# the Comcast RDKB patches or by the way in which RDKB misuses dbus APIs (which
+# also means dbus can not be build with internal error checking enabled, see
+# the dbus .bbappend). Fixme: to be reviewed.
+
+SECURITY_STACK_PROTECTOR_pn-dbus = ""
+
 # ----------------------------------------------------------------------------
 
 # The meta-oe and meta-virtualization layer config files include over-rides
