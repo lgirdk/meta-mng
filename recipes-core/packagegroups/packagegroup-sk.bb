@@ -17,6 +17,7 @@ RDEPENDS_packagegroup-sk-build-deps = " \
     libpcap \
     libssl \
     libstdc++ \
+    miniupnpc \
     nghttp2 \
 "
 
