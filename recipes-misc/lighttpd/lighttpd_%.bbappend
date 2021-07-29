@@ -13,7 +13,16 @@ SYSTEMD_AUTO_ENABLE = "disable"
 GWCONF = "${@bb.utils.contains('DISTRO_FEATURES', 'fcgi', 'ui2-fast-cgi.conf', 'ui2-cgi.conf', d)}"
 
 do_install_append () {
+
 	install -m 644 ${WORKDIR}/${GWCONF} ${D}${sysconfdir}/lighttpd/gateway.conf
+
+	# Strip comments and squash empty lines from lighttpd.conf + gateway.conf
+
+	for f in lighttpd.conf gateway.conf
+	do
+		sed 's/[ \t]\+$//; /^#/d' ${D}${sysconfdir}/lighttpd/$f | cat --squeeze-blank > ${D}${sysconfdir}/lighttpd/xxx_$f
+		mv ${D}${sysconfdir}/lighttpd/xxx_$f ${D}${sysconfdir}/lighttpd/$f
+	done
 }
 
 # Move the example /www provided by lighttpd into a separate package so that
