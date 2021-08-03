@@ -1,0 +1,88 @@
+From 9558cda35b37351c311de6a5dc533ac573ebfc3a Mon Sep 17 00:00:00 2001
+From: Tarun Saha <tsaha@libertyglobal.com>
+Date: Tue, 3 Aug 2021 06:38:20 -0700
+Subject: [PATCH 1/1] rfc8415-new-binding-in-renew-reply
+
+1. Fix for RFC-4815 scenario where server sends new binding in response
+to Renew message.
+2. Fix added to execute RDK-B notifyScript with correct parameters.
+---
+ AddrMgr/AddrMgr.cpp   | 21 ++++++++++++++++++---
+ IfaceMgr/IfaceMgr.cpp | 15 +++++++++++++--
+ 2 files changed, 31 insertions(+), 5 deletions(-)
+
+diff --git a/AddrMgr/AddrMgr.cpp b/AddrMgr/AddrMgr.cpp
+index 035e5620..cd3b6c25 100644
+--- a/AddrMgr/AddrMgr.cpp
++++ b/AddrMgr/AddrMgr.cpp
+@@ -410,7 +410,11 @@ bool TAddrMgr::addPrefix(SPtr<TAddrClient> client, SPtr<TDUID> duid , SPtr<TIPv6
+     if (ptrPrefix) {
+         Log(Warning) << "PD: Prefix " << ptrPrefix->get()->getPlain() << "/" << ptrPrefix->getLength()
+                      << " is already assigned to this PD." << LogEnd;
+-        return false;
++	/* Update timestamp for the existing prefix */
++        ptrPrefix->setTimestamp();
++        ptrPrefix->setPref(pref);
++        ptrPrefix->setValid(valid);
++        return true;
+     }
+ 
+     // add address
+@@ -482,8 +486,19 @@ bool TAddrMgr::updatePrefix(SPtr<TAddrClient> client, SPtr<TDUID> duid , SPtr<TI
+ 
+     // address already exists
+     if (!ptrPrefix) {
+-        Log(Warning) << "PD: Prefix " << prefix->getPlain() << " is not known. Unable to update." << LogEnd;
+-        return false;
++        Log(Warning) << "PD: Prefix " << prefix->getPlain() << " is not known. Adding new prefix received in RENEW/REBIND" << LogEnd;
++        /* RFC 8415: If the server is configured to create new bindings as a result of
++         * processing Renew messages, the server SHOULD create a binding and
++         * return the IA with assigned addresses or delegated prefixes with
++         * lifetimes and, if applicable, T1/T2 times and other information
++         * requested by the client.
++         */
++        pd->addPrefix(prefix, pref, valid, length);
++        if (!quiet)
++            Log(Debug) << "PD: Adding " << prefix->getPlain()
++                       << " prefix to PD (iaid=" << IAID
++                       << ") to addrDB." << LogEnd;
++        return true;
+     }
+ 
+     ptrPrefix->setTimestamp();
+diff --git a/IfaceMgr/IfaceMgr.cpp b/IfaceMgr/IfaceMgr.cpp
+index 47266161..63f013b0 100644
+--- a/IfaceMgr/IfaceMgr.cpp
++++ b/IfaceMgr/IfaceMgr.cpp
+@@ -310,7 +310,13 @@ void TIfaceMgr::optionToEnv(TNotifyScriptParams& params, SPtr<TOpt> opt, std::st
+         while (SPtr<TOpt> subopt = opt->getOption()) {
+             if (subopt->getOptType() == OPTION_IAADDR) {
+                 SPtr<TOptIAAddress> addr = SPtr_cast<TOptIAAddress>(subopt);
+-                if (!addr) {
++                /*
++                 * RDKB notify script handles only the first IA_NA address,
++                 * so only address with valid lifetime should be added.
++                 * Address release scenario with 0 lifetime, is already been
++                 * taken care of in separate notification event (i.e. 'expiry')
++                 */
++                if (!addr || !addr->getPref()) {
+                     continue;
+                 }
+                 params.addAddr(addr->getAddr(), addr->getPref(), addr->getValid(), txtPrefix);
+@@ -324,7 +330,12 @@ void TIfaceMgr::optionToEnv(TNotifyScriptParams& params, SPtr<TOpt> opt, std::st
+         while (SPtr<TOpt> subopt = opt->getOption()) {
+             if (subopt->getOptType() == OPTION_IAPREFIX) {
+                 SPtr<TOptIAPrefix> prefix = SPtr_cast<TOptIAPrefix>(subopt);
+-                if (!prefix) {
++                /*
++                 * RDKB notify script handles only the first IA_PD address,
++                 * so only prefix with valid lifetime should be added.
++                 * Prefix release scenario is same as for IA_NA.
++                 */
++                if (!prefix || !prefix->getPref()) {
+                     continue;
+                 }
+                 params.addPrefix(prefix->getPrefix(),
+-- 
+2.17.1
+
