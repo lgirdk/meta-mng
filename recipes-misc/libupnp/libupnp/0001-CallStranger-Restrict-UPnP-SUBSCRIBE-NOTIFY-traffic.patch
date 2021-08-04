@@ -1,0 +1,212 @@
+From 2d40819bd26c60daff03116adfee881784eeff7a Mon Sep 17 00:00:00 2001
+From: Cibil <cpankiras.contractor@libertyglobal.com>
+Date: Wed, 4 Aug 2021 14:49:53 +0200
+Subject: [PATCH] [CallStranger] Restrict UPnP SUBSCRIBE/NOTIFY traffic to the
+ GW private IP network
+
+The UPnP server MUST NOT accept a SUBSCRIBE message with CALLBACK value
+that is not on the LAN network. The solution is:
+1. When received SUBSCRIBE message,  check if source IP of SUBSCRIBE
+message is private IP address
+private ip address range is:
+  10.0.0.0 - 10.255.255.255 (10/8 prefix)
+  172.16.0.0 - 172.31.255.255 (172.16/12 prefix)
+  192.168.0.0 - 192.168.255.255 (192.168/16 prefix)
+      -if yes, go ahead
+      -if No, return HTTP_PRECONDITION_FAILED
+2. UPnP will parse and resolve callback URL
+3. Check the parsed IP lists, if callback IP == source ip
+       -if yes, go ahead
+       -if No, return HTTP_PRECONDITION_FAILED
+
+TESTING PERFORMED:
+    Validate:
+    - sending correct CALLBACK IP is accepted
+    - sending incorrect IP is rejected with "Precondition Failed"
+    - sending several CALLBACK IP is accepted if all are requester IP
+    - sending several CALLBACK IP is rejected with "Precondition Failed"
+      if one IP does not meet the criteria
+
+Signed-off-by: Cibil <cpankiras.contractor@libertyglobal.com>
+---
+ upnp/src/gena/gena_device.c | 157 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 157 insertions(+)
+
+diff --git a/upnp/src/gena/gena_device.c b/upnp/src/gena/gena_device.c
+index c54f884..6c9f42f 100644
+--- a/upnp/src/gena/gena_device.c
++++ b/upnp/src/gena/gena_device.c
+@@ -1189,6 +1189,155 @@ static int create_url_list(
+     return (int)URLcount;
+ }
+ 
++/* This function checks the ip is a private IP addresses as defined by UPNP in RFC1918
++ * returns 0 if not a private IP addresses
++ * returns 1 if successful
++ */
++static int checkValidIP(const in_addr_t ip)
++{
++#define IN_SUBNET(m, a) \
++    { htonl(m), htonl(a) }
++
++    const struct {
++        unsigned long mask;
++        unsigned long subnet;
++    } private_net_in[] = {
++        IN_SUBNET(0xff000000, 0x0A000000), /* 10.0.0.0    - 10.255.255.255  */
++        IN_SUBNET(0xfff00000, 0xAC100000), /* 172.16.0.0  - 172.31.255.255  */
++        IN_SUBNET(0xffff0000, 0xC0A80000), /* 192.168.0.0 - 192.168.255.255 */
++    };
++    int i, in_n = sizeof(private_net_in)/sizeof(*private_net_in);
++
++    for (i = 0; i < in_n; ++i)
++    {
++        if ((ip & private_net_in[i].mask) == private_net_in[i].subnet)
++            return 1;
++    }
++    return 0;
++}
++
++/* This function checks the callback
++ * if one of the callback does not match the IP of the requester, then it returns 0
++ * otherwise it returns number of valid IP address
++ */
++static int checkCallbackURL(SOCKINFO *info, URL_list *urlList)
++{
++    int ret = 0;
++    unsigned int j;
++    struct in_addr  requesterIP = {0};
++    #ifdef UPNP_ENABLE_IPV6
++    struct in6_addr requesterIP6 = IN6ADDR_ANY_INIT;
++    #endif
++
++    if( (info == NULL) || (urlList==NULL) || (urlList->parsedURLs==NULL) ) {
++        UpnpPrintf(UPNP_ALL, GENA, __FILE__, __LINE__, "null pointer\n");
++        return 0;
++    }
++
++    if(info->foreign_sockaddr.ss_family == AF_INET6) {
++#ifdef UPNP_ENABLE_IPV6
++        requesterIP6 = ((struct sockaddr_in6 *)&info->foreign_sockaddr)->sin6_addr;
++#endif
++    } else {
++        requesterIP = ((struct sockaddr_in *)&info->foreign_sockaddr)->sin_addr;
++    }
++
++    for(j=0; j<urlList->size; j++) {
++        const char *url    = urlList->parsedURLs[j].hostport.text.buff;
++        const char  urlLen = urlList->parsedURLs[j].hostport.text.size;
++
++        if( (urlLen != 0) && (url != NULL) )
++        {
++            const char     *p = NULL;
++            char            addrstr[INET6_ADDRSTRLEN+1] = {0};
++            int             ipv6 = 0;
++            unsigned int    i = 0;
++
++            UpnpPrintf(UPNP_ALL, GENA, __FILE__, __LINE__, "parsedURLs[%d] = %s\n", j, url);
++
++            /* Extract host from URL: the format should be <ip> or <ip>:<port> */
++            i = 0;
++            p = url;
++            if(*p == '[') {
++#ifdef UPNP_ENABLE_IPV6
++                p++;
++                ipv6 = 1;
++                while( (*p != ']') && (*p != '>') && (i < (sizeof(addrstr)-1)) && (p < (url + urlLen))) {
++                    addrstr[i++] = *(p++);
++                }
++#else
++                UpnpPrintf(UPNP_ALL, GENA, __FILE__, __LINE__, "IPv6 not supported\n");
++                return 0;
++#endif
++            } else {
++                ipv6 = 0;
++                while( (*p != '/') && (*p != ':') && (*p != '>') && (i < (sizeof(addrstr)-1)) && (p < (url + urlLen))) {
++                    addrstr[i++] = *(p++);
++                }
++            }
++            addrstr[i] = '\0';
++
++            if(ipv6) {
++#ifdef UPNP_ENABLE_IPV6
++                struct in6_addr addr;
++                if(inet_pton(AF_INET6, addrstr, &addr) <= 0) {
++                    UpnpPrintf(UPNP_ALL, GENA, __FILE__, __LINE__, "Invalid IPv6 address (%s)\n", addrstr);
++                    return 0;
++                }
++                if((info->foreign_sockaddr.ss_family != AF_INET6)
++                || (0!=memcmp(&addr, &requesterIP6, sizeof(struct in6_addr)))) {
++                    UpnpPrintf(UPNP_ALL, GENA, __FILE__, __LINE__, "IPv6 does not match requester\n");
++                    return 0;
++                }
++#endif
++            } else {
++                struct in_addr addr;
++
++                if(inet_pton(AF_INET, addrstr, &addr) <= 0) {
++                    UpnpPrintf(UPNP_ALL, GENA, __FILE__, __LINE__, "Invalid IPv4 address %s\n", addrstr);
++                    return 0;
++                }
++
++#ifdef UPNP_ENABLE_IPV6
++                if(info->foreign_sockaddr.ss_family == AF_INET6) {
++                    if(!IN6_IS_ADDR_V4MAPPED(&requesterIP6)) {
++                        UpnpPrintf(UPNP_ALL, GENA, __FILE__, __LINE__, "not IN6_IS_ADDR_V4MAPPED\n");
++                        return 0;
++                    }
++                    if(0!=memcmp(&addr, ((const char *)&(requesterIP6) + 12), 4)) {
++                        UpnpPrintf(UPNP_ALL, GENA, __FILE__, __LINE__, "IPv6 does not match requester\n");
++                        return 0;
++                    }
++                }
++                else
++#endif
++                {
++                    if(0!=memcmp(&addr, &requesterIP, sizeof(struct in_addr))) {
++                        UpnpPrintf(UPNP_ALL, GENA, __FILE__, __LINE__, "Callback IP does not match requester IP\n");
++                        return 0;
++                    }
++
++                    /* Validate this is in the right range of LAN IP address */
++                    if(1 != checkValidIP(addr.s_addr)) {
++                        UpnpPrintf(UPNP_ALL, GENA, __FILE__, __LINE__, "Callback IP not in valid range\n");
++                        return 0;
++                    }
++                }
++
++                /*
++                * Increment number of valid IP address
++                * If one of them is invalid, other if statement will return 0
++                * If there is no IP (is that possible?) then return 0
++                */
++                ret++;
++            }
++        } else {
++            UpnpPrintf(UPNP_ALL, GENA, __FILE__, __LINE__, "parsedURLs[%d] = null\n", j);
++        }
++    }
++
++    return ret;
++}
+ 
+ void gena_process_subscription_request(
+ 	SOCKINFO *info,
+@@ -1306,6 +1455,14 @@ void gena_process_subscription_request(
+ 		HandleUnlock();
+ 		goto exit_function;
+ 	}
++
++	if(checkCallbackURL(info, &sub->DeliveryURLs) == 0){
++		error_respond(info, HTTP_PRECONDITION_FAILED, request);
++		freeSubscriptionList(sub);
++		HandleUnlock();
++		goto exit_function;
++	}
++
+ 	if (return_code == UPNP_E_OUTOF_MEMORY) {
+ 		error_respond(info, HTTP_INTERNAL_SERVER_ERROR, request);
+ 		freeSubscriptionList(sub);
+-- 
+2.25.0
+
