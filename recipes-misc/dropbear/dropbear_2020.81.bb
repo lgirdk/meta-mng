@@ -11,8 +11,6 @@ DEPENDS = "zlib virtual/crypt"
 RPROVIDES_${PN} = "ssh sshd"
 RCONFLICTS_${PN} = "openssh-sshd openssh"
 
-DEPENDS += "${@bb.utils.contains('DISTRO_FEATURES', 'pam', 'libpam', '', d)}"
-
 SRC_URI = "http://matt.ucc.asn.au/dropbear/releases/dropbear-${PV}.tar.bz2 \
            file://0001-urandom-xauth-changes-to-options.h.patch \
            file://init \
@@ -20,22 +18,10 @@ SRC_URI = "http://matt.ucc.asn.au/dropbear/releases/dropbear-${PV}.tar.bz2 \
            file://dropbear@.service \
            file://dropbear.socket \
            file://dropbear.default \
-           ${@bb.utils.contains('DISTRO_FEATURES', 'pam', '${PAM_SRC_URI}', '', d)} \
            ${@bb.utils.contains('PACKAGECONFIG', 'disable-weak-ciphers', 'file://dropbear-disable-weak-ciphers.patch', '', d)} "
 
 SRC_URI[md5sum] = "a07438a6159a24c61f98f1bce2d479c0"
 SRC_URI[sha256sum] = "48235d10b37775dbda59341ac0c4b239b82ad6318c31568b985730c788aac53b"
-
-PAM_SRC_URI = "file://0005-dropbear-enable-pam.patch \
-               file://0006-dropbear-configuration-file.patch \
-               file://dropbear"
-
-PAM_PLUGINS = "libpam-runtime \
-	pam-plugin-deny \
-	pam-plugin-permit \
-	pam-plugin-unix \
-	"
-RDEPENDS_${PN} += "${@bb.utils.contains('DISTRO_FEATURES', 'pam', '${PAM_PLUGINS}', '', d)}"
 
 inherit autotools update-rc.d systemd
 
@@ -54,8 +40,7 @@ PACKAGECONFIG ?= "disable-weak-ciphers"
 PACKAGECONFIG[system-libtom] = "--disable-bundled-libtom,--enable-bundled-libtom,libtommath libtomcrypt"
 PACKAGECONFIG[disable-weak-ciphers] = ""
 
-EXTRA_OECONF += "\
- ${@bb.utils.contains('DISTRO_FEATURES', 'pam', '--enable-pam', '--disable-pam', d)}"
+EXTRA_OECONF += "--disable-pam"
 
 # This option appends to CFLAGS and LDFLAGS from OE
 # This is causing [textrel] QA warning
@@ -93,10 +78,6 @@ do_install() {
 		-e 's,/usr/bin,${bindir},g' \
 		-e 's,/usr,${prefix},g' ${WORKDIR}/init > ${D}${sysconfdir}/init.d/dropbear
 	chmod 755 ${D}${sysconfdir}/init.d/dropbear
-	if [ "${@bb.utils.filter('DISTRO_FEATURES', 'pam', d)}" ]; then
-		install -d ${D}${sysconfdir}/pam.d
-		install -m 0644 ${WORKDIR}/dropbear  ${D}${sysconfdir}/pam.d/
-	fi
 
 	# deal with systemd unit files
 	install -d ${D}${systemd_unitdir}/system
