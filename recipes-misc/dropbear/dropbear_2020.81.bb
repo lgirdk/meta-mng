@@ -14,23 +14,18 @@ RCONFLICTS_${PN} = "openssh-sshd openssh"
 SRC_URI = "http://matt.ucc.asn.au/dropbear/releases/dropbear-${PV}.tar.bz2 \
            file://0001-urandom-xauth-changes-to-options.h.patch \
            file://init \
-           file://dropbearkey.service \
-           file://dropbear@.service \
-           file://dropbear.socket \
            file://dropbear.default \
            ${@bb.utils.contains('PACKAGECONFIG', 'disable-weak-ciphers', 'file://dropbear-disable-weak-ciphers.patch', '', d)} "
 
 SRC_URI[md5sum] = "a07438a6159a24c61f98f1bce2d479c0"
 SRC_URI[sha256sum] = "48235d10b37775dbda59341ac0c4b239b82ad6318c31568b985730c788aac53b"
 
-inherit autotools update-rc.d systemd
+inherit autotools update-rc.d
 
 CVE_PRODUCT = "dropbear_ssh"
 
 INITSCRIPT_NAME = "dropbear"
 INITSCRIPT_PARAMS = "defaults 10"
-
-SYSTEMD_SERVICE_${PN} = "dropbear.socket"
 
 SBINCOMMANDS = "dropbear dropbearkey dropbearconvert"
 BINCOMMANDS = "dbclient ssh scp"
@@ -78,16 +73,6 @@ do_install() {
 		-e 's,/usr/bin,${bindir},g' \
 		-e 's,/usr,${prefix},g' ${WORKDIR}/init > ${D}${sysconfdir}/init.d/dropbear
 	chmod 755 ${D}${sysconfdir}/init.d/dropbear
-
-	# deal with systemd unit files
-	install -d ${D}${systemd_unitdir}/system
-	install -m 0644 ${WORKDIR}/dropbearkey.service ${D}${systemd_unitdir}/system
-	install -m 0644 ${WORKDIR}/dropbear@.service ${D}${systemd_unitdir}/system
-	install -m 0644 ${WORKDIR}/dropbear.socket ${D}${systemd_unitdir}/system
-	sed -i -e 's,@BASE_BINDIR@,${base_bindir},g' \
-		-e 's,@BINDIR@,${bindir},g' \
-		-e 's,@SBINDIR@,${sbindir},g' \
-		${D}${systemd_unitdir}/system/dropbear.socket ${D}${systemd_unitdir}/system/*.service
 }
 
 inherit update-alternatives
