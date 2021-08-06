@@ -112,7 +112,8 @@ do_install() {
 inherit update-alternatives
 
 ALTERNATIVE_PRIORITY = "20"
-ALTERNATIVE_${PN} = "${@bb.utils.filter('BINCOMMANDS', 'scp ssh', d)}"
+ALTERNATIVE_${PN} = "${@bb.utils.contains('BINCOMMANDS', 'scp', 'scp', '', d)} \
+                     ${@bb.utils.contains('BINCOMMANDS', 'ssh', 'ssh', '', d)}"
 
 ALTERNATIVE_TARGET = "${sbindir}/dropbearmulti"
 
