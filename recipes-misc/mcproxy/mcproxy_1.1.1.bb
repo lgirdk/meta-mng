@@ -12,6 +12,7 @@ SRC_URI = "git://github.com/mcproxy/mcproxy;protocol=https \
            file://0002-add-local-copy-of-getsourcefilter-setsourcefilter.patch \
            file://0003-fix-mutex_lock-on-a-non-mutable-member.patch \
            file://0004-fix-deleting-while-iterating-through-set-STL-in-C.patch \
+           file://0005-filter-for-SSDP-address.patch \
 "
 
 S = "${WORKDIR}/git"

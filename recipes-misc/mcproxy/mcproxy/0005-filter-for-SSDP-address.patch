@@ -1,0 +1,42 @@
+From 174960dee476232094af2a29b2cbe3f3744d66ec Mon Sep 17 00:00:00 2001
+From: Tarun Saha <tsaha@libertyglobal.com>
+Date: Wed, 11 Aug 2021 08:53:10 -0700
+Subject: [PATCH 1/1] filter for SSDP address
+
+multicast traffic for SSDP address are not required to be forwarded to
+upstream interface
+---
+ mcproxy/src/proxy/simple_mc_proxy_routing.cpp | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/mcproxy/src/proxy/simple_mc_proxy_routing.cpp b/mcproxy/src/proxy/simple_mc_proxy_routing.cpp
+index b87043c..4081278 100644
+--- a/mcproxy/src/proxy/simple_mc_proxy_routing.cpp
++++ b/mcproxy/src/proxy/simple_mc_proxy_routing.cpp
+@@ -34,6 +34,7 @@
+ #include <algorithm>
+ #include <memory>
+ 
++#define IPV4_SSDP_ADDR    "239.255.255.250"    // Well-known multicast IPv4 site-local address for UPNP. Used to send/receive SSDP messages.
+ //-------------------------------------------------------------------------------
+ //-------------------------------------------------------------------------------
+ 
+@@ -305,6 +306,15 @@ void simple_mc_proxy_routing::event_new_source(const std::shared_ptr<proxy_msg>&
+     case proxy_msg::NEW_SOURCE_MSG: {
+         auto sm = std::static_pointer_cast<new_source_msg>(msg);
+         source s(sm->get_saddr());
++
++        /*
++         * SSDP messages are not forwarded to the upstream,
++         * so ip_mr_cache is not required to be updated for this address.
++         */
++        if ((sm->get_gaddr().to_string()).compare(IPV4_SSDP_ADDR) == 0) {
++            del_route(sm->get_if_index(), sm->get_gaddr(), sm->get_saddr());
++            break;
++        }
+         s.shared_source_timer = set_source_timer(sm->get_if_index(), sm->get_gaddr(), sm->get_saddr());
+ 
+         //route calculation
+-- 
+2.17.1
+
