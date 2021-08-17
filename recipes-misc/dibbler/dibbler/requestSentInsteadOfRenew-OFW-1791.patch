@@ -1,0 +1,56 @@
+diff --git a/ClntMessages/ClntMsgRequest.cpp b/ClntMessages/ClntMsgRequest.cpp
+index 91e72a03..ec994fad 100644
+--- a/ClntMessages/ClntMsgRequest.cpp
++++ b/ClntMessages/ClntMsgRequest.cpp
+@@ -31,7 +31,7 @@
+ /*
+  * opts - options list WITHOUT serverDUID
+  */
+-TClntMsgRequest::TClntMsgRequest(TOptList opts, int iface)
++TClntMsgRequest::TClntMsgRequest(TOptList opts, int iface, bool sendRequest)
+     :TClntMsg(iface, SPtr<TIPv6Addr>(), REQUEST_MSG) {
+     IRT = REQ_TIMEOUT;
+     MRT = REQ_MAX_RT;
+@@ -123,7 +123,10 @@ TClntMsgRequest::TClntMsgRequest(TOptList opts, int iface)
+     appendElapsedOption();
+     appendAuthenticationOption();
+     IsDone = false;
+-    send();
++    if(sendRequest)
++    {
++      send();
++    }
+ }
+ 
+ TClntMsgRequest::TClntMsgRequest(List(TAddrIA) IAs,
+diff --git a/ClntMessages/ClntMsgRequest.h b/ClntMessages/ClntMsgRequest.h
+index 9bc973de..771bf10f 100644
+--- a/ClntMessages/ClntMsgRequest.h
++++ b/ClntMessages/ClntMsgRequest.h
+@@ -18,7 +18,7 @@ class TClntIfaceMgr;
+ class TClntMsgRequest : public TClntMsg
+ {
+   public:
+-    TClntMsgRequest(TOptList opts, int iface);
++    TClntMsgRequest(TOptList opts, int iface, bool sendRequest = true);
+     TClntMsgRequest(List(TAddrIA) requestIALst,
+                     SPtr<TDUID> srvDUID,
+                     int iface);
+diff --git a/ClntTransMgr/ClntTransMgr.cpp b/ClntTransMgr/ClntTransMgr.cpp
+index 55180e9e..1783ac6c 100644
+--- a/ClntTransMgr/ClntTransMgr.cpp
++++ b/ClntTransMgr/ClntTransMgr.cpp
+@@ -798,8 +798,11 @@ void TClntTransMgr::sendRequest(TOptList requestOptions, int iface)
+ 	    (*opt)->getOptType() == OPTION_AUTH)
+             opt = requestOptions.erase(opt);
+     }
+-    SPtr<TClntMsg> ptr = new TClntMsgRequest(requestOptions, iface);
+-    Transactions.append(ptr);
++    SPtr<TClntMsg> ptr = new TClntMsgRequest(requestOptions, iface,false);
++    if (ptr)
++    {
++      Transactions.append(ptr);
++    }
+ }
+ 
+ void TClntTransMgr::sendRenew()

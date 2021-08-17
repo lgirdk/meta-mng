@@ -1,4 +1,4 @@
-From 36d472e801f064d16eb011a611c86e33e0bd3692 Mon Sep 17 00:00:00 2001
+From 034c5e13e9420c3f67a219a493563ddbf8cebe9e Mon Sep 17 00:00:00 2001
 From: "qmai@libertyglobal.com" <qmai@libertyglobal.com>
 Date: Thu, 22 Apr 2021 20:37:44 +0000
 Subject: [PATCH] send Renew after T1 timer expires ( OFW 1143 )
@@ -6,44 +6,43 @@ Subject: [PATCH] send Renew after T1 timer expires ( OFW 1143 )
 Previously the DHCPv6 client would send a Solicit message after the
 T1 timer expires. Send a Renew instead.
 ---
- ClntMessages/ClntMsgRequest.cpp | 6 ++++--
+ ClntMessages/ClntMsgRequest.cpp | 5 +++--
  ClntMessages/ClntMsgSolicit.cpp | 7 +++++++
- 2 files changed, 11 insertions(+), 2 deletions(-)
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
 diff --git a/ClntMessages/ClntMsgRequest.cpp b/ClntMessages/ClntMsgRequest.cpp
-index 9ae14132..afa6fdf2 100644
+index 9ae14132..b24ef21d 100644
 --- a/ClntMessages/ClntMsgRequest.cpp
 +++ b/ClntMessages/ClntMsgRequest.cpp
-@@ -62,8 +62,10 @@ TClntMsgRequest::TClntMsgRequest(TOptList opts, int iface)
+@@ -62,8 +62,9 @@ TClntMsgRequest::TClntMsgRequest(TOptList opts, int iface)
      SPtr<TClntMsg> advertise = SPtr_cast<TClntMsg>(ClntTransMgr().getAdvertise());
      copyAAASPI(SPtr_cast<TClntMsg>(advertise));
  
 -    // remove just used server
 -    ClntTransMgr().delFirstAdvertise();
-+    /*  
-+       There will be no server available for REQUEST.
-+       Remove used server later when SOLICIT is sent.
-+    */
++    // There will be no server available for REQUEST.
++    // remove just used server later.
++    // ClntTransMgr().delFirstAdvertise();
  
      // copy whole list from SOLICIT ...
      Options = opts;
 diff --git a/ClntMessages/ClntMsgSolicit.cpp b/ClntMessages/ClntMsgSolicit.cpp
-index 6ace86e8..3ab44196 100644
+index 06be83f0..67af02ff 100644
 --- a/ClntMessages/ClntMsgSolicit.cpp
 +++ b/ClntMessages/ClntMsgSolicit.cpp
-@@ -137,6 +137,13 @@ void TClntMsgSolicit::answer(SPtr<TClntMsg> msg)
- 	    Log(Info) << "Server responded with ADVERTISE instead of REPLY, probably does not support"
- 		" RAPID-COMMIT." << LogEnd;
- 	}
+@@ -109,6 +109,13 @@ TClntMsgSolicit::TClntMsgSolicit(int iface, SPtr<TIPv6Addr> addr,
+     appendAuthenticationOption();
+     
+     IsDone = false;
 +
-+	// remove all used servers from the list
-+	while (ClntTransMgr().getAdvertiseLstCount())
-+	{
-+	    ClntTransMgr().delFirstAdvertise();
-+	}
++    // remove all used servers from the list
++    while (ClntTransMgr().getAdvertiseLstCount())
++    {
++        ClntTransMgr().delFirstAdvertise();
++    }
 +
- 	ClntTransMgr().addAdvertise(msg);
- 	SPtr<TOptInteger> prefOpt = SPtr_cast<TOptInteger>(msg->getOption(OPTION_PREFERENCE));
+     send();
+ }
  
 -- 
 2.24.0

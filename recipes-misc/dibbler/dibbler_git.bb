@@ -25,6 +25,7 @@ SRC_URI = "git://github.com/tomaszmrugalski/dibbler \
            file://fix-options-IA_NA-and-IA_PD-are-not-received-with-so.patch \
            file://send-Renew-after-T1-timer-expires-OFW-1143.patch \
            file://rfc8415-new-binding-in-renew-reply.patch \
+           file://requestSentInsteadOfRenew-OFW-1791.patch \
 "
 
 S = "${WORKDIR}/git"
