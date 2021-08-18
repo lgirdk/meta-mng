@@ -16,8 +16,6 @@ S = "${WORKDIR}/git"
 
 inherit autotools pkgconfig
 
-EXTRA_OECONF += "${CCSP_CONFIG_ARCH}"
-
 EXTRA_OECONF += " \
     ${@bb.utils.contains('DISTRO_FEATURES','multipartUtility','--enable-multipartUtilEnable=yes','',d)} \
     ${@bb.utils.contains('DISTRO_FEATURES','notifylease','--enable-notifylease','',d)} \
