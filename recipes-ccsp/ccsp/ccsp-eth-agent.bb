@@ -20,8 +20,6 @@ PACKAGECONFIG ?= "dropearly"
 
 PACKAGECONFIG[dropearly] = "--enable-dropearly,--disable-dropearly"
 
-EXTRA_OECONF += "${CCSP_CONFIG_ARCH} ${CCSP_CONFIG_PLATFORM}"
-
 CFLAGS += " \
     -I${STAGING_INCDIR}/cimplog \
     -I${STAGING_INCDIR}/syscfg \
