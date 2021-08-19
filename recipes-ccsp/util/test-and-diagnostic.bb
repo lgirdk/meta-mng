@@ -16,8 +16,6 @@ S = "${WORKDIR}/git"
 
 inherit autotools pkgconfig
 
-EXTRA_OECONF += "${CCSP_CONFIG_ARCH}"
-
 EXTRA_OECONF += "--enable-mta"
 
 CFLAGS += " \
