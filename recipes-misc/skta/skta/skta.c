@@ -22,10 +22,6 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 
-#ifndef INTERFACE
-#define INTERFACE "cm0"
-#endif
-
 #ifndef SYSDESC
 #define SYSDESC "DOCSIS Cable Modem Gateway Device <<HW_REV: 1.2; VENDOR: Liberty Global; SW_REV: 3.4; MODEL: ABC3000>>"
 #endif
@@ -33,6 +29,12 @@
 #ifndef PROPERTY
 #define PROPERTY "Virgin Media; United Kingdom"
 #endif
+
+static const char *interfaces[] = {
+    "erouter0",
+    "cm0",
+    "wlan0",    /* Not expected to be found on a real device, but maybe useful for testing */
+};
 
 static int skta_get_mac_address (char *macstring, const char *device)
 {
@@ -120,19 +122,30 @@ static int skta_get_property (char *buf, size_t len)
 
 int main (int argc, char* argv[])
 {
+    char interface[IFNAMSIZ];
     char macstring[18];
     char sysdesc[200];
     char property[64];
     unsigned long long counters[4];     /* tx_packets, rx_packets, tx_bytes and rx_bytes */
     int i;
 
-    if (skta_get_mac_address (macstring, INTERFACE) != 0) {
-        fprintf (stderr, "Error reading MAC address for '%s'\n", INTERFACE);
+    for (i = 0; i < sizeof(interfaces)/sizeof(interfaces[0]); i++) {
+        strncpy (interface, interfaces[i], sizeof(interface) - 1);
+        interface[sizeof(interface) - 1] = 0;
+        if (skta_get_mac_address (macstring, interface) == 0)
+            break;
+    }
+
+    if (i >= sizeof(interfaces)/sizeof(interfaces[0])) {
+        fprintf (stderr, "Error detecting interface (tried:");
+        for (i = 0; i < sizeof(interfaces)/sizeof(interfaces[0]); i++)
+            fprintf (stderr, " %s", interfaces[i]);
+        fprintf (stderr, ")\n");
         return 1;
     }
 
-    if (skta_get_counters (counters, INTERFACE) != 0) {
-        fprintf (stderr, "Error reading counters for '%s'\n", INTERFACE);
+    if (skta_get_counters (counters, interface) != 0) {
+        fprintf (stderr, "Error reading counters for '%s'\n", interface);
         return 1;
     }
 
