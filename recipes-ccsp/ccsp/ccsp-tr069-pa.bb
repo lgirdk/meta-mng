@@ -16,8 +16,6 @@ S = "${WORKDIR}/git"
 
 inherit autotools pkgconfig
 
-EXTRA_OECONF += "${CCSP_CONFIG_ARCH}"
-
 CFLAGS += " \
     -I${STAGING_INCDIR}/syscfg \
 "
