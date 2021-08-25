@@ -17,7 +17,6 @@ S = "${WORKDIR}/git"
 
 inherit autotools pkgconfig systemd
 
-EXTRA_OECONF += "${CCSP_CONFIG_ARCH} ${CCSP_CONFIG_PLATFORM}"
 EXTRA_OECONF += "${@bb.utils.contains('DISTRO_FEATURES','systemd','--enable-notify','',d)}"
 
 CFLAGS += " \
