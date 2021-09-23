@@ -23,6 +23,7 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <ctype.h>
 
 #ifndef SYSDESC
 #define SYSDESC "DOCSIS Cable Modem Gateway Device <<HW_REV: 1.2; VENDOR: Liberty Global; SW_REV: 3.4; MODEL: ABC3000>>"
@@ -69,6 +70,98 @@ static int skta_get_mac_address (char *macstring, const char *device)
 
     return result;
 }
+
+#if defined(_LG_MV2_PLUS_)
+
+static int validate_mac (char *macstring)
+{
+    int i;
+
+    for (i = 0; i < 6; i++)
+    {
+        if ((isxdigit(macstring[0])) &&
+            (isxdigit(macstring[1])) &&
+            (macstring[2] == ((i == 5) ? 0 : ':')))
+        {
+            macstring += 3;
+        }
+        else
+        {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+static int skta_get_mac_address_via_syscfg (char *macstring)
+{
+    FILE *fp;
+    char *cmd = "syscfg get cm_mac";
+    int result = -1;
+
+    fp = popen (cmd, "r");
+
+    if (fp == NULL)
+        return -1;
+
+    if (fgets (macstring, 18, fp) != NULL)
+        if (validate_mac (macstring) == 0)
+            result = 0;
+
+    pclose (fp);
+
+    return result;
+}
+
+static int skta_get_mac_address_via_dmcli (char *macstring)
+{
+    FILE *fp;
+    char *cmd = "dmcli eRT retv Device.DeviceInfo.X_LGI-COM_CM_MAC";
+    int result = -1;
+
+    fp = popen (cmd, "r");
+
+    if (fp == NULL)
+        return -1;
+
+    if (fgets (macstring, 18, fp) != NULL)
+        if (validate_mac (macstring) == 0)
+            result = 0;
+
+    pclose (fp);
+
+    return result;
+}
+
+static int skta_get_mac_address_via_snmp (char *macstring)
+{
+    FILE *fp;
+    char buf[128];
+    char *cmd = "snmpget -cpub -v2c -Ov 172.31.255.45 1.3.6.1.2.1.2.2.1.6.2";
+    int result = -1;
+
+    fp = popen (cmd, "r");
+
+    if (fp == NULL)
+        return -1;
+
+    if (fgets (buf, sizeof(buf), fp) != NULL) {
+        int len = strlen (buf);
+        if ((len == 26) && (buf[25] == '\n') && (memcmp (buf, "STRING: ", 8) == 0)) {
+            memcpy (macstring, buf + 8, 17);
+            macstring[17] = 0;
+            if (validate_mac (macstring) == 0)
+                result = 0;
+        }
+    }
+
+    pclose (fp);
+
+    return result;
+}
+
+#endif
 
 static int skta_sync_counters (void)
 {
@@ -191,6 +284,36 @@ int main (int argc, char* argv[])
         fprintf (stderr, ")\n");
         return 1;
     }
+
+#if defined(_LG_MV2_PLUS_)
+    /*
+       At this point, macstring holds the MAC address of the interface from
+       which byte/packet counters will be read. However we need the MAC address
+       of the CM interface, which on Mv2+ is different.
+
+       Try 3 different approaches to read the CM MAC address: syscfg is fast
+       but will fail if the cache is empty. dmcli is slow but seems to be the
+       most reliable. snmpget is in between and mostly just kept as a reference
+       (it has been seen to fail sometimes if called too early during startup).
+       Since dmcli also ends up calling snmpget (but indirectly via the HAL) it
+       may not actually be any more reliable. To be investigated...
+
+       It's possible for all three calls below to fail if we are running too
+       soon during startup and no value has been previously saved to syscfg.
+       Since returning the wromg MAC address causes various problems, include a
+       sanity check and abort if the CM MAC address is not successfully read.
+    */
+
+    macstring[0] = 0;
+
+    if ((skta_get_mac_address_via_syscfg (macstring) != 0) &&
+        (skta_get_mac_address_via_dmcli (macstring) != 0) &&
+        (skta_get_mac_address_via_snmp (macstring) != 0))
+    {
+        fprintf (stderr, "Error reading CM MAC address\n");
+        return 1;
+    }
+#endif
 
     skta_sync_counters();
 
