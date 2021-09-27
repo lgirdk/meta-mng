@@ -21,6 +21,8 @@
 #include <net/if.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #ifndef SYSDESC
 #define SYSDESC "DOCSIS Cable Modem Gateway Device <<HW_REV: 1.2; VENDOR: Liberty Global; SW_REV: 3.4; MODEL: ABC3000>>"
@@ -66,6 +68,31 @@ static int skta_get_mac_address (char *macstring, const char *device)
     close (fd);
 
     return result;
+}
+
+static int skta_sync_counters (void)
+{
+#if defined(_LG_MV2_PLUS_)
+    unsigned char buf[4096];
+    int fd;
+
+    /*
+       Read from /proc/net/nf_conntrack_offload to sync counters
+    */
+    fd = open ("/proc/net/nf_conntrack_offload", O_RDONLY);
+
+    if (fd == -1)
+        return -1;
+
+    while (1) {
+        if (read (fd, buf, sizeof(buf)) <= 0)
+            break;
+    }
+
+    close (fd);
+#endif
+
+    return 0;
 }
 
 static int skta_get_counters (unsigned long long *counters, const char *device)
@@ -164,6 +191,8 @@ int main (int argc, char* argv[])
         fprintf (stderr, ")\n");
         return 1;
     }
+
+    skta_sync_counters();
 
     if (skta_get_counters (counters, interface) != 0) {
         fprintf (stderr, "Error reading counters for '%s'\n", interface);
