@@ -115,6 +115,23 @@ static int skta_get_system_description (char *buf, size_t len)
 
 static int skta_get_property (char *buf, size_t len)
 {
+    FILE *file;
+    char *pos = NULL;
+
+    if ((file = popen ("syscfg get skproperty ", "r")) != NULL) {
+        pos = fgets (buf, len, file);
+        pclose (file);
+    }
+
+    if (pos) {
+        len = strlen (pos);
+        if (len > 0) {
+            if (pos[len - 1] == '\n')
+                pos[len - 1] = 0;
+            return 0;
+        }
+    }
+
     snprintf (buf, len, PROPERTY);
 
     return 0;
