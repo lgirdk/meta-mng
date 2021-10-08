@@ -3,7 +3,7 @@ LICENSE = "MIT"
 
 inherit packagegroup
 
-PACKAGES = "packagegroup-sk-build-deps packagegroup-sk"
+PACKAGES = "packagegroup-sk-build-deps packagegroup-sk-build-deps-minimal packagegroup-sk"
 
 # Build dependencies
 
@@ -19,6 +19,14 @@ RDEPENDS_packagegroup-sk-build-deps = " \
     libstdc++ \
     miniupnpc \
     nghttp2 \
+    zlib \
+"
+
+# Build dependencies if SK delivers OSS as prebuilt binaries
+
+RDEPENDS_packagegroup-sk-build-deps-minimal = " \
+    libstdc++ \
+    zlib \
 "
 
 # Build + run time dependencies
