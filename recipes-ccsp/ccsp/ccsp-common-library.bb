@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=19774cd4dd519f099bc404798ceeab19"
 
 require ccsp_common_internal.inc
 
-DEPENDS += "openssl nanomsg rbus-core zlib gperf-native"
+DEPENDS += "openssl nanomsg rbus rbus-core zlib gperf-native"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
