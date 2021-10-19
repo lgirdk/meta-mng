@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=175792518e4ac015ab6696d16c4f607e"
 
 require recipes-ccsp/ccsp/ccsp_common.inc
 
-DEPENDS += "cjson curl rdklist libunpriv rbus"
+DEPENDS += "cjson curl rdklist libsyswrapper libunpriv rbus webconfig-framework"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
