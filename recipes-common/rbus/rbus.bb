@@ -14,4 +14,11 @@ S = "${WORKDIR}/git"
 
 inherit cmake pkgconfig
 
+do_install_append () {
+	# Fix include paths within rbus headers to match path in sysroot
+	for f in ${D}${includedir}/rbus/*.h ; do
+		sed -i 's|^#include <rbus|#include <rbus/rbus|' $f
+	done
+}
+
 FILES_${PN}-dev += "${libdir}/cmake"
