@@ -24,9 +24,17 @@ do_compile() {
 do_install () {
 	install -d ${D}${libdir}
 	install -m 0644 liblinenoise.a ${D}${libdir}/
-	install -m 0644 liblinenoise.so.0 ${D}${libdir}/
-	ln -s liblinenoise.so.0 ${D}${libdir}/liblinenoise.so
+
+	# --------------------------------------------------------------------
+	# Not installing the shared lib forces apps etc linking with
+	# -llinenoise to use the static lib instead.
+	# --------------------------------------------------------------------
+
+#	install -m 0644 liblinenoise.so.0 ${D}${libdir}/
+#	ln -s liblinenoise.so.0 ${D}${libdir}/liblinenoise.so
 
 	install -d ${D}${includedir}
 	install -m 0644 linenoise.h ${D}${includedir}/
 }
+
+RDEPENDS_${PN}-dev += "${PN}-staticdev"
