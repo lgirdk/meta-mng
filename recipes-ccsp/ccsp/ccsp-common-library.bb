@@ -62,8 +62,6 @@ do_install_append () {
 	install -m 644 ${S}/source/util_api/tls/include/*.h ${D}${includedir}/ccsp/
 	install -m 644 ${S}/source/util_api/web/include/*.h ${D}${includedir}/ccsp/
 
-	install -m 644 ${S}/WebConfig_Framework/*.h ${D}${includedir}/ccsp/
-
 	# Fixme: these files are installed to both /usr/include/ccsp and /usr/include/ccsp/linux ?
 	install -d ${D}${includedir}/ccsp/linux
 	install -m 644 ${S}/source/cosa/include/linux/*.h ${D}${includedir}/ccsp/linux
