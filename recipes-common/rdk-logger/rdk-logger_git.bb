@@ -41,12 +41,6 @@ do_install_append () {
 
 	install -d ${D}${base_libdir}/rdk
 	install -m 0755 ${S}/scripts/logMilestone.sh ${D}${base_libdir}/rdk/
-
-	# Legacy symlink so that /etc/log4crc can be accessed via /rdklogger/log4crc
-	# To be removed once all users of /rdklogger/log4crc have been updated.
-
-	install -d ${D}/rdklogger
-	ln -sf /etc/log4crc ${D}/rdklogger/log4crc
 }
 
 FILES_${PN} += "${base_libdir}/rdk /rdklogger"
