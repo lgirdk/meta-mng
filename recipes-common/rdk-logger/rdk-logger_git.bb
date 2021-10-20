@@ -14,10 +14,18 @@ S = "${WORKDIR}/git"
 
 inherit autotools pkgconfig
 
-PACKAGECONFIG ?= "milestone ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'systemd-syslog-helper', '', d)}"
+PACKAGECONFIG ?= " \
+    milestone \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'bci', '', 'onboardlog', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'systemd-syslog-helper', '', d)} \
+"
 
 PACKAGECONFIG[milestone] = "--enable-milestone,,"
+PACKAGECONFIG[onboardlog] = "--enable-onboardlog,--enable-onboardlog,"
 PACKAGECONFIG[systemd-syslog-helper] = "--enable-systemd-syslog-helper,,syslog-helper systemd"
+
+# Note: ccsp_common.inc sets this for ccsp recipes, keep aligned.
+CFLAGS += "${@bb.utils.contains('PACKAGECONFIG', 'onboardlog', '-DFEATURE_SUPPORT_ONBOARD_LOGGING', '', d)}"
 
 # Note: Source file modifications should be done as part of do_patch (rather
 # than as part of do_configure) to avoid potential problems with sstate cache.
@@ -33,6 +41,11 @@ do_patch_append() {
 }
 
 do_install_append () {
+
+	if ${@bb.utils.contains('PACKAGECONFIG', 'onboardlog', 'true', 'false', d)}; then
+		install -d ${D}${sysconfdir}
+		touch ${D}${sysconfdir}/ONBOARD_LOGGING_ENABLE
+	fi
 
 	# The only thing currently using the logMilestone.sh script is the
 	# busybox udhcpc client from meta-rdk-ext. Similar changes may be
