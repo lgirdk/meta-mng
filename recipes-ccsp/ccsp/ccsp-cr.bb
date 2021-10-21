@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=175792518e4ac015ab6696d16c4f607e"
 
 require ccsp_common.inc
 
-DEPENDS += "utopia telemetry libunpriv"
+DEPENDS += "utopia telemetry libunpriv libxml2"
 DEPENDS += "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'systemd', '', d)}"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
@@ -24,6 +24,7 @@ CFLAGS += " \
     -I${STAGING_INCDIR}/ulog \
     -I${STAGING_INCDIR}/utapi \
     -I${STAGING_INCDIR}/utctx \
+    -I${STAGING_INCDIR}/libxml2 \
 "
 
 LDFLAGS += " \
