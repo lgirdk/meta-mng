@@ -16,5 +16,11 @@ inherit pkgconfig cmake
 EXTRA_OECMAKE += "-DRDK_LOGGER=ON -DBUILD_TESTING=OFF -DBUILD_YOCTO=true"
 EXTRA_OECMAKE_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'bci', '', ' -DFEATURE_SUPPORT_ONBOARD_LOGGING=true',d)}"
 
+do_install_append () {
+	# Prevent clash with rdk-logger, which also installs onboarding_log
+	rm -f ${D}${bindir}/onboarding_log
+	rmdir ${D}${bindir} || true
+}
+
 ASNEEDED_hybrid = ""
 ASNEEDED_client = ""
