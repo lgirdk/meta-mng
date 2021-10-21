@@ -1,18 +1,32 @@
-From 96a259d514b99fb4a2c008426370a68ca97667af Mon Sep 17 00:00:00 2001
-From: Andre McCurdy <armccurdy@gmail.com>
-Date: Fri, 6 Mar 2020 13:47:59 -0800
-Subject: [PATCH] add CCSP APIs patch for dbus 1.12.16
+From ad415c290930845ef0edc5710ff0f53f4391acfe Mon Sep 17 00:00:00 2001
+From: Jaga <jagadheesan_duraisamy@comcast.com>
+Date: Mon, 9 Mar 2020 14:19:03 +0000
+Subject: [PATCH] RDKB-27908: dbus: add CCSP APIs patch for dbus 1.12.16
+ (required for RDK-B with OE 3.1)
 
-When building RDK-B, the meta-rdk dbus .bbappend applies a version
-specific patch to dbus to enable support for CCSP APIs.
+Reason for Change:
+        When building RDK-B, the meta-rdk dbus .bbappend applies a version
+        specific patch to dbus to enable support for CCSP APIs. Currently no
+        patch exists for dbus 1.12.16 (ie the OE 3.1 version), which causes
+        OE 3.1 based RDK-B builds to fail during boot-up.
 
-Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+        To unblock development and testing of OE 3.1, copy the existing CCSP
+        APIs patch for dbus 1.10.10 and apply it to dbus 1.12.16. Note that
+        the patch has been build tested only and further updates may still be
+        required to fully support dbus 1.12.16.
+
+Source: COMCAST
+License: AFL-2.1 | GPLv2+
+
+Upstream-Status: Pending
+
+Signed-off-by: Jaga <jagadheesan_duraisamy@comcast.com>
 ---
  bus/activation.c        |  12 ++--
  bus/bus.c               |  14 ++--
  bus/connection.c        |  28 ++++----
  bus/dir-watch-inotify.c |   8 +--
- bus/dispatch.c          |   2 +-
+ bus/dispatch.c          |  28 ++++----
  bus/expirelist.c        |   6 +-
  bus/main.c              |  10 +--
  bus/utils.c             |   2 +-
@@ -20,7 +34,7 @@ Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
  dbus/dbus-ccsp-apis.c   | 141 ++++++++++++++++++++++++++++++++++++++++
  dbus/dbus-ccsp-apis.h   | 112 +++++++++++++++++++++++++++++++
  dbus/dbus.h             |   1 +
- 12 files changed, 306 insertions(+), 50 deletions(-)
+ 12 files changed, 319 insertions(+), 63 deletions(-)
  create mode 100644 dbus/dbus-ccsp-apis.c
  create mode 100644 dbus/dbus-ccsp-apis.h
 
@@ -150,7 +164,7 @@ index 2ad8e789..82ff921f 100644
          }
  
 diff --git a/bus/connection.c b/bus/connection.c
-index b3583433..23248e6e 100644
+index 53605fa3..74acd656 100644
 --- a/bus/connection.c
 +++ b/bus/connection.c
 @@ -236,7 +236,7 @@ bus_connection_disconnected (DBusConnection *connection)
@@ -245,7 +259,7 @@ index b3583433..23248e6e 100644
                                 connections->expire_timeout))
      goto failed_5;
    
-@@ -558,7 +558,7 @@ bus_connections_unref (BusConnections *connections)
+@@ -557,7 +557,7 @@ bus_connections_unref (BusConnections *connections)
  
        bus_expire_list_free (connections->pending_replies);
        
@@ -254,7 +268,7 @@ index b3583433..23248e6e 100644
                                   connections->expire_timeout);
        
        _dbus_timeout_unref (connections->expire_timeout);
-@@ -816,7 +816,7 @@ bus_connections_setup_connection (BusConnections *connections,
+@@ -815,7 +815,7 @@ bus_connections_setup_connection (BusConnections *connections,
  
    if (dbus_connection_get_dispatch_status (connection) != DBUS_DISPATCH_COMPLETE)
      {
@@ -263,7 +277,7 @@ index b3583433..23248e6e 100644
          {
            bus_dispatch_remove_connection (connection);
            goto oom;
-@@ -831,7 +831,7 @@ bus_connections_setup_connection (BusConnections *connections,
+@@ -830,7 +830,7 @@ bus_connections_setup_connection (BusConnections *connections,
      goto oom;
  
    _dbus_timeout_disable (d->pending_unix_fds_timeout);
@@ -308,7 +322,7 @@ index 447dc2db..7ddfd64a 100644
            _dbus_warn ("Unable to add reload watch to main loop");
            _dbus_watch_unref (watch);
 diff --git a/bus/dispatch.c b/bus/dispatch.c
-index 19228bed..d6b36071 100644
+index 19228bed..27bc02eb 100644
 --- a/bus/dispatch.c
 +++ b/bus/dispatch.c
 @@ -233,7 +233,7 @@ bus_dispatch (DBusConnection *connection,
@@ -320,6 +334,123 @@ index 19228bed..d6b36071 100644
  
    /* Ref connection in case we disconnect it at some point in here */
    dbus_connection_ref (connection);
+@@ -624,7 +624,7 @@ pop_message_waiting_for_memory (DBusConnection *connection)
+ {
+   while (dbus_connection_get_dispatch_status (connection) ==
+          DBUS_DISPATCH_NEED_MEMORY)
+-    _dbus_wait_for_memory ();
++    dbus_wait_for_memory ();
+ 
+   return dbus_connection_pop_message (connection);
+ }
+@@ -634,7 +634,7 @@ borrow_message_waiting_for_memory (DBusConnection *connection)
+ {
+   while (dbus_connection_get_dispatch_status (connection) ==
+          DBUS_DISPATCH_NEED_MEMORY)
+-    _dbus_wait_for_memory ();
++    dbus_wait_for_memory ();
+ 
+   return dbus_connection_borrow_message (connection);
+ }
+@@ -749,7 +749,7 @@ check_service_owner_changed_foreach (DBusConnection *connection,
+           if (dbus_error_has_name (&error, DBUS_ERROR_NO_MEMORY))
+             {
+               dbus_error_free (&error);
+-              _dbus_wait_for_memory ();
++              dbus_wait_for_memory ();
+               goto reget_service_info_data;
+             }
+           else
+@@ -810,7 +810,7 @@ kill_client_connection (BusContext     *context,
+   _dbus_assert (s != NULL);
+ 
+   while ((base_service = _dbus_strdup (s)) == NULL)
+-    _dbus_wait_for_memory ();
++    dbus_wait_for_memory ();
+ 
+   dbus_connection_ref (connection);
+ 
+@@ -1043,7 +1043,7 @@ check_hello_message (BusContext     *context,
+             {
+               _dbus_verbose ("no memory to get service name arg from hello\n");
+               dbus_error_free (&error);
+-              _dbus_wait_for_memory ();
++              dbus_wait_for_memory ();
+               goto retry_get_hello_name;
+             }
+           else
+@@ -1057,7 +1057,7 @@ check_hello_message (BusContext     *context,
+       _dbus_verbose ("Got hello name: %s\n", name);
+ 
+       while (!dbus_bus_set_unique_name (connection, name))
+-        _dbus_wait_for_memory ();
++        dbus_wait_for_memory ();
+ 
+       socd.expected_kind = SERVICE_CREATED;
+       socd.expected_service_name = name;
+@@ -1103,7 +1103,7 @@ check_hello_message (BusContext     *context,
+             {
+               _dbus_verbose ("no memory to get service name arg from acquired\n");
+               dbus_error_free (&error);
+-              _dbus_wait_for_memory ();
++              dbus_wait_for_memory ();
+               goto retry_get_acquired_name;
+             }
+           else
+@@ -1353,7 +1353,7 @@ check_get_connection_unix_user (BusContext     *context,
+             {
+               _dbus_verbose ("no memory to get uid by GetConnectionUnixUser\n");
+               dbus_error_free (&error);
+-              _dbus_wait_for_memory ();
++              dbus_wait_for_memory ();
+               goto retry_get_property;
+             }
+           else
+@@ -1516,7 +1516,7 @@ check_get_connection_unix_process_id (BusContext     *context,
+             {
+               _dbus_verbose ("no memory to get pid by GetConnectionUnixProcessID\n");
+               dbus_error_free (&error);
+-              _dbus_wait_for_memory ();
++              dbus_wait_for_memory ();
+               goto retry_get_property;
+             }
+           else
+@@ -2108,7 +2108,7 @@ check_base_service_activated (BusContext     *context,
+           if (dbus_error_has_name (&error, DBUS_ERROR_NO_MEMORY))
+             {
+               dbus_error_free (&error);
+-              _dbus_wait_for_memory ();
++              dbus_wait_for_memory ();
+               goto reget_service_name_arg;
+             }
+           else
+@@ -2213,7 +2213,7 @@ check_service_activated (BusContext     *context,
+           if (dbus_error_has_name (&error, DBUS_ERROR_NO_MEMORY))
+             {
+               dbus_error_free (&error);
+-              _dbus_wait_for_memory ();
++              dbus_wait_for_memory ();
+               goto reget_service_name_arg;
+             }
+           else
+@@ -2366,7 +2366,7 @@ check_service_auto_activated (BusContext     *context,
+           if (dbus_error_has_name (&error, DBUS_ERROR_NO_MEMORY))
+             {
+               dbus_error_free (&error);
+-              _dbus_wait_for_memory ();
++              dbus_wait_for_memory ();
+               goto reget_service_name_arg;
+             }
+           else
+@@ -4502,7 +4502,7 @@ check_get_services (BusContext     *context,
+ 	    {
+ 	      _dbus_verbose ("no memory to list services by %s\n", method);
+ 	      dbus_error_free (&error);
+-	      _dbus_wait_for_memory ();
++	      dbus_wait_for_memory ();
+ 	      goto retry_get_property;
+ 	    }
+ 	  else
 diff --git a/bus/expirelist.c b/bus/expirelist.c
 index 4a397527..f800ca6d 100644
 --- a/bus/expirelist.c
@@ -414,7 +545,7 @@ index 7d248727..4442a74e 100644
    return status == DBUS_DISPATCH_DATA_REMAINS;
  }
 diff --git a/dbus/Makefile.am b/dbus/Makefile.am
-index ec8e2a5e..90a5363c 100644
+index ec8e2a5e..f519d8b2 100644
 --- a/dbus/Makefile.am
 +++ b/dbus/Makefile.am
 @@ -120,13 +120,14 @@ DBUS_UTIL_arch_sources = 			\
@@ -448,7 +579,7 @@ index ec8e2a5e..90a5363c 100644
 -	dbus-transport-socket.h			\
 -	dbus-watch.c				\
 -	dbus-watch.h
-+	dbus-transport-socket.h			
++	dbus-transport-socket.h
  
  ### source code that goes in the installed client library
  ### AND is generic utility functionality used by the
@@ -469,7 +600,7 @@ index ec8e2a5e..90a5363c 100644
 +	dbus-socket-set.c			\
 +	dbus-socket-set-poll.c			\
 +	dbus-watch.c				\
-+	dbus-watch.h                            \
++	dbus-watch.h				\
  	dbus-string.c				\
  	dbus-string.h				\
  	dbus-string-private.h			\
