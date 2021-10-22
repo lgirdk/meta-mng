@@ -135,6 +135,7 @@ if [ "$OPTION_RTPREFIX" != "" ]; then
 
 fi
 
+PREV_ADDR=$(sysevent get wan6_ipaddr)
 
 if [ "$ADDR1" != "" ]; then
     echo "Address ${ADDR1} (operation $1) to client $REMOTE_ADDR on inteface $IFACE/$IFINDEX" >> $LOGFILE
@@ -413,6 +414,13 @@ fi
 # Send notification to CCSP PAM
 # RDK-B has not defined HAL for Ipv6 yet so this is a means to notify
 echo "dibbler-client add ${ADDR1} 1 ${ADDR1T1} ${ADDR1T2} ${ADDR1PREF} ${ADDR1VALID} ${PREFIX1} ${PREFIX1LEN} 1 ${PREFIX1T1} ${PREFIX1T2} ${PREFIX1PREF} ${PREFIX1VALID} " >> /tmp/ccsp_common_fifo
+
+if [ -n "$PREV_ADDR" ]; then
+    ip -6 rule del from $PREV_ADDR lookup erouter
+fi
+if [ -n "$ADDR1" ]; then
+    ip -6 rule add from $ADDR1 lookup erouter
+fi
 
 # sample return code. Dibbler will just print it out.
 exit 3
