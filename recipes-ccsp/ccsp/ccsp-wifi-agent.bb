@@ -1,6 +1,6 @@
 SUMMARY = "CCSP WiFi Agent"
 LICENSE = "Apache-2.0"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=175792518e4ac015ab6696d16c4f607e"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=042d68aa6c083a648f58bb8d224a4d31"
 
 require ccsp_common.inc
 
