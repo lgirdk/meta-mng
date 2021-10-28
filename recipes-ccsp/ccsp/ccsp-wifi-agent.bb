@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=042d68aa6c083a648f58bb8d224a4d31"
 
 require ccsp_common.inc
 
-DEPENDS += "utopia hal-wifi telemetry avro-c cimplog libparodus libsyswrapper trower-base64 util-linux"
+DEPENDS += "utopia hal-wifi telemetry avro-c cimplog libev libparodus libsyswrapper trower-base64 util-linux"
 DEPENDS += "${@bb.utils.contains('DISTRO_FEATURES','systemd','systemd','',d)}"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
