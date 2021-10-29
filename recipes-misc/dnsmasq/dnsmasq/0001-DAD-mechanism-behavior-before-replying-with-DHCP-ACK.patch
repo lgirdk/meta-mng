@@ -1,0 +1,374 @@
+From 93aadb9ffa064fcd88979f2784fd9b717f655e32 Mon Sep 17 00:00:00 2001
+From: Cibil <cpankiras.contractor@libertyglobal.com>
+Date: Fri, 29 Oct 2021 18:20:41 +0200
+Subject: [PATCH] DAD mechanism behavior before replying with DHCP ACK (
+ MVXREQ-822 )
+
+When DAD is enabled, if the gateway receives a DHCP Request(renew) for an IP address instead of a DHCP Discover,
+then before replying with a DHCP ACK, the gateway should broadcast an ARP query for the IP address
+that it is about to Acknowledge.
+
+The gateway should send only one ARP query and with a timeout of 250ms.
+If an ARP reply is received from another client, other than the one requesting the IP address,
+then the gateway should reject the DHCP Request and reply with a DHCP NAK.
+
+If after 250ms no ARP reply has been received, then the gateway may proceed with the DHCP ACK.
+
+Signed-off-by: Cibil <cpankiras.contractor@libertyglobal.com>
+---
+ src/arp.c     | 276 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ src/dnsmasq.c |   3 +-
+ src/dnsmasq.h |   1 +
+ src/rfc2131.c |  10 ++
+ 4 files changed, 289 insertions(+), 1 deletion(-)
+
+diff --git a/src/arp.c b/src/arp.c
+index 2503ce4..1a8c38e 100644
+--- a/src/arp.c
++++ b/src/arp.c
+@@ -16,6 +16,14 @@
+ 
+ #include "dnsmasq.h"
+ 
++#include <linux/if_packet.h>
++#include <linux/if_ether.h>
++
++#define MAC_LENGTH 6
++#define IPV4_LENGTH 4
++#define ARP_REQUEST 0x01
++#define ARP_REPLY 0x02
++
+ /* Time between forced re-loads from kernel. */
+ #define INTERVAL 90
+ 
+@@ -32,6 +40,20 @@ struct arp_record {
+   struct arp_record *next;
+ };
+ 
++struct arp_packet {
++  struct ethhdr ether_header;       /*  ethernet header                             */
++  uint16_t hardware_type;           /*  hardware type (must be ARPHRD_ETHER)        */
++  uint16_t protocol_type;           /*  protocol type (must be ETH_P_IP)            */
++  uint8_t hardware_len;             /*  hardware address length (must be 6)         */
++  uint8_t protocol_len;             /*  protocol address length (must be 4)         */
++  uint16_t opcode;                  /*  ARP opcode ( either request(1) or reply(2)  */
++  uint8_t sender_mac[MAC_LENGTH];   /*  sender's mac address                        */
++  uint8_t sender_ip[IPV4_LENGTH];   /*  sender's IP address                         */
++  uint8_t target_mac[MAC_LENGTH];   /*  target's mac address                        */
++  uint8_t target_ip[IPV4_LENGTH];   /*  target's IP address                         */
++  uint8_t padding[18];              /*  ethernet frame has to be 60 byte long       */
++};
++
+ static struct arp_record *arps = NULL, *old = NULL, *freelist = NULL;
+ static time_t last = 0;
+ 
+@@ -231,4 +253,258 @@ int do_arp_script_run(void)
+   return 0;
+ }
+ 
++/* This API retrieves the IP and mac address of an interface.
++ *
++ *  Arguments
++ *  ifname : Interface name
++ *  src_ip : Buffer to copy the interface IP address
++ *  mac    : Buffer to copy the interface mac address
++ *
++ *  return : 0 if success. In case of failure returns -1.
++ */
++static int get_if_info(const char *ifname, uint32_t *src_ip, unsigned char *mac)
++{
++  int ret = -1;
++  struct ifreq ifr;
++  struct sockaddr_in *ip;
++
++  int sd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ARP));
++  if (sd <= 0)
++  {
++    my_syslog(LOG_ERR, "Failed to create the socket in %s, errno %d", __FUNCTION__, errno);
++    goto out;
++  }
++
++  /* Get MAC address of the interface */
++  strcpy(ifr.ifr_name, ifname);
++  if (ioctl(sd, SIOCGIFHWADDR, &ifr) == -1)
++  {
++    my_syslog(LOG_ERR, "Unable to get the mac address of %s", ifname);
++    goto out;
++  }
++  memcpy(mac, ifr.ifr_hwaddr.sa_data, MAC_LENGTH);
++
++  /* Get IP address of the interface */
++  memset(&ifr, 0, sizeof(struct ifreq));
++  strcpy(ifr.ifr_name, ifname);
++  if (ioctl(sd, SIOCGIFADDR, &ifr) == -1)
++  {
++    my_syslog(LOG_ERR, "Unable to get the IP address of %s", ifname);
++    goto out;
++  }
++
++  if (ifr.ifr_addr.sa_family == AF_INET)
++  {
++    ip = (struct sockaddr_in*) &ifr.ifr_addr;
++    *src_ip = ip->sin_addr.s_addr;
++  }
++  else
++  {
++    goto out;
++  }
++  ret = 0;
++
++out:
++  if (sd > 0)
++  {
++    close(sd);
++  }
++
++  return ret;
++}
++
++/* This API creates a raw socket that listens for ARP traffic on the given ifindex.
++ *
++ *  Arguments
++ *  ifindex : Interface index
++ *  fd      : Socket descriptor
++ *
++ *  return : 0 if success. In case of failure returns -1.
++ */
++static int bind_arp(int ifindex, int *fd)
++{
++  int ret = -1;
++  struct sockaddr_ll sll;
++  struct timeval timeout;
++  memset(&sll, 0, sizeof(struct sockaddr_ll));
++
++  *fd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ARP));
++  if (*fd < 1)
++  {
++    my_syslog(LOG_ERR, "Failed to create the socket in %s", __FUNCTION__);
++    goto out;
++  }
++
++  timeout.tv_sec = 0;
++  timeout.tv_usec = 250000;
++  if (setsockopt (*fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
++  {
++    my_syslog(LOG_ERR, "Failed to set setsockopt in %s", __FUNCTION__);
++    goto out;
++  }
++
++  sll.sll_family = AF_PACKET;
++  sll.sll_ifindex = ifindex;
++  if (bind(*fd, (struct sockaddr*) &sll, sizeof(struct sockaddr_ll)) < 0)
++  {
++    my_syslog(LOG_ERR, "bind failed in %s", __FUNCTION__);
++    goto out;
++  }
++  ret = 0;
++
++out:
++  if (ret && *fd > 0)
++  {
++    close(*fd);
++  }
++  return ret;
++}
++
++/* This api sends a single ARP request to the given ip
++ *
++ *  Arguments
++ *  fd      : Socket descriptor
++ *  ifindex : Interface index
++ *  src_mac : Source mac address
++ *  src_ip  : Source IP address
++ *  dst_ip  : Destination IP address
++ *
++ *  return  : 0 if success. In case of failure returns -1.
++ */
++static int send_arp(int fd, int ifindex, const unsigned char *src_mac, uint32_t src_ip, uint32_t dst_ip)
++{
++  int err = -1;
++  int index;
++  ssize_t ret, length = 0;
++
++  struct sockaddr_ll socket_address;
++  socket_address.sll_family = AF_PACKET;
++  socket_address.sll_protocol = htons(ETH_P_ARP);
++  socket_address.sll_ifindex = ifindex;
++  socket_address.sll_hatype = htons(ARPHRD_ETHER);
++  socket_address.sll_pkttype = (PACKET_BROADCAST);
++  socket_address.sll_halen = MAC_LENGTH;
++  socket_address.sll_addr[6] = 0x00;
++  socket_address.sll_addr[7] = 0x00;
++  memcpy(socket_address.sll_addr, src_mac, MAC_LENGTH);
++
++  struct arp_packet arp_req;
++  memset(arp_req.ether_header.h_dest, 0xff, MAC_LENGTH);      	/* MAC DA */
++  memcpy(arp_req.ether_header.h_source, src_mac, MAC_LENGTH); 	/* MAC SA */
++  arp_req.ether_header.h_proto = htons(ETH_P_ARP);            	/* protocol type (Ethernet) */
++
++  arp_req.hardware_type = htons(ARPHRD_ETHER);
++  arp_req.protocol_type = htons(ETH_P_IP);
++  arp_req.hardware_len = MAC_LENGTH;
++  arp_req.protocol_len = IPV4_LENGTH;
++  arp_req.opcode = htons(ARP_REQUEST);
++  memcpy(arp_req.sender_mac, src_mac, MAC_LENGTH);
++  memcpy(arp_req.sender_ip, &src_ip, sizeof(uint32_t));
++  memset(arp_req.target_mac, 0x00, MAC_LENGTH);
++  memcpy(arp_req.target_ip, &dst_ip, sizeof(uint32_t));
++  memset(arp_req.padding, 0, 18);
++
++  ret = sendto(fd, &arp_req, sizeof(arp_req), 0, (struct sockaddr *) &socket_address, sizeof(socket_address));
++  if (ret == -1)
++  {
++    my_syslog(LOG_ERR, "sendto failed in %s", __FUNCTION__);
++    goto out;
++  }
++  err = 0;
++
++out:
++    return err;
++}
++
++/* This API reads a single ARP reply from the given socket
++ *
++ *  Arguments
++ *  fd       : Socket descriptor
++ *  dest_mac : Buffer to write the dest mac
++ *  return   : 0 if success. In case of failure returns -1.
++ */
++static int read_arp(int fd, char *dest_mac)
++{
++  int ret = -1;
++  struct arp_packet arp_res;
++
++  ssize_t length = recvfrom(fd, &arp_res, sizeof(arp_res), 0, NULL, NULL);
++  if (length == -1)
++  {
++      my_syslog(LOG_ERR, "recvfrom failed in %s", __FUNCTION__);
++      return ret;
++  }
++
++  if (ntohs(arp_res.ether_header.h_proto) != ETH_P_ARP)
++  {
++      my_syslog(LOG_WARNING, "Not an ARP packet");
++      return ret;
++  }
++  if (ntohs(arp_res.opcode) != ARP_REPLY)
++  {
++      my_syslog(LOG_WARNING, "Not an ARP reply");
++      return ret;
++  }
++
++  if(dest_mac != NULL)
++  {
++    memcpy(dest_mac, arp_res.sender_mac,6);
++  }
++  my_syslog(LOG_INFO, "Received ARP len=%ld\n", length);
++  my_syslog(LOG_INFO, "Sender MAC: %02X:%02X:%02X:%02X:%02X:%02X",
++        arp_res.sender_mac[0],
++        arp_res.sender_mac[1],
++        arp_res.sender_mac[2],
++        arp_res.sender_mac[3],
++        arp_res.sender_mac[4],
++        arp_res.sender_mac[5]);
++  ret = 0;
++
++  return ret;
++}
++
++/* Sends an ARP request to the given ip
++ *
++ *  Arguments
++ *  ifname   : Interface name
++ *  ifindex  : Interface index
++ *  yiaddr   : Dest IP address
++ *  dest_mac : Buffer to write the dest mac
++ *
++ *  return   : 0 if arp reply found, if not -1
++ */
++int do_arp(char *ifname, int ifindex, struct in_addr yiaddr, char *dest_mac)
++{
++  int ret = -1;
++  int arp_fd;
++  uint32_t src_ip;
++  unsigned char mac[MAC_LENGTH];
++
++  if(get_if_info(ifname, &src_ip, mac))
++  {
++    goto out;
++  }
++
++  if(bind_arp(ifindex, &arp_fd))
++  {
++    goto out;
++  }
++
++  if(send_arp(arp_fd, ifindex, mac, src_ip, yiaddr.s_addr))
++  {
++    goto out;
++  }
++
++  if(read_arp(arp_fd, dest_mac) == 0)
++  {
++    ret = 0;
++  }
++
++out:
++  if(arp_fd)
++  {
++    close(arp_fd);
++  }
+ 
++  return ret;
++}
+\ No newline at end of file
+diff --git a/src/dnsmasq.c b/src/dnsmasq.c
+index dbb9d59..8c1adb1 100644
+--- a/src/dnsmasq.c
++++ b/src/dnsmasq.c
+@@ -53,7 +53,8 @@ int main (int argc, char **argv)
+   cap_user_header_t hdr = NULL;
+   cap_user_data_t data = NULL;
+   int need_cap_net_admin = 0;
+-  int need_cap_net_raw = 0;
++  /* Need NET_RAW capability to send arp request. DAD is always enabled as per the comments from MVXREQ-821 */
++  int need_cap_net_raw = 1;
+   int need_cap_net_bind_service = 0;
+   char *bound_device = NULL;
+   int did_bind = 0;
+diff --git a/src/dnsmasq.h b/src/dnsmasq.h
+index e8271b2..3a6bcc0 100644
+--- a/src/dnsmasq.h
++++ b/src/dnsmasq.h
+@@ -1673,6 +1673,7 @@ int check_source(struct dns_header *header, size_t plen, unsigned char *pseudohe
+ /* arp.c */
+ int find_mac(union mysockaddr *addr, unsigned char *mac, int lazy, time_t now);
+ int do_arp_script_run(void);
++int do_arp(char *iface_name, int int_index, struct in_addr yiaddr, char *dest_mac);
+ 
+ /* dump.c */
+ #ifdef HAVE_DUMPFILE
+diff --git a/src/rfc2131.c b/src/rfc2131.c
+index 224f21e..2783f69 100644
+--- a/src/rfc2131.c
++++ b/src/rfc2131.c
+@@ -1431,6 +1431,16 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
+ 	      else
+ 		message = _("address in use");
+ 	    }
++      unsigned char arp_reply_mac[6];
++      if(do_arp(iface_name, int_index, mess->yiaddr, arp_reply_mac) == 0)
++      {
++        if(memcmp(mess->chaddr, arp_reply_mac, 6) != 0)
++        {
++          my_syslog(MS_DHCP | LOG_WARNING, "Found a duplicate address. IP: %s, HW: %02X:%02X:%02X:%02X:%02X:%02X", inet_ntoa(mess->yiaddr),
++                    arp_reply_mac[0],arp_reply_mac[1],arp_reply_mac[2],arp_reply_mac[3],arp_reply_mac[4],arp_reply_mac[5]);
++          message = _("Duplicate Address Detected");
++        }
++      }
+ 
+ 	  if (!message)
+ 	    {
+-- 
+2.17.1
+
