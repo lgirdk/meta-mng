@@ -20,8 +20,8 @@ SRC_URI = "http://download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-${PV}.t
         file://0001-fix-build-when-openssl-is-configured-without-md4-sup.patch \
         "
 
-SRC_URI[md5sum] = "4d166b34a8afd3d206d937a9561a7874"
-SRC_URI[sha256sum] = "4bb1dd859e541a3131e5be101557d2e1195b4129d3a849a3a6fbd21fe1c946f0"
+SRC_URI[md5sum] = "4814a4e9762bd55d0ac5b4d66ecbfd02"
+SRC_URI[sha256sum] = "43f0d63d04a1b7c5b8aab07e0612e44ccad0afc0614bab784c5b019872363432"
 
 PACKAGECONFIG ??= "openssl pcre zlib \
     ${@bb.utils.contains('DISTRO_FEATURES', 'ipv6', 'ipv6', '', d)} \
