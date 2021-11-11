@@ -12,10 +12,10 @@ SRC_URI = " \
     file://lg_bbhm_cust_27.xml file://lg_syscfg_cust_27.db \
     file://lg_bbhm_cust_41.xml file://lg_syscfg_cust_41.db \
     file://lg_bbhm_cust_44.xml file://lg_syscfg_cust_44.db \
-    file://lg_bbhm_cust_1001.xml file://lg_syscfg_cust_1001.db \
-    file://lg_bbhm_cust_1002.xml file://lg_syscfg_cust_1002.db \
-    file://lg_bbhm_cust_1003.xml file://lg_syscfg_cust_1003.db \
-    file://lg_bbhm_cust_1004.xml file://lg_syscfg_cust_1004.db \
+    file://lg_bbhm_cust_50.xml file://lg_syscfg_cust_50.db \
+    file://lg_bbhm_cust_51.xml file://lg_syscfg_cust_51.db \
+    file://lg_bbhm_cust_52.xml file://lg_syscfg_cust_52.db \
+    file://lg_bbhm_cust_53.xml file://lg_syscfg_cust_53.db \
 "
 
 inherit allarch
