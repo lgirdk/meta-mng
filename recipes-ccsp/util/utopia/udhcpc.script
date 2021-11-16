@@ -239,6 +239,8 @@ case "$1" in
 			else
 				/sbin/ifconfig $interface 0.0.0.0
 			fi
+			sysevent set current_wan_ipaddr 0.0.0.0
+			sysevent set ipv4_wan_ipaddr 0.0.0.0
 		fi
 		;;
 
@@ -247,12 +249,7 @@ case "$1" in
 		if [ "$have_bin_ip" -eq 1 ]; then
 			ip addr add dev $interface $ip/$mask $BROADCAST
 			echo "***** IP is $ip and mask is $mask subnet $subnet ***********"
-			SYSEVENT_SET_CMD+=(ipv4_wan_subnet=$subnet)
-			SYSEVENT_SET_CMD+=(ipv4_wan_ipaddr=$ip)
-			SYSEVENT_SET_CMD+=(current_ipv4_link_state=up)
-			# these events are being set in service_wan , we don't need to set these events again
-			# sysevent set wan_service-status started
-			# sysevent set wan-status started
+
 			if [ "$WAN_TYPE" = "EPON" ]; then
 				sysevent set ipv4-status up
 				sysevent set wan_ipaddr $ip
@@ -265,6 +262,13 @@ case "$1" in
 		else
 			/sbin/ifconfig $interface $ip $BROADCAST $NETMASK
 		fi
+
+		SYSEVENT_SET_CMD+=(ipv4_wan_subnet=$subnet)
+		SYSEVENT_SET_CMD+=(ipv4_wan_ipaddr=$ip)
+		SYSEVENT_SET_CMD+=(current_wan_ipaddr=$ip)
+		SYSEVENT_SET_CMD+=(current_ipv4_link_state=up)
+		SYSEVENT_SET_CMD+=(wan_service-status=started)
+		SYSEVENT_SET_CMD+=(wan-status=started)
 
 		if [ "$WAN_TYPE" = "EPON" ]; then
 			dhcp_status=$(sysevent get wan_fsm_state)
