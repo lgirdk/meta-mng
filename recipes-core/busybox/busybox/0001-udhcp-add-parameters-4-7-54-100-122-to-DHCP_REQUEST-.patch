@@ -1,0 +1,81 @@
+From 39baed2a325f3699d10591ed21e991428150f08b Mon Sep 17 00:00:00 2001
+From: qlei <rlei@libertyglobal.com>
+Date: Tue, 16 Nov 2021 23:21:16 +0000
+Subject: [PATCH] udhcp: add parameters 4 7 54 100 122 to DHCP_REQUEST option
+ 55
+
+---
+ networking/udhcp/common.c | 13 +++++++------
+ networking/udhcp/common.h |  1 +
+ 2 files changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/networking/udhcp/common.c b/networking/udhcp/common.c
+index 16bf69707..c726f5501 100644
+--- a/networking/udhcp/common.c
++++ b/networking/udhcp/common.c
+@@ -24,10 +24,10 @@ const struct dhcp_optflag dhcp_optflags[] = {
+ 	{ OPTION_IP                   | OPTION_REQ, 0x01 }, /* DHCP_SUBNET        */
+ 	{ OPTION_S32                              , 0x02 }, /* DHCP_TIME_OFFSET   */
+ 	{ OPTION_IP | OPTION_LIST     | OPTION_REQ, 0x03 }, /* DHCP_ROUTER        */
+-//	{ OPTION_IP | OPTION_LIST                 , 0x04 }, /* DHCP_TIME_SERVER   */
++	{ OPTION_IP | OPTION_LIST     | OPTION_REQ, 0x04 }, /* DHCP_TIME_SERVER   */
+ //	{ OPTION_IP | OPTION_LIST                 , 0x05 }, /* DHCP_NAME_SERVER   */
+ 	{ OPTION_IP | OPTION_LIST     | OPTION_REQ, 0x06 }, /* DHCP_DNS_SERVER    */
+-//	{ OPTION_IP | OPTION_LIST                 , 0x07 }, /* DHCP_LOG_SERVER    */
++	{ OPTION_IP | OPTION_LIST     | OPTION_REQ, 0x07 }, /* DHCP_LOG_SERVER    */
+ //	{ OPTION_IP | OPTION_LIST                 , 0x08 }, /* DHCP_COOKIE_SERVER */
+ 	{ OPTION_IP | OPTION_LIST                 , 0x09 }, /* DHCP_LPR_SERVER    */
+ 	{ OPTION_STRING_HOST          | OPTION_REQ, 0x0c }, /* DHCP_HOST_NAME     */
+@@ -47,14 +47,14 @@ const struct dhcp_optflag dhcp_optflags[] = {
+ 	{ OPTION_IP | OPTION_LIST     | OPTION_REQ, 0x2a }, /* DHCP_NTP_SERVER    */
+ 	{ OPTION_IP | OPTION_LIST                 , 0x2c }, /* DHCP_WINS_SERVER   */
+ 	{ OPTION_U32                              , 0x33 }, /* DHCP_LEASE_TIME    */
+-	{ OPTION_IP                               , 0x36 }, /* DHCP_SERVER_ID     */
++	{ OPTION_IP | OPTION_LIST     | OPTION_REQ, 0x36 }, /* DHCP_SERVER_ID     */
+ 	{ OPTION_STRING                           , 0x38 }, /* DHCP_ERR_MESSAGE   */
+ //TODO: must be combined with 'sname' and 'file' handling:
+ 	{ OPTION_STRING_HOST                      , 0x42 }, /* DHCP_TFTP_SERVER_NAME */
+ 	{ OPTION_STRING                           , 0x43 }, /* DHCP_BOOT_FILE     */
+ //TODO: not a string, but a set of LASCII strings:
+ //	{ OPTION_STRING                           , 0x4D }, /* DHCP_USER_CLASS    */
+-	{ OPTION_STRING                           , 0x64 }, /* DHCP_PCODE         */
++	{ OPTION_STRING | OPTION_LIST | OPTION_REQ, 0x64 }, /* DHCP_PCODE         */
+ 	{ OPTION_STRING                           , 0x65 }, /* DHCP_TCODE         */
+ #if ENABLE_FEATURE_UDHCP_RFC3397
+ 	{ OPTION_DNS_STRING | OPTION_LIST         , 0x77 }, /* DHCP_DOMAIN_SEARCH */
+@@ -86,6 +86,7 @@ const struct dhcp_optflag dhcp_optflags[] = {
+ //	{ OPTION_STRING                           , 0x3c }, /* DHCP_VENDOR        */
+ //	/* not really a string: */
+ //	{ OPTION_STRING                           , 0x3d }, /* DHCP_CLIENT_ID     */
++	{ OPTION_STRING | OPTION_LIST | OPTION_REQ, 0x7a }, /* DHCP_CCC           */
+ 	{ 0, 0 } /* zeroed terminating entry */
+ };
+ 
+@@ -98,10 +99,10 @@ const char dhcp_option_strings[] ALIGN1 =
+ 	"subnet" "\0"           /* DHCP_SUBNET          */
+ 	"timezone" "\0"         /* DHCP_TIME_OFFSET     */
+ 	"router" "\0"           /* DHCP_ROUTER          */
+-//	"timesrv" "\0"          /* DHCP_TIME_SERVER     */
++	"timesrv" "\0"          /* DHCP_TIME_SERVER     */
+ //	"namesrv" "\0"          /* DHCP_NAME_SERVER     */
+ 	"dns" "\0"              /* DHCP_DNS_SERVER      */
+-//	"logsrv" "\0"           /* DHCP_LOG_SERVER      */
++	"logsrv" "\0"           /* DHCP_LOG_SERVER      */
+ //	"cookiesrv" "\0"        /* DHCP_COOKIE_SERVER   */
+ 	"lprsrv" "\0"           /* DHCP_LPR_SERVER      */
+ 	"hostname" "\0"         /* DHCP_HOST_NAME       */
+diff --git a/networking/udhcp/common.h b/networking/udhcp/common.h
+index 6214db06a..4b084330a 100644
+--- a/networking/udhcp/common.h
++++ b/networking/udhcp/common.h
+@@ -154,6 +154,7 @@ enum {
+ //#define DHCP_DOMAIN_SEARCH    0x77 /* 119: RFC 3397. set of ASCIZ string, DNS-style compressed */
+ //#define DHCP_SIP_SERVERS      0x78 /* 120: RFC 3361. flag byte, then: 0: domain names, 1: IP addrs */
+ //#define DHCP_STATIC_ROUTES    0x79 /* 121: RFC 3442. (mask,ip,router) tuples */
++#define DHCP_CCC                0x7a /* 122: RFC 3495. Cablelabs Client Configuration */
+ //#define DHCP_VLAN_ID          0x84 /* 132: 802.1P VLAN ID */
+ //#define DHCP_VLAN_PRIORITY    0x85 /* 133: 802.1Q VLAN priority */
+ //#define DHCP_PXE_CONF_FILE    0xd1 /* 209: RFC 5071 Configuration file */
+-- 
+2.24.0
+
