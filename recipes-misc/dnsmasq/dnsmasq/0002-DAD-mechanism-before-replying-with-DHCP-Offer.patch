@@ -1,0 +1,190 @@
+From 0810e1f84b8c97c2c1123bb16f793895bc3be4ac Mon Sep 17 00:00:00 2001
+From: Cibil <cpankiras.contractor@libertyglobal.com>
+Date: Fri, 26 Nov 2021 17:01:12 +0100
+Subject: [PATCH] dnsmasq: DAD mechanism before replying with DHCP Offer (
+ OFW-1147 )
+
+[Description]
+
+When DAD is enabled, if the gateway receives a DHCP Discovery from a client device, then before replying with a DHCP Offer,
+it must first broadcast an ARP query for the IP address that it is about to offer. The gateway must send
+only 1 (one) ARP query and with a timeout of 250ms. If an ARP reply is received within 250ms,
+then the gateway MUST select a new IP from the list of available addresses and resend a new ARP. (loop till NO ARPs are received)
+If after 250ms NO ARP reply has been received, then the gateway may proceed with the DHCP Offer.
+
+[Solution]
+
+1. Before offering an IP, send an ARP request to that IP, and if an ARP reply is received then add it to a linked list.
+2. Pass this linked list to address_allocate() api and select an IP which is not part of this linked list.
+3. Repeat step 1 and 2 with the new IP till no ARP replies are received.
+
+[Testing Performed]
+
+1. Connect three lan clients
+2. Assign two consecutive IPs to lan1 and lan2 (usually, dnsmasq offers IPs consecutively)
+3. Run DHCP client on lan3
+4. Capture the packets on gw and verify the ARP request before DHCP offer
+5. lan3 should get a new IP from DHCP offer (should not be the same as lan1 or lan2)
+
+Signed-off-by: Cibil <cpankiras.contractor@libertyglobal.com>
+---
+ src/dhcp.c    | 19 ++++++++++++++++-
+ src/dnsmasq.h |  7 ++++++-
+ src/rfc2131.c | 58 ++++++++++++++++++++++++++++++++++++++++++++++++---
+ 3 files changed, 79 insertions(+), 5 deletions(-)
+
+diff --git a/src/dhcp.c b/src/dhcp.c
+index 97324f2..2bffe54 100644
+--- a/src/dhcp.c
++++ b/src/dhcp.c
+@@ -760,7 +760,7 @@ struct ping_result *do_icmp_ping(time_t now, struct in_addr addr, unsigned int h
+ 
+ int address_allocate(struct dhcp_context *context,
+ 		     struct in_addr *addrp, unsigned char *hwaddr, int hw_len, 
+-		     struct dhcp_netid *netids, time_t now, int loopback)   
++		     struct dhcp_netid *netids, time_t now, int loopback, struct arp_hosts *arp_hosts_head)
+ {
+   /* Find a free address: exclude anything in use and anything allocated to
+      a particular hwaddr/clientid/hostname in our configuration.
+@@ -832,6 +832,23 @@ int address_allocate(struct dhcp_context *context,
+ 			   (different hash) recently, don't offer it to this one. */
+ 			if (!option_bool(OPT_CONSEC_ADDR) || r->hash == j)
+ 			  {
++               struct arp_hosts *temp_head = arp_hosts_head;
++               while (temp_head)
++               {
++                 /* Before offering a new IP, check whether it is already
++                    there in arp_hosts. */
++                 struct arp_hosts *host = temp_head;
++                 temp_head = temp_head->next;
++                 if(memcmp(&addr, &(host->host), sizeof(struct in_addr)) == 0)
++                 {
++                   addr.s_addr = htonl(ntohl(addr.s_addr) + 1);
++                   if (addr.s_addr == htonl(ntohl(c->end.s_addr) + 1))
++		            {
++                     addr = c->start;
++				    }
++                   continue;
++                 }
++               }
+ 			    *addrp = addr;
+ 			    return 1;
+ 			  }
+diff --git a/src/dnsmasq.h b/src/dnsmasq.h
+index 3a6bcc0..dcba422 100644
+--- a/src/dnsmasq.h
++++ b/src/dnsmasq.h
+@@ -1172,6 +1172,11 @@ extern struct daemon {
+ #endif
+ } *daemon;
+ 
++struct arp_hosts {
++  struct in_addr host;
++  struct arp_hosts* next;
++};
++
+ /* cache.c */
+ void cache_init(void);
+ void next_uid(struct crec *crecp);
+@@ -1404,7 +1409,7 @@ struct ping_result *do_icmp_ping(time_t now, struct in_addr addr,
+ 				 unsigned int hash, int loopback);
+ int address_allocate(struct dhcp_context *context,
+ 		     struct in_addr *addrp, unsigned char *hwaddr, int hw_len,
+-		     struct dhcp_netid *netids, time_t now, int loopback);
++		     struct dhcp_netid *netids, time_t now, int loopback, struct arp_hosts *arp_hosts_head);
+ void dhcp_read_ethers(void);
+ struct dhcp_config *config_find_by_address(struct dhcp_config *configs, struct in_addr addr);
+ char *host_from_dns(struct in_addr addr);
+diff --git a/src/rfc2131.c b/src/rfc2131.c
+index 254e9a5..142ba5e 100644
+--- a/src/rfc2131.c
++++ b/src/rfc2131.c
+@@ -119,6 +119,7 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
+   unsigned char pxe_uuid[17];
+   unsigned char *oui = NULL, *serial = NULL;
+   unsigned char *class = NULL;
++  struct arp_hosts *arp_hosts_head = NULL;
+ 
+   subnet_addr.s_addr = override.s_addr = 0;
+ 
+@@ -724,7 +725,7 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
+ 		       lease_prune(lease, now);
+ 		       lease = NULL;
+ 		     }
+-		   if (!address_allocate(context, &mess->yiaddr, mess->chaddr, mess->hlen, tagif_netid, now, loopback))
++		   if (!address_allocate(context, &mess->yiaddr, mess->chaddr, mess->hlen, tagif_netid, now, loopback, NULL))
+ 		     message = _("no address available");
+ 		}
+ 	      else
+@@ -1237,7 +1238,7 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
+ 	    mess->yiaddr = addr;
+ 	  else if (emac_len == 0)
+ 	    message = _("no unique-id");
+-	  else if (!address_allocate(context, &mess->yiaddr, emac, emac_len, tagif_netid, now, loopback))
++	  else if (!address_allocate(context, &mess->yiaddr, emac, emac_len, tagif_netid, now, loopback, NULL))
+ 	    message = _("no address available");      
+ 	}
+       
+@@ -1261,7 +1262,58 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
+ 	  rapid_commit = 1;
+ 	  goto rapid_commit;
+ 	}
+-      
++	unsigned char arp_reply_mac[6];
++	do
++	{
++	  if (do_arp(iface_name, int_index, mess->yiaddr, arp_reply_mac) == 0)
++	  {
++            my_syslog(MS_DHCP | LOG_WARNING, "DAD: Found a duplicate address. IP: %s, HW: %02X:%02X:%02X:%02X:%02X:%02X", inet_ntoa(mess->yiaddr),
++              arp_reply_mac[0],arp_reply_mac[1],arp_reply_mac[2],arp_reply_mac[3],arp_reply_mac[4],arp_reply_mac[5]);
++	    struct arp_hosts *arp_host = malloc(sizeof(struct arp_hosts));
++	    if(arp_host != NULL)
++	    {
++	      arp_host->host = mess->yiaddr;
++	      arp_host->next = NULL;
++	      if (arp_hosts_head == NULL)
++	      {
++	        arp_hosts_head = arp_host;
++	      }
++	      else
++	      {
++	        struct arp_hosts *arp_hosts_tail = arp_hosts_head;
++           while(arp_hosts_tail->next != NULL)
++	        {
++             arp_hosts_tail = arp_hosts_tail->next;
++		    }
++		    arp_hosts_tail->next = arp_host;
++	      }
++       }
++
++	    if (address_allocate(context, &mess->yiaddr, emac, emac_len, tagif_netid, now, loopback, arp_hosts_head))
++	    {
++	      my_syslog(MS_DHCP | LOG_WARNING, "DAD: new address allocated -> %s", inet_ntoa(mess->yiaddr));
++	    }
++	    else
++	    {
++	      message = _("no address available");
++              my_syslog(MS_DHCP | LOG_WARNING, "DAD: no address available in dhcp offer");
++	      break;
++	    }
++	  }
++	  else
++	  {
++	    /* If didn't receive any arp reply for the new ip then break out and offer the new ip. */
++	    break;
++	  }
++	} while (1);
++
++	while (arp_hosts_head)
++	{
++	  struct arp_hosts *temp = arp_hosts_head;
++	  arp_hosts_head = arp_hosts_head->next;
++	  free(temp);
++	}
++
+       daemon->metrics[METRIC_DHCPOFFER]++;
+       log_packet("DHCPOFFER" , &mess->yiaddr, emac, emac_len, iface_name, NULL, NULL, mess->xid);
+       
+-- 
+2.17.1
+
