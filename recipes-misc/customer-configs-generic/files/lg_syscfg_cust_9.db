@@ -9,6 +9,7 @@ default_LanAllowedSubnet=192.168.0.0
 dhcp_num=155
 dhcp_start=192.168.0.100
 dhcp_end=192.168.0.254
+dynamic_dns_enable=0
 lan_ipaddr=192.168.0.1
 last_erouter_mode=3
 local_ui_enable=false

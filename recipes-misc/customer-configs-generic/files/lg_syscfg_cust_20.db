@@ -10,6 +10,7 @@ dhcp_num=245
 dhcp_start=192.168.178.10
 dhcp_end=192.168.178.254
 dns_override=false
+dynamic_dns_enable=0
 lan_ipaddr=192.168.178.1
 last_erouter_mode=1
 local_ui_enable=true
