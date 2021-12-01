@@ -177,6 +177,15 @@ convertval()
 	#echo "${bkup::-1}"
 }
 
+ hex2string () {
+  i=0
+  while [ $i -lt ${#1} ];
+  do
+    echo -en "\x"${1:$i:2}
+    let "i += 2"
+  done
+}
+
 parse_dhcp_option()
 {
 	dhcp_option_val=$1
@@ -374,6 +383,27 @@ case "$1" in
 		if [ -n "$opt100" ]; then
 			SYSEVENT_SET_CMD+=(ipv4_timezone=$opt100)
 		fi
+		
+        if [ -n "$opt125" ]; then
+             echo "option received for OPT125 is $opt125"
+             enterpriseId=$(echo $opt125 | awk '{print substr($0,0,8)}' )
+          if [ "$enterpriseId" = "0000118b" ] ; then #check for CableLabs enterpriseId
+                # Cut Enterprise ID and total length from option 125 received
+                opt125=$(echo $opt125 | awk '{print substr($0,CUR)}' CUR=11)            
+                #check if option_code is CL_V4OPTION_ACS_SERVER
+                option_code=$(echo $opt125 | awk '{print substr($0,0,2)}' )
+              if [ "$option_code" = "06" ] ; then #06 - CL_V4OPTION_ACS_SERVER
+                    opt125=$(echo $opt125 | awk '{print substr($0,CUR)}' CUR=5) #cut length and option code             
+                    acs_url_type=$(echo $opt125 | awk '{print substr($0,0,2)}' ) #0 for FQDN and 1 for IPv4 Address
+              if [ "$acs_url_type" = "00" ] ; then  #TODO ACS IP Address
+                       acs_url=$(echo $opt125 | awk '{print substr($0,3)}' )
+                       ascii_url=$(hex2string $acs_url)
+                       SYSEVENT_SET_CMD+=(DHCPv4_ACS_URL=$ascii_url)
+              fi
+            fi
+          fi
+        fi
+        
 		if [ -n "$opt122" ]; then
 			echo "MTA DHCPv4 address received for OPT122 is $opt122"
 			parsed_value=""
