@@ -47,6 +47,7 @@ SRC_URI = "https://busybox.net/downloads/busybox-${PV}.tar.bz2;name=tarball \
            file://0002-nslookup-sanitize-all-printed-strings-with-printable.patch \
            file://0001-Fix-traceroute-error-invalid-Argument-when-port-numb.patch \
            file://CVE-2021-42374.patch \
+           file://CVE-2021-42376.patch \
            file://CVE-2022-48174.patch \
 "
 SRC_URI_append_libc-musl = " file://musl.cfg "
