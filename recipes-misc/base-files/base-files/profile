@@ -20,4 +20,12 @@ esac
 
 export PATH EDITOR TERM PS1
 
+if [ -f /nvram/syscfg.db ]; then
+	timezone=$(grep "TZ=" /nvram/syscfg.db)
+	if [ -n "$timezone" ]; then
+		export $timezone
+	fi
+	unset timezone
+fi
+
 umask 022
