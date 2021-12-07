@@ -6,6 +6,7 @@ SRC_URI += "file://0001-include-fingerprint-information-in-dhcp-server-lease.pat
 SRC_URI += "file://0001-add-support-DNS-failover-for-not-implement-error-cod.patch"
 SRC_URI += "file://0001-DAD-mechanism-behavior-before-replying-with-DHCP-ACK.patch"
 SRC_URI += "file://0002-DAD-mechanism-before-replying-with-DHCP-Offer.patch"
+SRC_URI += "file://0003-save-client-dhcp-options.patch"
 
 # ----------------------------------------------------------------------------
 
