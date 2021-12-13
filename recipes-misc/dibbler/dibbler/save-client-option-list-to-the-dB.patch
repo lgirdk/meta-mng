@@ -1,0 +1,416 @@
+From afa0acb585ff1ae33ef60ad0968063c4ac4a06f5 Mon Sep 17 00:00:00 2001
+From: Tarun Saha <tsaha@libertyglobal.com>
+Date: Sun, 12 Dec 2021 12:35:36 -0800
+Subject: [PATCH 1/1] bugfix-1320
+
+---
+ AddrMgr/AddrClient.cpp     | 33 +++++++++++++++++++++++++
+ AddrMgr/AddrClient.h       |  9 +++++++
+ AddrMgr/Makefile.am        |  2 +-
+ ClntAddrMgr/Makefile.am    |  2 +-
+ Options/OptDUID.cpp        | 12 +++++++++
+ Options/OptDUID.h          |  2 ++
+ Options/OptUserClass.cpp   | 14 +++++++++++
+ Options/OptUserClass.h     |  5 ++++
+ Options/OptVendorClass.cpp | 12 +++++++++
+ Options/OptVendorClass.h   |  3 +++
+ SrvAddrMgr/SrvAddrMgr.cpp  | 50 ++++++++++++++++++++++++++++++++++++++
+ SrvAddrMgr/SrvAddrMgr.h    |  6 +++++
+ SrvOptions/SrvOptIA_NA.cpp |  5 ++++
+ 13 files changed, 153 insertions(+), 2 deletions(-)
+
+diff --git a/AddrMgr/AddrClient.cpp b/AddrMgr/AddrClient.cpp
+index 0190609a..e96f1ea0 100644
+--- a/AddrMgr/AddrClient.cpp
++++ b/AddrMgr/AddrClient.cpp
+@@ -342,6 +342,16 @@ void TAddrClient::generateReconfKey() {
+     fill_random(&ReconfKey_[0], 16);
+ }
+ 
++bool TAddrClient::isEmptyOptions()
++{
++    return Options.empty();
++}
++
++void TAddrClient::addOption(SPtr<TOpt> opt)
++{
++    Options.push_back(opt);
++}
++
+ // --------------------------------------------------------------------
+ // --- operators ------------------------------------------------------
+ // --------------------------------------------------------------------
+@@ -365,6 +375,7 @@ std::ostream & operator<<(std::ostream & strum, TAddrClient &x)
+ 	}
+ 
+     strum << "    <!-- " << x.IAsLst.count() << " IA(s) -->" << endl;
++    strum << "    <IACount>" << x.IAsLst.count() << "</IACount>" << endl;
+     SPtr<TAddrIA> ptr;
+     x.IAsLst.first();
+     while (ptr = x.IAsLst.get() ) {
+@@ -382,6 +393,28 @@ std::ostream & operator<<(std::ostream & strum, TAddrClient &x)
+     while (ptr = x.PDLst.get() ) {
+         strum << *ptr;
+     }
++
++    strum << "    <optionCount>" << x.Options.size() << "</optionCount>" << endl;
++    for (TOptList::iterator it = x.Options.begin(); it != x.Options.end(); ++it)
++    {
++        TOptPtr opt = *it;
++        int optType = opt->getOptType();
++        switch(optType)
++        {
++            case OPTION_CLIENTID:
++                strum << *(SPtr_cast<TOptDUID>(opt));
++                break;
++            case OPTION_USER_CLASS:
++                strum << *(SPtr_cast<TOptUserClass>(opt));
++                break;
++            case OPTION_VENDOR_CLASS:
++                strum << *(SPtr_cast<TOptVendorClass>(opt));
++                break;
++            default:
++                /* To add other options in AddrMgr.xml, overload the stream insertion operator of the corresponding classes */
++                break;
++        }
++    }
+     strum << "  </AddrClient>" << endl;
+     return strum;
+ }
+diff --git a/AddrMgr/AddrClient.h b/AddrMgr/AddrClient.h
+index 1699f84b..b378c2b9 100644
+--- a/AddrMgr/AddrClient.h
++++ b/AddrMgr/AddrClient.h
+@@ -20,6 +20,10 @@ class TAddrClient;
+ #include "DUID.h"
+ #include "Portable.h"
+ 
++#include "OptVendorClass.h"
++#include "OptUserClass.h"
++#include "OptDUID.h"
++
+ class TAddrClient
+ {
+     friend std::ostream & operator<<(std::ostream & strum, TAddrClient &x);
+@@ -68,6 +72,10 @@ public:
+ 
+     unsigned long getLastTimestamp();
+ 
++    bool isEmptyOptions();
++
++    void addOption(SPtr<TOpt> opt);
++
+     /// @brief 128 bits of pure randomness used in reconfigure process
+     ///
+     /// Reconfigure Key nonce is set be the server and the stored by the client.
+@@ -79,6 +87,7 @@ private:
+     List(TAddrIA) IAsLst;
+     List(TAddrIA) TALst;
+     List(TAddrIA) PDLst;
++    TOptList Options;
+     SPtr<TDUID> DUID_;
+ 
+     uint32_t SPI_;
+diff --git a/AddrMgr/Makefile.am b/AddrMgr/Makefile.am
+index f5cb13e1..4a7dc4e8 100644
+--- a/AddrMgr/Makefile.am
++++ b/AddrMgr/Makefile.am
+@@ -6,6 +6,6 @@ endif
+ 
+ noinst_LIBRARIES = libAddrMgr.a
+ 
+-libAddrMgr_a_CPPFLAGS = -I$(top_srcdir)/Misc
++libAddrMgr_a_CPPFLAGS = -I$(top_srcdir)/Misc -I$(top_srcdir)/Options
+ 
+ libAddrMgr_a_SOURCES = AddrAddr.cpp AddrAddr.h AddrClient.cpp AddrClient.h AddrIA.cpp AddrIA.h AddrMgr.cpp AddrMgr.h AddrPrefix.cpp AddrPrefix.h
+diff --git a/ClntAddrMgr/Makefile.am b/ClntAddrMgr/Makefile.am
+index a2669d1e..e4bea6af 100644
+--- a/ClntAddrMgr/Makefile.am
++++ b/ClntAddrMgr/Makefile.am
+@@ -1,5 +1,5 @@
+ noinst_LIBRARIES = libClntAddrMgr.a
+ 
+-libClntAddrMgr_a_CPPFLAGS = -I$(top_srcdir)/Misc -I$(top_srcdir)/AddrMgr
++libClntAddrMgr_a_CPPFLAGS = -I$(top_srcdir)/Misc -I$(top_srcdir)/AddrMgr -I$(top_srcdir)/Options
+ 
+ libClntAddrMgr_a_SOURCES = ClntAddrMgr.cpp ClntAddrMgr.h
+diff --git a/Options/OptDUID.cpp b/Options/OptDUID.cpp
+index 9be42391..079ef010 100644
+--- a/Options/OptDUID.cpp
++++ b/Options/OptDUID.cpp
+@@ -19,6 +19,12 @@ TOptDUID::TOptDUID(int type, SPtr<TDUID> duid, TMsg* parent)
+     DUID=duid;
+ }
+ 
++TOptDUID::TOptDUID(const TOptDUID& copy)
++    :TOpt(copy.OptType, NULL)
++{
++    this->DUID = copy.DUID;
++}
++
+ size_t TOptDUID::getSize() {
+     if (DUID)
+ 	return DUID->getLen() + 4;
+@@ -57,3 +63,9 @@ std::string TOptDUID::getPlain() {
+         return std::string("");
+     }
+ }
++
++std::ostream & operator<<(std::ostream & out, TOptDUID &x)
++{
++    out << "    <option 1>" << x.getPlain() << "</option>" << std::endl;
++    return out;
++}
+diff --git a/Options/OptDUID.h b/Options/OptDUID.h
+index 9d442ddc..b6409bef 100644
+--- a/Options/OptDUID.h
++++ b/Options/OptDUID.h
+@@ -18,8 +18,10 @@
+ class TOptDUID : public TOpt
+ {
+   public:
++    friend std::ostream & operator<<(std::ostream & strum, TOptDUID &x);
+     TOptDUID(int type, SPtr<TDUID> duid, TMsg* parent);
+     TOptDUID(int type, const char* buf, int len, TMsg* parent);
++    TOptDUID(const TOptDUID& copy);
+     size_t getSize();
+ 
+     char * storeSelf(char* buf);
+diff --git a/Options/OptUserClass.cpp b/Options/OptUserClass.cpp
+index a9a8f235..c5aecac3 100644
+--- a/Options/OptUserClass.cpp
++++ b/Options/OptUserClass.cpp
+@@ -11,6 +11,7 @@
+ #include "DHCPConst.h"
+ #include "OptUserClass.h"
+ #include "Portable.h"
++#include "hex.h"
+ #include <string.h>
+ 
+ TOptUserClass::TOptUserClass(uint16_t type, const char* buf, unsigned short buf_len, TMsg* parent)
+@@ -23,6 +24,13 @@ TOptUserClass::TOptUserClass(uint16_t type, TMsg* parent)
+     Valid = true;
+ }
+ 
++TOptUserClass::TOptUserClass(const TOptUserClass& copy)
++    :TOpt(copy.OptType, NULL) {
++    Valid = true;
++    this->userClassData_ = copy.userClassData_;
++    this->Plain_ = copy.Plain_;
++}
++
+ size_t TOptUserClass::getSize() {
+     size_t len = 4;
+     for (std::vector<UserClassData>::const_iterator data = userClassData_.begin();
+@@ -68,6 +76,7 @@ bool TOptUserClass::parseUserData(const char* buf, unsigned short buf_len) {
+ 	data.opaqueData_.resize(len);
+ 	memcpy(&data.opaqueData_[0], buf + pos, len);
+ 	userClassData_.push_back(data);
++	Plain_ += hexToText((uint8_t*)(buf + pos), len);
+ 
+ 	pos += len;
+ 	buf_len -= len;
+@@ -83,3 +92,8 @@ bool TOptUserClass::parseUserData(const char* buf, unsigned short buf_len) {
+ bool TOptUserClass::isValid() const {
+     return true;
+ }
++
++std::ostream & operator<<(std::ostream & out, TOptUserClass &x) {
++    out << "    <option 15>" << x.Plain_ << "</option>" << std::endl;
++    return out;
++}
+diff --git a/Options/OptUserClass.h b/Options/OptUserClass.h
+index 23e5d400..1a79f832 100644
+--- a/Options/OptUserClass.h
++++ b/Options/OptUserClass.h
+@@ -17,16 +17,21 @@
+ class TOptUserClass : public TOpt
+ {
+  public:
++    friend std::ostream & operator<<(std::ostream & strum, TOptUserClass &x);
++
+     struct UserClassData {
+ 	std::vector<char> opaqueData_;
+     };
+ 
+     std::vector<UserClassData> userClassData_;
+ 
++    std::string Plain_;
++
+     bool parseUserData(const char* buf, unsigned short buf_len);
+ 
+     TOptUserClass(uint16_t type, const char* buf, unsigned short buf_len, TMsg* parent);
+     TOptUserClass(uint16_t type, TMsg* parent);
++    TOptUserClass(const TOptUserClass& copy);
+     size_t getSize();
+     virtual bool isValid() const;
+     char* storeSelf( char* buf);
+diff --git a/Options/OptVendorClass.cpp b/Options/OptVendorClass.cpp
+index 17839067..910b012d 100644
+--- a/Options/OptVendorClass.cpp
++++ b/Options/OptVendorClass.cpp
+@@ -24,6 +24,13 @@ TOptVendorClass::TOptVendorClass(uint16_t type, const char* buf, unsigned short
+     Valid = parseUserData(buf, buf_len);
+ }
+ 
++TOptVendorClass::TOptVendorClass(const TOptVendorClass& copy)
++    :TOptUserClass(copy.OptType, NULL) {
++    Valid = true;
++    this->userClassData_ = copy.userClassData_;
++    this->Plain_ = copy.Plain_;
++}
++
+ size_t TOptVendorClass::getSize() {
+     return 4 + TOptUserClass::getSize();
+ }
+@@ -34,3 +41,8 @@ char * TOptVendorClass::storeSelf(char* buf) {
+     buf = writeUint32(buf, Enterprise_id_);
+     return storeUserData(buf);
+ }
++
++std::ostream & operator<<(std::ostream & out, TOptVendorClass &x) {
++    out << "    <option 16>" << x.Plain_ << "</option>" << std::endl;
++    return out;
++}
+diff --git a/Options/OptVendorClass.h b/Options/OptVendorClass.h
+index d2edd21c..22725a99 100644
+--- a/Options/OptVendorClass.h
++++ b/Options/OptVendorClass.h
+@@ -15,8 +15,11 @@
+ class TOptVendorClass : public TOptUserClass
+ {
+  public:
++    friend std::ostream & operator<<(std::ostream & strum, TOptVendorClass &x);
++
+     uint32_t Enterprise_id_;
+ 
++    TOptVendorClass(const TOptVendorClass& copy);
+     TOptVendorClass(uint16_t type, const char* buf, unsigned short buf_len, TMsg* parent);
+     size_t getSize();
+     char * storeSelf( char* buf);
+diff --git a/SrvAddrMgr/SrvAddrMgr.cpp b/SrvAddrMgr/SrvAddrMgr.cpp
+index 826d96bd..0bd58374 100644
+--- a/SrvAddrMgr/SrvAddrMgr.cpp
++++ b/SrvAddrMgr/SrvAddrMgr.cpp
+@@ -147,6 +147,56 @@ bool TSrvAddrMgr::addClntAddr(SPtr<TDUID> clntDuid , SPtr<TIPv6Addr> clntAddr,
+     return true;
+ }
+ 
++/**
++ * @brief adds options received from client.
++ *
++ * Add received DUID (Option 1), UserClassID (Option 15) or VendorClassID (option 16)
++ * to the dB.
++ *
++ * @param clntDuid client DUID
++ * @param optList client options list
++ *
++ * @return None
++ */
++void TSrvAddrMgr::addClientOptions(SPtr<TDUID> clntDuid, TOptList optList)
++{
++    SPtr <TAddrClient> ptrClient;
++    this->firstClient();
++    while ( ptrClient = this->getClient() ) {
++        if ( (*ptrClient->getDUID()) == (*clntDuid) )
++            break;
++    }
++
++    if (!ptrClient || !ptrClient->isEmptyOptions())
++        return;
++
++    Log(Info) << "Adding client Options for (DUID=" << clntDuid->getPlain() << ")" << LogEnd;
++    for (TOptList::iterator it = optList.begin(); it != optList.end(); ++it)
++    {
++        TOptPtr opt = *it;
++        int optType = opt->getOptType();
++        TOptPtr ptr;
++        switch(optType)
++        {
++            case OPTION_CLIENTID:
++                ptr = new TOptDUID(*(SPtr_cast<TOptDUID>(opt)));
++                ptrClient->addOption(ptr);
++                break;
++            case OPTION_USER_CLASS:
++                ptr = new TOptUserClass(*(SPtr_cast<TOptUserClass>(opt)));
++                ptrClient->addOption(ptr);
++                break;
++            case OPTION_VENDOR_CLASS:
++                ptr = new TOptVendorClass(*(SPtr_cast<TOptVendorClass>(opt)));
++                ptrClient->addOption(ptr);
++                break;
++            default:
++                /* Add case statement for other options, if required */
++                break;
++        }
++    }
++}
++
+ /// Frees address (also deletes IA and/or client, if this was last address)
+ ///
+ /// @param clntDuid DUID of the client
+diff --git a/SrvAddrMgr/SrvAddrMgr.h b/SrvAddrMgr/SrvAddrMgr.h
+index e86d9be4..3e97960e 100644
+--- a/SrvAddrMgr/SrvAddrMgr.h
++++ b/SrvAddrMgr/SrvAddrMgr.h
+@@ -17,6 +17,10 @@
+ #include "SrvCfgAddrClass.h"
+ #include "SrvCfgPD.h"
+ 
++#include "OptVendorClass.h"
++#include "OptUserClass.h"
++#include "OptDUID.h"
++
+ #define SrvAddrMgr() (TSrvAddrMgr::instance())
+ 
+ class TSrvAddrMgr : public TAddrMgr
+@@ -83,6 +87,8 @@ class TSrvAddrMgr : public TAddrMgr
+     bool delCachedEntry(SPtr<TDUID> clntDuid, TIAType type);
+     void addCachedEntry(SPtr<TDUID> clntDuid, SPtr<TIPv6Addr> cachedEntry, TIAType type);
+ 
++    void addClientOptions(SPtr<TDUID> clntDuid, TOptList optList);
++
+     void setCacheSize(int bytes);
+     void dump();
+ 
+diff --git a/SrvOptions/SrvOptIA_NA.cpp b/SrvOptions/SrvOptIA_NA.cpp
+index 2a6499ea..df81f0c4 100644
+--- a/SrvOptions/SrvOptIA_NA.cpp
++++ b/SrvOptions/SrvOptIA_NA.cpp
+@@ -123,11 +123,13 @@ TSrvOptIA_NA::TSrvOptIA_NA(SPtr<TSrvOptIA_NA> queryOpt, SPtr<TSrvMsg> queryMsg,
+     if (renew(queryOpt, false)) {
+       Log(Info) << "Previous binding for client " << ClntDuid->getPlain() << ", IA(iaid="
+                 << queryOpt->getIAID() << ") found and renewed." << LogEnd;
++      SrvAddrMgr().addClientOptions(ClntDuid, queryMsg->getOptLst());
+       return;
+     }
+ 
+     // --- LEASE ASSIGN STEP 4: Try to find fixed lease
+     if (assignFixedLease(queryOpt, quiet)) {
++        SrvAddrMgr().addClientOptions(ClntDuid, queryMsg->getOptLst());
+         return;
+     }
+ 
+@@ -146,16 +148,19 @@ TSrvOptIA_NA::TSrvOptIA_NA(SPtr<TSrvOptIA_NA> queryOpt, SPtr<TSrvMsg> queryMsg,
+ 
+     // --- LEASE ASSIGN STEP 6: Cached address? ---
+     if (assignCachedAddr(quiet)) {
++        SrvAddrMgr().addClientOptions(ClntDuid, queryMsg->getOptLst());
+         return;
+     }
+     
+     // --- LEASE ASSIGN STEP 7: client's hint ---
+     if (assignRequestedAddr(queryMsg, queryOpt, quiet)) {
++        SrvAddrMgr().addClientOptions(ClntDuid, queryMsg->getOptLst());
+         return;
+     }
+ 
+     // --- LEASE ASSIGN STEP 8: get new random address --
+     if (assignRandomAddr(queryMsg, quiet)) {
++        SrvAddrMgr().addClientOptions(ClntDuid, queryMsg->getOptLst());
+         return;
+     }
+ 
+-- 
+2.17.1
+
