@@ -384,25 +384,52 @@ case "$1" in
 			SYSEVENT_SET_CMD+=(ipv4_timezone=$opt100)
 		fi
 		
-        if [ -n "$opt125" ]; then
-             echo "option received for OPT125 is $opt125"
-             enterpriseId=$(echo $opt125 | awk '{print substr($0,0,8)}' )
-          if [ "$enterpriseId" = "0000118b" ] ; then #check for CableLabs enterpriseId
-                # Cut Enterprise ID and total length from option 125 received
-                opt125=$(echo $opt125 | awk '{print substr($0,CUR)}' CUR=11)            
-                #check if option_code is CL_V4OPTION_ACS_SERVER
-                option_code=$(echo $opt125 | awk '{print substr($0,0,2)}' )
-              if [ "$option_code" = "06" ] ; then #06 - CL_V4OPTION_ACS_SERVER
-                    opt125=$(echo $opt125 | awk '{print substr($0,CUR)}' CUR=5) #cut length and option code             
-                    acs_url_type=$(echo $opt125 | awk '{print substr($0,0,2)}' ) #0 for FQDN and 1 for IPv4 Address
-              if [ "$acs_url_type" = "00" ] ; then  #TODO ACS IP Address
-                       acs_url=$(echo $opt125 | awk '{print substr($0,3)}' )
-                       ascii_url=$(hex2string $acs_url)
-                       SYSEVENT_SET_CMD+=(DHCPv4_ACS_URL=$ascii_url)
+        while [ -n "$opt125" ]
+        do
+            echo " "
+            echo "option received for OPT125 is $opt125"
+            enterpriseId=$(echo $opt125 | awk '{print substr($0,0,8)}' )
+            echo "enterpriseId is $enterpriseId"
+            opt125=$(echo $opt125 | awk '{print substr($0,CUR)}' CUR=9) 
+            length=$(echo $opt125 | awk '{print substr($0,0,2)}' )
+            dec_length=$(( 16#$length ))
+            dec_length=$((dec_length+1)) #Add length 
+            dec_length=$((dec_length*2)) 
+            dec_length=$((dec_length+1))
+            if [ "$enterpriseId" = "0000118b" ] ; then #check for CableLabs enterpriseId                         
+                opt125Local=$(echo $opt125 | awk '{print substr($0,CUR)}' CUR=3)
+                option_code=$(echo $opt125Local | awk '{print substr($0,0,2)}' )
+                if [ "$option_code" = "06" ] ; then #06 - CL_V4OPTION_ACS_SERVER
+                #skip option code
+                opt125Local=$(echo $opt125Local | awk '{print substr($0,CUR)}' CUR=3)
+                url_length=$(echo $opt125Local | awk '{print substr($0,0,2)}' )
+                #echo "url_length from packet $url_length"
+                dec_url_length=$(( 16#$url_length ))
+                dec_url_length=$((dec_url_length -1)) # substract urltype length 
+                #skip length
+                opt125Local=$(echo $opt125Local | awk '{print substr($0,CUR)}' CUR=3)
+                acs_url_type=$(echo $opt125Local | awk '{print substr($0,0,2)}' ) #0 for FQDN and 1 for IPv4 Address
+                if [ "$acs_url_type" = "00" ] ; then  #TODO ACS IP Address
+                    #skip urlType
+                    opt125Local=$(echo $opt125Local | awk '{print substr($0,CUR)}' CUR=3)
+                    dec_url_length=$((dec_url_length*2))
+                    acs_url=$(echo $opt125Local | awk '{print substr($0,0,CUR)}' CUR=$dec_url_length)
+                    #skip length
+                    opt125Local=$(echo $opt125Local | awk '{print substr($0,CUR)}' CUR=3)
+                    ascii_url=$(hex2string $acs_url)
+                    echo "ascii_url is  $ascii_url"
+                    SYSEVENT_SET_CMD+=(DHCPv4_ACS_URL=$ascii_url)
+                    opt125=$(echo $opt125 | awk '{print substr($0,CUR)}' CUR=$dec_length)
+               fi
+               else  #TO DO handle other options is needed
+                    echo "option_code   is  NOT CL_V4OPTION_ACS_SERVER $option_code"
+                    opt125=$(echo $opt125 | awk '{print substr($0,CUR)}' CUR=$dec_length)
               fi
-            fi
-          fi
-        fi
+            else
+                echo "EnterpriseId is not CableLabs $enterpriseId"
+                opt125=$(echo $opt125 | awk '{print substr($0,CUR)}' CUR=$dec_length)
+           fi
+        done
         
 		if [ -n "$opt122" ]; then
 			echo "MTA DHCPv4 address received for OPT122 is $opt122"
