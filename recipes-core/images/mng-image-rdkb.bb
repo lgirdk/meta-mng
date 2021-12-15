@@ -28,6 +28,10 @@ IMAGE_INSTALL += " \
 "
 
 IMAGE_INSTALL += " \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_wan_manager', 'rdk-vlanmanager', '', d)} \
+"
+
+IMAGE_INSTALL += " \
     dibbler-client \
     quagga \
     quagga-ripd \
