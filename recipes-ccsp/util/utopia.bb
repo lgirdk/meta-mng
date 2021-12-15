@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=baa21dec03307f641a150889224a157f"
 
 require recipes-ccsp/ccsp/ccsp_common.inc
 
-DEPENDS += "hal-ethsw hal-platform telemetry cimplog cjson libevent libnetfilter-queue libsyswrapper libupnp"
+DEPENDS += "hal-ethsw hal-platform telemetry cimplog cjson nanomsg libevent libnetfilter-queue libsyswrapper libupnp"
 
 # Utopia needs an RPC library in order to support IPC between the ARM and Atom
 # CPUs in an Intel Puma 6 or Puma 7 (ie it's not thought to be required for
