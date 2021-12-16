@@ -11,6 +11,7 @@ RDEPENDS_packagegroup-ssam-build-deps = " \
     libcrypto \
     libnl \
     libssl \
+    ipset \
 "
 
 # Build + run time dependencies
