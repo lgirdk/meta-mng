@@ -412,7 +412,6 @@ PREFIX1T2=$((PREFIX1PREF * 80 / 100))
 
 PREV_ADDR=$(sysevent get wan6_ipaddr)
 
-sysevent batchset "${SYSEVENT_SET_CMD[@]}"
 if [ "$ADDR1" != "" ]; then
     service_routed route-set
 fi
@@ -440,6 +439,12 @@ fi
 # Send notification to CCSP PAM
 # RDK-B has not defined HAL for Ipv6 yet so this is a means to notify
 echo "dibbler-client add ${ADDR1} 1 ${ADDR1T1} ${ADDR1T2} ${ADDR1PREF} ${ADDR1VALID} ${PREFIX1} ${PREFIX1LEN} 1 ${PREFIX1T1} ${PREFIX1T2} ${PREFIX1PREF} ${PREFIX1VALID} " >> /tmp/ccsp_common_fifo
+# service_ipv6 can directly parse prefix, lease time, etc info from this file
+echo "dibbler-client add ${ADDR1} 1 ${ADDR1T1} ${ADDR1T2} ${ADDR1PREF} ${ADDR1VALID} ${PREFIX1} ${PREFIX1LEN} 1 ${PREFIX1T1} ${PREFIX1T2} ${PREFIX1PREF} ${PREFIX1VALID} " > /tmp/ipv6_provisioned.config
+
+SYSEVENT_SET_CMD+=(ipv6_prefix=$PREFIX1/$PREFIX1LEN)
+
+sysevent batchset "${SYSEVENT_SET_CMD[@]}"
 
 if [ -n "$PREV_ADDR" ]; then
     ip -6 rule del from $PREV_ADDR lookup erouter
