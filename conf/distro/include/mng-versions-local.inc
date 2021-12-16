@@ -85,6 +85,7 @@ DL_DIR_pn-libunpriv                     = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SY
 DL_DIR_pn-notify-comp                   = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
 DL_DIR_pn-rbus                          = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
 DL_DIR_pn-rbus-core                     = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
+DL_DIR_pn-rdk-fwupgrade-manager         = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
 DL_DIR_pn-rdk-logger                    = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
 DL_DIR_pn-rdk-vlanmanager               = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
 DL_DIR_pn-rdk-wanmanager                = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
