@@ -28,6 +28,15 @@ if [ "$PREFIX1" != "" ]; then
     fi
 fi
 
+hex2string () {
+  i=0
+  while [ $i -lt ${#1} ];
+  do
+    echo -en "\x"${1:$i:2}
+    let "i += 2"
+  done
+}
+
 convertval()
 {
     IP_MODE=$2
@@ -172,6 +181,8 @@ if [ "$SRV_OPTION17" != "" ]; then
   for j in $SRV_OPTION17; do
     suboption=`echo $j | cut -d = -f 1`
     suboption_data=`echo $j | cut -d = -f 2`
+    echo "suboption  is $suboption" >>$CONSOLEFILE
+    echo " suboption_data  is $suboption_data" >>$CONSOLEFILE
     case "$suboption" in
         "vendor")
         echo "Suboption vendor-id is $suboption_data in option $SRV_OPTION17" >> $LOGFILE
@@ -192,6 +203,17 @@ if [ "$SRV_OPTION17" != "" ]; then
             else
                 echo "Mta_Ip_Pref value is already set to $Mta_Ip_Pref"
             fi
+        ;;
+        "40")
+        echo "OPT17 for CL_V6OPTION_ACS_SERVER is received: $suboption_data">> $CONSOLEFILE 
+        #skip urlType
+        suboption_data=$(echo $suboption_data | awk '{print substr($0,CUR)}' CUR=3)
+        echo "suboption_data is $suboption_data" >> $CONSOLEFILE
+        suboption_data=`echo $suboption_data| sed "s/://g"`
+        echo "suboption_data is $suboption_data" >> $CONSOLEFILE     
+        ascii_url=$(hex2string $suboption_data)
+        echo "ascii_url from DHCPv6 OPT17 is::$ascii_url" >> $CONSOLEFILE     
+        SYSEVENT_SET_CMD+=(DHCPv6_ACS_URL=$ascii_url)
         ;;
         "2")
         echo "Suboption Device Type is $suboption_data in option $SRV_OPTION17" >> $LOGFILE
