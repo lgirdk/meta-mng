@@ -12,4 +12,11 @@ SRC_URI[sha256sum] = "0e7d44caa9c153d96a9b5f12644fbe35a632537a5a7f653792b72e53d9
 
 inherit autotools pkgconfig
 
-EXTRA_OECONF += "--with-kmod=no --disable-shared"
+# SSAM needs access to the libipset.so shared library (fixme: is that true?)
+# Even when the shared lib is built, the ipset binary will default to linking
+# statically unless the static lib is explicitly disabled.
+
+EXTRA_OECONF += " \
+    --with-kmod=no \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'ssam', '--disable-static', '--disable-shared', d)} \
+"
