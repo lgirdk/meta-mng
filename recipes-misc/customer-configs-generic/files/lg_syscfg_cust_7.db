@@ -21,3 +21,4 @@ portscan_enabled=1
 user_bridge_mode_allowed=true
 v4_PortScanProtect=1
 v6_PortScanProtect=1
+PPTPPassthrough=1
