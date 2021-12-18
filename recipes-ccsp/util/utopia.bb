@@ -251,3 +251,6 @@ FILES_${PN} += "/rdklogs"
 RDEPENDS_${PN} += "mcproxy"
 
 RDEPENDS_${PN} += "customer-configs"
+
+# source/firewall/nfq_handler.c contains calls to ipset
+RDEPENDS_${PN} += "ipset"
