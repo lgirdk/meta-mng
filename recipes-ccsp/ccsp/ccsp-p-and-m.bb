@@ -115,3 +115,6 @@ RDEPENDS_${PN} += "curl"
 
 # email_notification_monitor.sh, launch_adv_security.sh and launch_tr69.sh are bash scripts
 RDEPENDS_${PN} += "bash"
+
+# source-arm/TR-181/board_sbapi/cosa_x_comcast_com_parentalcontrol_apis.c contains calls to ipset
+RDEPENDS_${PN} += "ipset"
