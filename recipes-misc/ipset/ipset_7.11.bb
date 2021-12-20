@@ -1,14 +1,14 @@
 SUMMARY = "Administration tool for IP sets"
-HOMEPAGE = "http://ipset.netfilter.org"
+HOMEPAGE = "https://ipset.netfilter.org"
 LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://COPYING;md5=59530bdf33659b29e73d4adb9f9f6552"
 
 DEPENDS = "libmnl libtool"
 
-SRC_URI = "http://ipset.netfilter.org/${BP}.tar.bz2"
+SRC_URI = "https://ipset.netfilter.org/${BP}.tar.bz2"
 
-SRC_URI[md5sum] = "e107b679c3256af795261cece864d6d9"
-SRC_URI[sha256sum] = "0e7d44caa9c153d96a9b5f12644fbe35a632537a5a7f653792b72e53d9d5c2db"
+SRC_URI[md5sum] = "7c17aca72bcf852f5bc95582aaa60408"
+SRC_URI[sha256sum] = "3151baad30f1d9e317b2ab4f2f5aa7a9f7b4dc11fcf8fe73acd0dc0b5dbabf7d"
 
 inherit autotools pkgconfig
 
