@@ -12,7 +12,7 @@ diff --git a/src/sys-crypto-md.h b/src/sys-crypto-md.h
 index 4b320ed..126778a 100644
 --- a/src/sys-crypto-md.h
 +++ b/src/sys-crypto-md.h
-@@ -347,10 +347,18 @@ SHA256_Update(SHA256_CTX *ctx, const void *data, size_t length)
+@@ -425,10 +425,18 @@ SHA512_Update(SHA512_CTX *ctx, const void *data, size_t length)
  
  #elif defined(USE_OPENSSL_CRYPTO)
  

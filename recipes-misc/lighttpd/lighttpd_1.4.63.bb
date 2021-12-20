@@ -16,12 +16,12 @@ SRC_URI = "http://download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-${PV}.t
         file://index.html.lighttpd \
         file://lighttpd.conf \
         file://lighttpd \
-        file://0001-Use-pkg-config-for-pcre-dependency-instead-of-config.patch \
+        file://0001-use-pkg-config-to-probe-libpcre-and-libpcre2.patch \
         file://0001-fix-build-when-openssl-is-configured-without-md4-sup.patch \
         "
 
-SRC_URI[md5sum] = "4814a4e9762bd55d0ac5b4d66ecbfd02"
-SRC_URI[sha256sum] = "43f0d63d04a1b7c5b8aab07e0612e44ccad0afc0614bab784c5b019872363432"
+SRC_URI[md5sum] = "f4ad032b4b861f42a5df5f900ec6457b"
+SRC_URI[sha256sum] = "2aef7f0102ebf54a1241a1c3ea8976892f8684bfb21697c9fffb8de0e2d6eab9"
 
 PACKAGECONFIG ??= "openssl pcre zlib \
     ${@bb.utils.contains('DISTRO_FEATURES', 'ipv6', 'ipv6', '', d)} \
@@ -38,6 +38,7 @@ PACKAGECONFIG[valgrind] = "--with-valgrind,--without-valgrind,valgrind"
 PACKAGECONFIG[openssl] = "--with-openssl,--without-openssl,openssl"
 PACKAGECONFIG[krb5] = "--with-krb5,--without-krb5,krb5"
 PACKAGECONFIG[pcre] = "--with-pcre,--without-pcre,libpcre"
+PACKAGECONFIG[pcre2] = "--with-pcre2,--without-pcre2,libpcre2"
 PACKAGECONFIG[zlib] = "--with-zlib,--without-zlib,zlib"
 PACKAGECONFIG[bzip2] = "--with-bzip2,--without-bzip2,bzip2"
 PACKAGECONFIG[webdav-props] = "--with-webdav-props,--without-webdav-props,libxml2 sqlite3"
