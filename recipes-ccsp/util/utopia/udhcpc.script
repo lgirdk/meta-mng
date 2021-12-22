@@ -263,7 +263,7 @@ case "$1" in
 				sysevent set ipv4-status up
 				sysevent set wan_ipaddr $ip
 				sysevent set current_wan_ipaddr $ip
-				uptime=$(cat /proc/uptime | awk '{ print $1 }' | cut -d"." -f1)
+				uptime=$(cut -d. -f1 /proc/uptime)
 				touch /tmp/wan_ready
 				echo_t "Wan_init_complete:$uptime"
 				print_uptime "boot_to_wan_uptime"
@@ -546,7 +546,7 @@ case "$1" in
 				result=$(grep $i /tmp/.ipv4dnsserver)
 				if [ -z "$result" ]; then
 					utc_time=$(date -u)
-					uptime=$(cat /proc/uptime | awk '{ print $1 }' | cut -d"." -f1)
+					uptime=$(cut -d. -f1 /proc/uptime)
 					echo "$utc_time DNS_server_IP_changed:$uptime" >> $CONSOLEFILE
 					/usr/bin/onboarding_log "DNS_server_IP_changed:$uptime"
 					echo $dns > /tmp/.ipv4dnsserver
