@@ -422,7 +422,7 @@ if [ -f /tmp/.ipv6dnsserver ]; then
         result=`grep $i /tmp/.ipv6dnsserver`
         if [ "$result" == "" ];then
             utc_time=`date -u`
-            uptime=`cat /proc/uptime | awk '{ print $1 }' | cut -d"." -f1`
+            uptime=$(cut -d. -f1 /proc/uptime)
             echo "$utc_time DNS_server_IP_changed:$uptime" >> $CONSOLEFILE
             echo $dns > /tmp/.ipv6dnsserver
         fi
