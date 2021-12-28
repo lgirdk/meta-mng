@@ -8,7 +8,7 @@ DEPENDS += "ccsp-common-library-native"
 # ----------------------------------------------------------------------------
 
 DEPENDS += "rdk-logger"
-CFLAGS += "-DFEATURE_SUPPORT_RDKLOG"
+CFLAGS += "-DFEATURE_SUPPORT_RDKLOG -DDISABLE_LOGAGENT"
 LDFLAGS += "-lrdkloggers"
 
 # ----------------------------------------------------------------------------
