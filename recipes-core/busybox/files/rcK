@@ -8,3 +8,9 @@ do
 	echo "Stopping $i"
 	$i stop
 done
+
+# Terminate all processes before reboot to try to avoid risk that nvram is not unmounted
+
+killall5 -TERM
+sleep 5
+killall5 -KILL
