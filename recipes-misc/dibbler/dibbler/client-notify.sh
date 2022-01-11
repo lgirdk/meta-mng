@@ -212,8 +212,8 @@ if [ "$SRV_OPTION17" != "" ]; then
         suboption_data=`echo $suboption_data| sed "s/://g"`
         echo "suboption_data is $suboption_data" >> $CONSOLEFILE     
         ascii_url=$(hex2string $suboption_data)
-        echo "ascii_url from DHCPv6 OPT17 is::$ascii_url" >> $CONSOLEFILE     
-        SYSEVENT_SET_CMD+=(DHCPv6_ACS_URL=$ascii_url)
+        sysevent set DHCPv6_ACS_URL "$ascii_url"
+        echo "sysevent set of ascii_url::$ascii_url from DHCP OPT17" >> $CONSOLEFILE
         ;;
         "2")
         echo "Suboption Device Type is $suboption_data in option $SRV_OPTION17" >> $LOGFILE
