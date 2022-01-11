@@ -418,7 +418,8 @@ case "$1" in
                     opt125Local=$(echo $opt125Local | awk '{print substr($0,CUR)}' CUR=3)
                     ascii_url=$(hex2string $acs_url)
                     echo "ascii_url is  $ascii_url"
-                    SYSEVENT_SET_CMD+=(DHCPv4_ACS_URL=$ascii_url)
+                    sysevent set DHCPv4_ACS_URL "$ascii_url"
+                    echo "sysevent set of ascii_url::$ascii_url from DHCPv4 OPT125"
                     opt125=$(echo $opt125 | awk '{print substr($0,CUR)}' CUR=$dec_length)
                fi
                else  #TO DO handle other options is needed
