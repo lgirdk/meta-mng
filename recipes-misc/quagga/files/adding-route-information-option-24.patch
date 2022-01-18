@@ -1,0 +1,177 @@
+From b7fa25aae9e841ba55ce517c9a012e32c2a5ff2b Mon Sep 17 00:00:00 2001
+From: Tarun Saha <tsaha@libertyglobal.com>
+Date: Tue, 18 Jan 2022 12:38:00 -0800
+Subject: [PATCH 1/1] Adding route information for option 24
+
+---
+ zebra/interface.c |   2 +
+ zebra/interface.h |   3 ++
+ zebra/rtadv.c     | 104 ++++++++++++++++++++++++++++++++++++++++------
+ 3 files changed, 97 insertions(+), 12 deletions(-)
+
+diff --git a/zebra/interface.c b/zebra/interface.c
+index 95cf484..6876219 100644
+--- a/zebra/interface.c
++++ b/zebra/interface.c
+@@ -149,6 +149,8 @@ if_zebra_new_hook (struct interface *ifp)
+     rtadv->AdvDNSSLFlag = 0;
+     rtadv->AdvDNSSLLifetime = RTADV_RDNSS_DEFAULT_LIFETIME;
+     rtadv->AdvDNSSLList = list_new ();
++
++    rtadv->RouterPrefixList = list_new ();
+   }    
+ #endif /* HAVE_RTADV */
+ 
+diff --git a/zebra/interface.h b/zebra/interface.h
+index 6439646..1e8a734 100644
+--- a/zebra/interface.h
++++ b/zebra/interface.h
+@@ -204,6 +204,9 @@ struct rtadvconf
+   uint32_t AdvDNSSLLifetime;
+ #define RTADV_RDNSS_INFINITY_LIFETIME (0xffffffff)
+ #define RTADV_RDNSS_DEFAULT_LIFETIME RTADV_RDNSS_INFINITY_LIFETIME
++
++  /* A list of prefixes that are reachable via the router */
++  struct list *RouterPrefixList;
+ };
+ 
+ #endif /* HAVE_RTADV */
+diff --git a/zebra/rtadv.c b/zebra/rtadv.c
+index c6559ea..1202308 100644
+--- a/zebra/rtadv.c
++++ b/zebra/rtadv.c
+@@ -145,7 +145,7 @@ rtadv_send_packet (int sock, struct interface *ifp)
+   u_char all_nodes_addr[] = {0xff,0x02,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
+   struct listnode *node;
+   u_int16_t pkt_RouterLifetime;
+-  struct nd_opt_route_info *rinfo;
++  struct prefix *rtrPrefix;
+ 
+   /*
+    * Allocate control message bufffer.  This is dynamic because
+@@ -319,17 +319,21 @@ rtadv_send_packet (int sock, struct interface *ifp)
+     }
+ 
+   /* Add route information option for default route */
+-  rinfo = (struct nd_opt_route_info *) (buf + len);
+-  memset(rinfo, 0, sizeof(struct nd_opt_route_info));
+-  rinfo->nd_opt_ri_type = ND_OPT_ROUTE_INFORMATION;
+-  rinfo->nd_opt_ri_len = 3;
+-
+-  /* Use route lifetime from router advertisement header */
+-  rinfo->nd_opt_ri_lifetime = htonl (zif->rtadv.AdvDefaultLifetime);
+-  /* Set the prefix to ::/0 */
+-  rinfo->nd_opt_ri_prefix_len = 0;
+-  inet_pton(AF_INET6, "::0", &rinfo->nd_opt_ri_prefix);
+-  len += sizeof (struct nd_opt_route_info);
++  for (ALL_LIST_ELEMENTS_RO (zif->rtadv.RouterPrefixList, node, rtrPrefix))
++    {
++      struct nd_opt_route_info *rinfo;
++      rinfo = (struct nd_opt_route_info *) (buf + len);
++      memset(rinfo, 0, sizeof(struct nd_opt_route_info));
++      rinfo->nd_opt_ri_type = ND_OPT_ROUTE_INFORMATION;
++      rinfo->nd_opt_ri_len = 3;
++
++      /* Use route lifetime from router advertisement header */
++      rinfo->nd_opt_ri_lifetime = htonl (zif->rtadv.AdvDefaultLifetime);
++      rinfo->nd_opt_ri_prefix_len = rtrPrefix->prefixlen;
++      IPV6_ADDR_COPY (&rinfo->nd_opt_ri_prefix, &rtrPrefix->u.prefix6);
++      len += sizeof (struct nd_opt_route_info);
++    }
++
+   if (zif->rtadv.AdvDNSSLFlag)
+   {
+       unsigned option_bytes, stuffing_bytes, total_opt_len;
+@@ -1874,6 +1878,81 @@ ALIAS (ipv6_nd_dnssl,
+         "DNSSL Option\n"
+         "IPv6 domain search suffix\n")
+ 
++static struct prefix *
++rtadv_router_information_lookup (struct list *list, struct prefix *p)
++{
++    struct listnode *node;
++    struct prefix *prefix;
++
++    for (ALL_LIST_ELEMENTS_RO (list, node, prefix))
++        if (prefix_same (prefix, p))
++            return prefix;
++
++    return NULL;
++}
++
++static void
++rtadv_router_information_set (struct zebra_if *zif, struct prefix *p)
++{
++    struct prefix *prefix;
++    struct list *routerPrefixList = zif->rtadv.RouterPrefixList;
++
++    prefix = rtadv_router_information_lookup (routerPrefixList, p);
++    if (prefix)
++        return;
++    prefix = prefix_new();
++    memcpy (prefix, p, sizeof (struct prefix));
++    listnode_add (routerPrefixList, prefix);
++
++    return;
++}
++
++static int
++rtadv_router_information_reset (struct zebra_if *zif, struct prefix *rp)
++{
++    struct prefix *prefix;
++
++    prefix = rtadv_router_information_lookup(zif->rtadv.RouterPrefixList, rp);
++    if (prefix != NULL)
++    {
++        listnode_delete (zif->rtadv.RouterPrefixList, (void *) prefix);
++        prefix_free (prefix);
++        return 1;
++    }
++    else
++        return 0;
++}
++
++DEFUN (ipv6_nd_router_information,
++       ipv6_nd_router_information_cmd,
++       "ipv6 nd router-information X:X::X:X/M",
++       "Interface IPv6 config commands\n"
++       "Neighbor discovery\n"
++       "Router information\n"
++       "Prefixes reachable via the router\n")
++{
++    int i;
++    int ret;
++    int cursor = 1;
++    struct interface *ifp;
++    struct zebra_if *zebra_if;
++    struct prefix rp;
++
++    ifp = (struct interface *) vty->index;
++    zebra_if = ifp->info;
++
++    ret = str2prefix_ipv6 (argv[0], (struct prefix_ipv6 *)&rp);
++    if (!ret)
++      {
++        vty_out (vty, "Malformed IPv6 prefix%s", VTY_NEWLINE);
++        return CMD_WARNING;
++      }
++    apply_mask_ipv6 ((struct prefix_ipv6 *)&rp); /* RFC4861 4.6.2 */
++    rtadv_router_information_set (zebra_if, &rp);
++
++    return CMD_SUCCESS;
++}
++
+ /* Write configuration about router advertisement. */
+ void
+ rtadv_config_write (struct vty *vty, struct interface *ifp)
+@@ -2087,6 +2166,7 @@ rtadv_cmd_init (void)
+   install_element (INTERFACE_NODE, &ipv6_nd_rdnss_cmd_nolife);
+   install_element (INTERFACE_NODE, &ipv6_nd_dnssl_cmd);
+   install_element (INTERFACE_NODE, &ipv6_nd_dnssl_cmd_nolife);
++  install_element (INTERFACE_NODE, &ipv6_nd_router_information_cmd);
+ }
+ 
+ static int
+-- 
+2.17.1
+
