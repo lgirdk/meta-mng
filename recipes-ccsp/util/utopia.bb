@@ -222,11 +222,12 @@ do_install_append () {
 #   ln -sf /usr/bin/10_ntpd                     ${D}${sysconfdir}/utopia/registration.d/10_ntpd
 #   ln -sf /usr/bin/10_sysevent_proxy           ${D}${sysconfdir}/utopia/registration.d/10_sysevent_proxy
     ln -sf /usr/bin/15_ccsphs                   ${D}${sysconfdir}/utopia/registration.d/15_ccsphs
-    ln -sf /usr/bin/15_ddnsclient               ${D}${sysconfdir}/utopia/registration.d/15_ddnsclient
+#   ln -sf /usr/bin/15_ddnsclient               ${D}${sysconfdir}/utopia/registration.d/15_ddnsclient
     ln -sf /usr/bin/15_dhcp_server              ${D}${sysconfdir}/utopia/registration.d/15_dhcp_server
     ln -sf /usr/bin/15_dhcpv6_client            ${D}${sysconfdir}/utopia/registration.d/15_dhcpv6_client
 #   ln -sf /usr/bin/15_dhcpv6_server            ${D}${sysconfdir}/utopia/registration.d/15_dhcpv6_server
 #   ln -sf /usr/bin/15_dnsforwarder             ${D}${sysconfdir}/utopia/registration.d/15_dnsforwarder
+    ln -sf /usr/bin/15_dynamic_dns              ${D}${sysconfdir}/utopia/registration.d/15_dynamic_dns
 #   ln -sf /usr/bin/15_ftp_server               ${D}${sysconfdir}/utopia/registration.d/15_ftp_server
     ln -sf /usr/bin/15_hotspot                  ${D}${sysconfdir}/utopia/registration.d/15_hotspot
 #   ln -sf /usr/bin/15_http_server              ${D}${sysconfdir}/utopia/registration.d/15_http_server
