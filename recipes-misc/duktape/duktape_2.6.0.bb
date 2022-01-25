@@ -20,6 +20,15 @@ do_compile() {
 	${CC} ${LDFLAGS} -shared -Wl,-soname,libduktape.so.${PV} src/duktape_pic.o extras/print-alert/duk_print_alert_pic.o -o libduktape.so.${PV} -lm
 }
 
+do_compile_append_class-native() {
+
+	# Build the command line tool. statically linked with libduktape.a
+	# Note that there's no .so symlink to the shared lib in the build
+	# directory, so dynamic linking won't work without further tweaks.
+
+	${CC} ${CFLAGS} -DDUK_CMDLINE_PRINTALERT_SUPPORT -I${S}/src -I${S}/examples/cmdline -I${S}/extras/print-alert -L${B} -o duk examples/cmdline/duk_cmdline.c -Wl,--gc-sections -l:libduktape.a -lm
+}
+
 do_install () {
 	install -d ${D}${libdir}
 	install -m 0644 libduktape.a ${D}${libdir}/
@@ -38,4 +47,13 @@ do_install () {
 	install -m 0644 extras/print-alert/duk_print_alert.h ${D}${includedir}/duktape/
 }
 
+do_install_class-native() {
+	install -d ${D}${bindir}
+	install -m 755 duk ${D}${bindir}/
+
+	# No need to install the shared lib if duk binary is statically linked.
+}
+
 RDEPENDS_${PN}-dev += "${PN}-staticdev"
+
+BBCLASSEXTEND = "native"
