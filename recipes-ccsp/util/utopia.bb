@@ -198,48 +198,27 @@ do_install_append () {
     install -d ${D}${sysconfdir}/utopia/post.d
     install -d ${D}${sysconfdir}/utopia/registration.d
 
-#   ln -sf /usr/bin/01_system                   ${D}${sysconfdir}/utopia/registration.d/01_system
     ln -sf /usr/bin/02_bridge                   ${D}${sysconfdir}/utopia/registration.d/02_bridge
     ln -sf /usr/bin/02_forwarding               ${D}${sysconfdir}/utopia/registration.d/02_forwarding
     ln -sf /usr/bin/02_ipv4                     ${D}${sysconfdir}/utopia/registration.d/02_ipv4
     ln -sf /usr/bin/02_ipv6                     ${D}${sysconfdir}/utopia/registration.d/02_ipv6
-#   ln -sf /usr/bin/02_lan                      ${D}${sysconfdir}/utopia/registration.d/02_lan
     ln -sf /usr/bin/02_lanHandler               ${D}${sysconfdir}/utopia/registration.d/02_lanHandler
-#   ln -sf /usr/bin/02_managed                  ${D}${sysconfdir}/utopia/registration.d/02_managed
     ln -sf /usr/bin/02_multinet                 ${D}${sysconfdir}/utopia/registration.d/02_multinet
 #   ln -sf /usr/bin/02_parodus                  ${D}${sysconfdir}/utopia/registration.d/02_parodus
     ln -sf /usr/bin/02_wan                      ${D}${sysconfdir}/utopia/registration.d/02_wan
-#   ln -sf /usr/bin/02_wlan                     ${D}${sysconfdir}/utopia/registration.d/02_wlan
-#   ln -sf /usr/bin/03_wan_ipv6                 ${D}${sysconfdir}/utopia/registration.d/03_wan_ipv6
-#   ln -sf /usr/bin/04_byoi                     ${D}${sysconfdir}/utopia/registration.d/04_byoi
-#   ln -sf /usr/bin/04_byoi_gap                 ${D}${sysconfdir}/utopia/registration.d/04_byoi_gap
 #   ln -sf /usr/bin/09_xdns                     ${D}${sysconfdir}/utopia/registration.d/09_xdns
-#   ln -sf /usr/bin/10_bootstrap_dns            ${D}${sysconfdir}/utopia/registration.d/10_bootstrap_dns
     ln -sf /usr/bin/10_firewall                 ${D}${sysconfdir}/utopia/registration.d/10_firewall
-#   ln -sf /usr/bin/10_fpm                      ${D}${sysconfdir}/utopia/registration.d/10_fpm
-#   ln -sf /usr/bin/10_mcastsnooper             ${D}${sysconfdir}/utopia/registration.d/10_mcastsnooper
-#   ln -sf /usr/bin/10_ntpclient                ${D}${sysconfdir}/utopia/registration.d/10_ntpclient
 #   ln -sf /usr/bin/10_ntpd                     ${D}${sysconfdir}/utopia/registration.d/10_ntpd
-#   ln -sf /usr/bin/10_sysevent_proxy           ${D}${sysconfdir}/utopia/registration.d/10_sysevent_proxy
     ln -sf /usr/bin/15_ccsphs                   ${D}${sysconfdir}/utopia/registration.d/15_ccsphs
 #   ln -sf /usr/bin/15_ddnsclient               ${D}${sysconfdir}/utopia/registration.d/15_ddnsclient
     ln -sf /usr/bin/15_dhcp_server              ${D}${sysconfdir}/utopia/registration.d/15_dhcp_server
     ln -sf /usr/bin/15_dhcpv6_client            ${D}${sysconfdir}/utopia/registration.d/15_dhcpv6_client
 #   ln -sf /usr/bin/15_dhcpv6_server            ${D}${sysconfdir}/utopia/registration.d/15_dhcpv6_server
-#   ln -sf /usr/bin/15_dnsforwarder             ${D}${sysconfdir}/utopia/registration.d/15_dnsforwarder
     ln -sf /usr/bin/15_dynamic_dns              ${D}${sysconfdir}/utopia/registration.d/15_dynamic_dns
-#   ln -sf /usr/bin/15_ftp_server               ${D}${sysconfdir}/utopia/registration.d/15_ftp_server
     ln -sf /usr/bin/15_hotspot                  ${D}${sysconfdir}/utopia/registration.d/15_hotspot
-#   ln -sf /usr/bin/15_http_server              ${D}${sysconfdir}/utopia/registration.d/15_http_server
     ln -sf /usr/bin/15_misc                     ${D}${sysconfdir}/utopia/registration.d/15_misc
-#   ln -sf /usr/bin/15_qos                      ${D}${sysconfdir}/utopia/registration.d/15_qos
 #   ln -sf /usr/bin/15_ssh_server               ${D}${sysconfdir}/utopia/registration.d/15_ssh_server
-#   ln -sf /usr/bin/15_switchpmon               ${D}${sysconfdir}/utopia/registration.d/15_switchpmon
 #   ln -sf /usr/bin/15_wecb                     ${D}${sysconfdir}/utopia/registration.d/15_wecb
-#   ln -sf /usr/bin/15_xhs                      ${D}${sysconfdir}/utopia/registration.d/15_xhs
-#   ln -sf /usr/bin/20_ciscoconnect             ${D}${sysconfdir}/utopia/registration.d/20_ciscoconnect
-#   ln -sf /usr/bin/20_factorydefault           ${D}${sysconfdir}/utopia/registration.d/20_factorydefault
-#   ln -sf /usr/bin/20_gwreset                  ${D}${sysconfdir}/utopia/registration.d/20_gwreset
     ln -sf /usr/bin/20_routing                  ${D}${sysconfdir}/utopia/registration.d/20_routing
     ln -sf /usr/bin/25_crond                    ${D}${sysconfdir}/utopia/registration.d/25_crond
 #   ln -sf /usr/bin/26_potd                     ${D}${sysconfdir}/utopia/registration.d/26_potd
