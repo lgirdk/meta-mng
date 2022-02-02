@@ -28,6 +28,7 @@ SRC_URI = "git://github.com/tomaszmrugalski/dibbler \
            file://requestSentInsteadOfRenew-OFW-1791.patch \
            file://dibbler-add-ipv6-host-addr.patch \
            file://save-client-option-list-to-the-dB.patch \
+           file://send-NotOnLink-when-client-sends-Request-with-invali.patch \
 "
 
 S = "${WORKDIR}/git"
