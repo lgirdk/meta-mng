@@ -1,0 +1,106 @@
+From 48298c8180764d1641038cf362a6223ac051e32e Mon Sep 17 00:00:00 2001
+From: mkamat <mkamate@libertyglobal.com>
+Date: Fri, 4 Feb 2022 11:38:02 -0800
+Subject: [PATCH] pure virtual method called error on sending sigterm signal to
+ mcproxy process
+
+---
+ mcproxy/include/proxy/igmp_receiver.hpp | 1 +
+ mcproxy/include/proxy/mld_receiver.hpp  | 1 +
+ mcproxy/include/proxy/receiver.hpp      | 2 +-
+ mcproxy/src/proxy/igmp_receiver.cpp     | 5 +++++
+ mcproxy/src/proxy/mld_receiver.cpp      | 5 +++++
+ mcproxy/src/proxy/receiver.cpp          | 1 +
+ 6 files changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/mcproxy/include/proxy/igmp_receiver.hpp b/mcproxy/include/proxy/igmp_receiver.hpp
+index 5ca5b84..f68c4b6 100644
+--- a/mcproxy/include/proxy/igmp_receiver.hpp
++++ b/mcproxy/include/proxy/igmp_receiver.hpp
+@@ -52,6 +52,7 @@ private:
+     void analyse_packet(struct msghdr* msg, int info_size) override;
+ 
+ public:
++    virtual ~igmp_receiver();
+     /**
+      * @brief Create an igmp_receiver.
+      */
+diff --git a/mcproxy/include/proxy/mld_receiver.hpp b/mcproxy/include/proxy/mld_receiver.hpp
+index 4eadce4..d84d559 100644
+--- a/mcproxy/include/proxy/mld_receiver.hpp
++++ b/mcproxy/include/proxy/mld_receiver.hpp
+@@ -46,6 +46,7 @@ private:
+     void analyse_packet(struct msghdr* msg, int info_size) override;
+ 
+ public:
++    virtual ~mld_receiver();
+     mld_receiver(proxy_instance* pr_i, std::shared_ptr<const mroute_socket> mrt_sock, std::shared_ptr<const interfaces> interfaces, bool in_debug_testing_mode);
+ };
+ 
+diff --git a/mcproxy/include/proxy/receiver.hpp b/mcproxy/include/proxy/receiver.hpp
+index f5c4779..494ca49 100644
+--- a/mcproxy/include/proxy/receiver.hpp
++++ b/mcproxy/include/proxy/receiver.hpp
+@@ -57,7 +57,6 @@ class receiver
+ {
+ private:
+ 
+-    bool m_running;
+     bool m_in_debug_testing_mode;
+     std::unique_ptr<std::thread> m_thread;
+ 
+@@ -71,6 +70,7 @@ private:
+     void join();
+ 
+ protected:
++    bool m_running;
+     const proxy_instance * const m_proxy_instance;
+ 
+     int m_addr_family;
+diff --git a/mcproxy/src/proxy/igmp_receiver.cpp b/mcproxy/src/proxy/igmp_receiver.cpp
+index cc6b35e..f3a5906 100644
+--- a/mcproxy/src/proxy/igmp_receiver.cpp
++++ b/mcproxy/src/proxy/igmp_receiver.cpp
+@@ -96,6 +96,11 @@ int igmp_receiver::get_ctrl_min_size()
+     return 0;
+ }
+ 
++igmp_receiver::~igmp_receiver()
++{
++    m_running = false;
++}
++
+ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
+ {
+     HC_LOG_TRACE("");
+diff --git a/mcproxy/src/proxy/mld_receiver.cpp b/mcproxy/src/proxy/mld_receiver.cpp
+index 31b183d..ea7964b 100644
+--- a/mcproxy/src/proxy/mld_receiver.cpp
++++ b/mcproxy/src/proxy/mld_receiver.cpp
+@@ -64,6 +64,11 @@ int mld_receiver::get_ctrl_min_size()
+     return sizeof(struct cmsghdr) + sizeof(struct in6_pktinfo);
+ }
+ 
++mld_receiver::~mld_receiver()
++{
++    m_running = false;
++}
++
+ void mld_receiver::analyse_packet(struct msghdr* msg, int)
+ {
+     HC_LOG_TRACE("");
+diff --git a/mcproxy/src/proxy/receiver.cpp b/mcproxy/src/proxy/receiver.cpp
+index 20d6344..07cc009 100644
+--- a/mcproxy/src/proxy/receiver.cpp
++++ b/mcproxy/src/proxy/receiver.cpp
+@@ -119,6 +119,7 @@ void receiver::worker_thread()
+         }
+ 
+         m_data_lock.lock();
++        if(m_running)
+         analyse_packet(&msg, info_size);
+         m_data_lock.unlock();
+     }
+-- 
+2.17.1
+
