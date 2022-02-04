@@ -109,14 +109,7 @@ do_install_append () {
 
     install -d ${D}/rdklogs
 
-    # If a platform specific system_defaults exists in WORKDIR then use it,
-    # otherwise install the default from within the utopia source tree.
-
-    if [ -f ${WORKDIR}/system_defaults ]; then
-        install -m 644 ${WORKDIR}/system_defaults ${D}${sysconfdir}/utopia/system_defaults
-    else
-        install -m 644 ${S}/source/scripts/init/defaults/system_defaults_arm ${D}${sysconfdir}/utopia/system_defaults
-    fi
+    install -m 644 ${S}/source/scripts/init/defaults/system_defaults_arm ${D}${sysconfdir}/utopia/system_defaults
 
     # Strip whitespace and comments etc from system_defaults
 
