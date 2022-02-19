@@ -22,6 +22,14 @@ do_compile_prepend () {
 
 do_install_append () {
 	install -d ${D}${sysconfdir}/certs
+	install -m 644 ${S}/certs/ssam_0_1.pem ${D}${sysconfdir}/certs/
+	install -m 644 ${S}/certs/ssam_0_2.pem ${D}${sysconfdir}/certs/
+	install -m 644 ${S}/certs/ssam_0_3.pem ${D}${sysconfdir}/certs/
+	install -m 644 ${S}/certs/ssam_9_1.pem ${D}${sysconfdir}/certs/
+	install -m 644 ${S}/certs/ssam_9_2.pem ${D}${sysconfdir}/certs/
+	install -m 644 ${S}/certs/ssam_9_3.pem ${D}${sysconfdir}/certs/
+	install -m 644 ${S}/certs/sam_key_1.pem ${D}${sysconfdir}/certs/
+	install -m 644 ${S}/certs/sam_key_1.pem ${D}${sysconfdir}/certs/
 	install -m 644 ${S}/certs/AmazonRootCA1.pem ${D}${sysconfdir}/certs/amazon.pem
 
 	install -d ${D}/usr/ccsp/ssam
