@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=175792518e4ac015ab6696d16c4f607e"
 
 require ccsp_common.inc
 
-DEPENDS += "utopia hal-epon"
+DEPENDS += "utopia hal-epon hal-platform"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
