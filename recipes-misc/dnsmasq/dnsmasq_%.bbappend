@@ -7,6 +7,7 @@ SRC_URI += "file://0005-add-support-DNS-failover-for-not-implement-error-cod.pat
 SRC_URI += "file://0006-DAD-mechanism-behavior-before-replying-with-DHCP-ACK.patch"
 SRC_URI += "file://0007-DAD-mechanism-before-replying-with-DHCP-Offer-OFW-11.patch"
 SRC_URI += "file://0008-save-client-dhcp-options.patch"
+SRC_URI += "file://0009-read-all-arp-replies-that-arrive-within-250-ms.patch"
 
 # ----------------------------------------------------------------------------
 

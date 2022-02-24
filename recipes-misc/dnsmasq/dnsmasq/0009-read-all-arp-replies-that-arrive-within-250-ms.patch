@@ -1,0 +1,167 @@
+From ecc9334b712a97f53111a38512477cc40ebadea7 Mon Sep 17 00:00:00 2001
+From: Tarun Saha <tsaha@libertyglobal.com>
+Date: Thu, 24 Feb 2022 15:01:21 -0800
+Subject: [PATCH] read all arp replies that arrive within 250 ms
+
+---
+ src/arp.c     | 99 +++++++++++++++++++++++++++++++++------------------
+ src/rfc2131.c |  7 ++++
+ 2 files changed, 71 insertions(+), 35 deletions(-)
+
+diff --git a/src/arp.c b/src/arp.c
+index 713fcf2..18332ba 100644
+--- a/src/arp.c
++++ b/src/arp.c
+@@ -325,7 +325,6 @@ static int bind_arp(int ifindex, int *fd)
+ {
+   int ret = -1;
+   struct sockaddr_ll sll;
+-  struct timeval timeout;
+   memset(&sll, 0, sizeof(struct sockaddr_ll));
+ 
+   *fd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ARP));
+@@ -335,13 +334,8 @@ static int bind_arp(int ifindex, int *fd)
+     goto out;
+   }
+ 
+-  timeout.tv_sec = 0;
+-  timeout.tv_usec = 250000;
+-  if (setsockopt (*fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
+-  {
+-    my_syslog(LOG_ERR, "Failed to set setsockopt in %s", __FUNCTION__);
+-    goto out;
+-  }
++  /* Timeout will be handled by read_arp() using select call to wait for 250 ms.
++   * To handle multiple ARP reply received during RENEW/REQUEST message */
+ 
+   sll.sll_family = AF_PACKET;
+   sll.sll_ifindex = ifindex;
+@@ -427,38 +421,73 @@ static int read_arp(int fd, char *dest_mac)
+ {
+   int ret = -1;
+   struct arp_packet arp_res;
++  struct timeval timeout;
++  int maxfd = fd + 1;
++  fd_set rfds;
+ 
+-  ssize_t length = recvfrom(fd, &arp_res, sizeof(arp_res), 0, NULL, NULL);
+-  if (length == -1)
+-  {
+-      my_syslog(LOG_INFO, "recvfrom failed in %s", __FUNCTION__);
+-      return ret;
+-  }
++  // MVXREQ-822: query should have a timeout of 250 ms for any ARP replies.
++  timeout.tv_sec = 0;
++  timeout.tv_usec = 250000;
+ 
+-  if (ntohs(arp_res.ether_header.h_proto) != ETH_P_ARP)
+-  {
+-      my_syslog(LOG_WARNING, "Not an ARP packet");
+-      return ret;
+-  }
+-  if (ntohs(arp_res.opcode) != ARP_REPLY)
++  while (timeout.tv_sec > 0 || timeout.tv_usec > 0)
+   {
+-      my_syslog(LOG_WARNING, "Not an ARP reply");
+-      return ret;
+-  }
++    FD_ZERO(&rfds);
++    FD_SET(fd, &rfds);
++    int rc = select(maxfd, &rfds, NULL, NULL, &timeout);
++    if (rc > 0)
++    {
++      ssize_t length = recvfrom(fd, &arp_res, sizeof(arp_res), 0, NULL, NULL);
++      if (length == -1)
++      {
++        my_syslog(LOG_INFO, "recvfrom failed in %s", __FUNCTION__);
++        return ret;
++      }
+ 
+-  if(dest_mac != NULL)
+-  {
+-    memcpy(dest_mac, arp_res.sender_mac,6);
++      if (ntohs(arp_res.ether_header.h_proto) != ETH_P_ARP)
++      {
++        my_syslog(LOG_WARNING, "Not an ARP packet");
++        continue;
++      }
++
++      if (ntohs(arp_res.opcode) != ARP_REPLY)
++      {
++        my_syslog(LOG_WARNING, "Not an ARP reply");
++        continue;
++      }
++
++      /* In case of renew message, IP address is already bind with client's mac address.
++       * So ignore the ARP reply if the mac address is same as of requesting client's mac address,
++       * continue waiting for remaining time */
++      if (dest_mac && memcmp(dest_mac, arp_res.sender_mac, 6) == 0)
++      {
++        continue;
++      }
++
++      if(dest_mac != NULL)
++      {
++        memcpy(dest_mac, arp_res.sender_mac,6);
++      }
++      my_syslog(LOG_INFO, "Received ARP len=%ld\n", length);
++      my_syslog(LOG_INFO, "Sender MAC: %02X:%02X:%02X:%02X:%02X:%02X",
++            arp_res.sender_mac[0],
++            arp_res.sender_mac[1],
++            arp_res.sender_mac[2],
++            arp_res.sender_mac[3],
++            arp_res.sender_mac[4],
++            arp_res.sender_mac[5]);
++      ret = 0;
++      break;
++    }
++    else if (rc < 0)
++    {
++      my_syslog(LOG_WARNING, "select failed in %s, error: %s", __FUNCTION__, strerror(errno));
++      break;
++    }
++    else
++    {
++      my_syslog(LOG_DEBUG, "No ARP reply received within 250 ms");
++    }
+   }
+-  my_syslog(LOG_INFO, "Received ARP len=%ld\n", length);
+-  my_syslog(LOG_INFO, "Sender MAC: %02X:%02X:%02X:%02X:%02X:%02X",
+-        arp_res.sender_mac[0],
+-        arp_res.sender_mac[1],
+-        arp_res.sender_mac[2],
+-        arp_res.sender_mac[3],
+-        arp_res.sender_mac[4],
+-        arp_res.sender_mac[5]);
+-  ret = 0;
+ 
+   return ret;
+ }
+diff --git a/src/rfc2131.c b/src/rfc2131.c
+index 5a99a12..ba7346f 100644
+--- a/src/rfc2131.c
++++ b/src/rfc2131.c
+@@ -1265,6 +1265,10 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
+ 	unsigned char arp_reply_mac[6];
+ 	do
+ 	{
++	  /* DISCOVER: Since it is the first message from the client,
++	   * adding stub 0xFFFFFFFFFFFF as client's mac address, for do_arp() */
++	  memset(arp_reply_mac, 0xFF, sizeof(arp_reply_mac));
++
+ 	  if (do_arp(iface_name, int_index, mess->yiaddr, arp_reply_mac) == 0)
+ 	  {
+             my_syslog(MS_DHCP | LOG_WARNING, "DAD: Found a duplicate address. IP: %s, HW: %02X:%02X:%02X:%02X:%02X:%02X", inet_ntoa(mess->yiaddr),
+@@ -1484,6 +1488,9 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
+ 		message = _("address in use");
+ 	    }
+       unsigned char arp_reply_mac[6];
++      /* REQUEST/RENEW: copying the current client's mac addr to ignore, while reading arp replies */
++      memcpy(arp_reply_mac, mess->chaddr, 6);
++
+       if(do_arp(iface_name, int_index, mess->yiaddr, arp_reply_mac) == 0)
+       {
+         if(memcmp(mess->chaddr, arp_reply_mac, 6) != 0)
+-- 
+2.24.0
+
