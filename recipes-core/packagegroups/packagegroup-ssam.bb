@@ -17,6 +17,5 @@ RDEPENDS_packagegroup-ssam-build-deps = " \
 # Build + run time dependencies
 
 RDEPENDS_packagegroup-ssam = " \
-    ccsp-ssam-agent \
     packagegroup-ssam-build-deps \
 "
