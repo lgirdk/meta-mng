@@ -97,6 +97,19 @@ do_install_append () {
 	install -m 755 ${S}/arch/intel_usg/boards/arm_shared/scripts/start_lighttpd.sh ${D}${sysconfdir}/
 	install -m 755 ${S}/arch/intel_usg/boards/arm_shared/scripts/whitelist.sh ${D}${sysconfdir}/
 
+	if ${@bb.utils.contains('DISTRO_FEATURES','ssam','true','false',d)}; then
+		install -d ${D}${sysconfdir}/certs
+		install -m 644 ${S}/certs/ssam_0_1.pem ${D}${sysconfdir}/certs/
+		install -m 644 ${S}/certs/ssam_0_2.pem ${D}${sysconfdir}/certs/
+		install -m 644 ${S}/certs/ssam_0_3.pem ${D}${sysconfdir}/certs/
+		install -m 644 ${S}/certs/ssam_9_1.pem ${D}${sysconfdir}/certs/
+		install -m 644 ${S}/certs/ssam_9_2.pem ${D}${sysconfdir}/certs/
+		install -m 644 ${S}/certs/ssam_9_3.pem ${D}${sysconfdir}/certs/
+		install -m 644 ${S}/certs/sam_key_1.pem ${D}${sysconfdir}/certs/
+		install -m 644 ${S}/certs/sam_key_1.pem ${D}${sysconfdir}/certs/
+		install -m 644 ${S}/certs/AmazonRootCA1.pem ${D}${sysconfdir}/certs/amazon.pem
+	fi
+
 	install -d ${D}/usr/ccsp/pam
 	install -m 644 ${S}/config-arm/CcspDmLib.cfg ${D}/usr/ccsp/pam/
 	install -m 644 ${S}/config-arm/CcspPam.cfg ${D}/usr/ccsp/pam/
