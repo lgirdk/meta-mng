@@ -108,6 +108,7 @@ do_install_append () {
 		install -m 644 ${S}/certs/sam_key_1.pem ${D}${sysconfdir}/certs/
 		install -m 644 ${S}/certs/sam_key_1.pem ${D}${sysconfdir}/certs/
 		install -m 644 ${S}/certs/AmazonRootCA1.pem ${D}${sysconfdir}/certs/amazon.pem
+		install -m 644 ${S}/certs/SFSRootCAG2.pem ${D}${sysconfdir}/certs/
 	fi
 
 	install -d ${D}/usr/ccsp/pam
