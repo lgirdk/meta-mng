@@ -46,24 +46,6 @@ CFLAGS += " \
     -D_DISABLE_WIFI_HEALTH_STATS_TO_NVRAM_ \
 "
 
-LDFLAGS += " \
-    -lutctx \
-    -lutapi \
-    -lcjson \
-    -llibparodus \
-    -lnanomsg \
-    -lwrp-c \
-    -lmsgpackc \
-    -ltrower-base64 \
-    -lcimplog \
-    -lsysevent \
-    -ltelemetry_msgsender \
-    -lsyscfg \
-    -lpthread \
-    -lm \
-    -lrt \
-"
-
 do_compile_prepend () {
 	if ${@bb.utils.contains('DISTRO_FEATURES', 'bci', 'true', 'false', d)}; then
 		( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/config-arm/TR181-USGv2_bci.XML ${S}/source/PandMSsp/dm_pack_datamodel.c )
