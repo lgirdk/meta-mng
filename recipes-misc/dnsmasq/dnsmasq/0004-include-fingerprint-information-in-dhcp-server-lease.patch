@@ -1,4 +1,4 @@
-From c510830cfc65d0cc7c8346ce141a900e5f565544 Mon Sep 17 00:00:00 2001
+From b1424a61493ac72703e63014c45cfa0a422a558f Mon Sep 17 00:00:00 2001
 From: Andre McCurdy <armccurdy@gmail.com>
 Date: Mon, 7 Dec 2020 23:12:01 -0800
 Subject: [PATCH] include fingerprint information in dhcp server leases file
@@ -11,7 +11,7 @@ Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
  3 files changed, 77 insertions(+), 3 deletions(-)
 
 diff --git a/src/dnsmasq.h b/src/dnsmasq.h
-index 4220798..6face73 100644
+index e770454..e8271b2 100644
 --- a/src/dnsmasq.h
 +++ b/src/dnsmasq.h
 @@ -722,6 +722,7 @@ struct dhcp_lease {
@@ -31,7 +31,7 @@ index 4220798..6face73 100644
  
  /* rfc2131.c */
 diff --git a/src/lease.c b/src/lease.c
-index 23e6fe0..737f2ce 100644
+index ecfe7c3..a83ab6d 100644
 --- a/src/lease.c
 +++ b/src/lease.c
 @@ -29,6 +29,7 @@ static int read_leases(time_t now, FILE *leasestream)
@@ -152,7 +152,7 @@ index 23e6fe0..737f2ce 100644
  	  
  
 diff --git a/src/rfc2131.c b/src/rfc2131.c
-index 8023f3a..5b82be8 100644
+index e092135..224f21e 100644
 --- a/src/rfc2131.c
 +++ b/src/rfc2131.c
 @@ -1447,6 +1447,16 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,

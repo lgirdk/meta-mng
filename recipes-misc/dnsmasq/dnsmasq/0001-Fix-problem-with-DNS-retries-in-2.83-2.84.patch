@@ -1,4 +1,4 @@
-From 141a26f979b4bc959d8e866a295e24f8cf456920 Mon Sep 17 00:00:00 2001
+From 41428c2972f87b2e3ae6fb7413a609e88fd2c520 Mon Sep 17 00:00:00 2001
 From: Simon Kelley <simon@thekelleys.org.uk>
 Date: Wed, 17 Feb 2021 23:56:32 +0000
 Subject: [PATCH] Fix problem with DNS retries in 2.83/2.84.

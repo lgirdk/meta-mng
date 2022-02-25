@@ -1,12 +1,12 @@
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}:"
 
-SRC_URI += "file://0001-add-ACS-discovery-and-client-DB-WIP.patch"
-SRC_URI += "file://0001-include-fingerprint-information-in-dhcp-server-lease.patch"
-SRC_URI += "file://0001-add-support-DNS-failover-for-not-implement-error-cod.patch"
-SRC_URI += "file://0001-DAD-mechanism-behavior-before-replying-with-DHCP-ACK.patch"
-SRC_URI += "file://0002-DAD-mechanism-before-replying-with-DHCP-Offer.patch"
-SRC_URI += "file://0003-save-client-dhcp-options.patch"
+SRC_URI += "file://0003-add-ACS-discovery-and-client-DB-WIP.patch"
+SRC_URI += "file://0004-include-fingerprint-information-in-dhcp-server-lease.patch"
+SRC_URI += "file://0005-add-support-DNS-failover-for-not-implement-error-cod.patch"
+SRC_URI += "file://0006-DAD-mechanism-behavior-before-replying-with-DHCP-ACK.patch"
+SRC_URI += "file://0007-DAD-mechanism-before-replying-with-DHCP-Offer-OFW-11.patch"
+SRC_URI += "file://0008-save-client-dhcp-options.patch"
 
 # ----------------------------------------------------------------------------
 

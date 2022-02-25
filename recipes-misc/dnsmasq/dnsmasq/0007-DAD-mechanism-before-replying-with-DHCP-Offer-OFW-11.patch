@@ -1,8 +1,7 @@
-From 0810e1f84b8c97c2c1123bb16f793895bc3be4ac Mon Sep 17 00:00:00 2001
+From 7bf7f7dcf70f0c3100e8d7ef81c7de34a7103725 Mon Sep 17 00:00:00 2001
 From: Cibil <cpankiras.contractor@libertyglobal.com>
 Date: Fri, 26 Nov 2021 17:01:12 +0100
-Subject: [PATCH] dnsmasq: DAD mechanism before replying with DHCP Offer (
- OFW-1147 )
+Subject: [PATCH] DAD mechanism before replying with DHCP Offer ( OFW-1147 )
 
 [Description]
 
@@ -34,7 +33,7 @@ Signed-off-by: Cibil <cpankiras.contractor@libertyglobal.com>
  3 files changed, 79 insertions(+), 5 deletions(-)
 
 diff --git a/src/dhcp.c b/src/dhcp.c
-index 97324f2..2bffe54 100644
+index 97324f2..87dd3da 100644
 --- a/src/dhcp.c
 +++ b/src/dhcp.c
 @@ -760,7 +760,7 @@ struct ping_result *do_icmp_ping(time_t now, struct in_addr addr, unsigned int h
@@ -96,7 +95,7 @@ index 3a6bcc0..dcba422 100644
  struct dhcp_config *config_find_by_address(struct dhcp_config *configs, struct in_addr addr);
  char *host_from_dns(struct in_addr addr);
 diff --git a/src/rfc2131.c b/src/rfc2131.c
-index 254e9a5..142ba5e 100644
+index 254e9a5..4ea9eaf 100644
 --- a/src/rfc2131.c
 +++ b/src/rfc2131.c
 @@ -119,6 +119,7 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
@@ -186,5 +185,5 @@ index 254e9a5..142ba5e 100644
        log_packet("DHCPOFFER" , &mess->yiaddr, emac, emac_len, iface_name, NULL, NULL, mess->xid);
        
 -- 
-2.17.1
+2.24.0
 

@@ -1,4 +1,4 @@
-From b4600a3582fd2966c350a1ef54919354892eae0a Mon Sep 17 00:00:00 2001
+From 362d55c4c938b2abdf3155ec683692e844b43976 Mon Sep 17 00:00:00 2001
 From: Andre McCurdy <armccurdy@gmail.com>
 Date: Fri, 11 Sep 2020 14:58:41 -0700
 Subject: [PATCH] add ACS discovery and client DB ( * WIP * )
@@ -12,7 +12,7 @@ Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
  1 file changed, 163 insertions(+), 3 deletions(-)
 
 diff --git a/src/rfc2131.c b/src/rfc2131.c
-index fc54aab..8023f3a 100644
+index 3f50755..e092135 100644
 --- a/src/rfc2131.c
 +++ b/src/rfc2131.c
 @@ -25,6 +25,24 @@

@@ -1,4 +1,4 @@
-From 93aadb9ffa064fcd88979f2784fd9b717f655e32 Mon Sep 17 00:00:00 2001
+From 28b245b885efe99f0142cac5dc4ab938dd80af6a Mon Sep 17 00:00:00 2001
 From: Cibil <cpankiras.contractor@libertyglobal.com>
 Date: Fri, 29 Oct 2021 18:20:41 +0200
 Subject: [PATCH] DAD mechanism behavior before replying with DHCP ACK (
@@ -23,7 +23,7 @@ Signed-off-by: Cibil <cpankiras.contractor@libertyglobal.com>
  4 files changed, 289 insertions(+), 1 deletion(-)
 
 diff --git a/src/arp.c b/src/arp.c
-index 2503ce4..1a8c38e 100644
+index 2503ce4..713fcf2 100644
 --- a/src/arp.c
 +++ b/src/arp.c
 @@ -16,6 +16,14 @@
@@ -349,7 +349,7 @@ index e8271b2..3a6bcc0 100644
  /* dump.c */
  #ifdef HAVE_DUMPFILE
 diff --git a/src/rfc2131.c b/src/rfc2131.c
-index 224f21e..2783f69 100644
+index 224f21e..254e9a5 100644
 --- a/src/rfc2131.c
 +++ b/src/rfc2131.c
 @@ -1431,6 +1431,16 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
@@ -370,5 +370,5 @@ index 224f21e..2783f69 100644
  	  if (!message)
  	    {
 -- 
-2.17.1
+2.24.0
 
