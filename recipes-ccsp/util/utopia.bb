@@ -32,6 +32,8 @@ S = "${WORKDIR}/git"
 
 inherit autotools pkgconfig useradd update-alternatives
 
+LEGACY_PLATFORM ?= "0"
+
 EXTRA_OECONF += "${CCSP_CONFIG_PLATFORM}"
 EXTRA_OECONF += "${@bb.utils.contains('DISTRO_FEATURES', 'multilan', 'MULTILAN_FEATURE=yes', '', d)}"
 
@@ -121,6 +123,12 @@ do_install_append () {
     grep '^\$\$Version=' ${D}${sysconfdir}/utopia/system_defaults > ${D}${sysconfdir}/utopia/system_defaults_new
     grep -v '^\$\$Version=' ${D}${sysconfdir}/utopia/system_defaults | LC_ALL=C sort >> ${D}${sysconfdir}/utopia/system_defaults_new
     mv ${D}${sysconfdir}/utopia/system_defaults_new ${D}${sysconfdir}/utopia/system_defaults
+
+    # Tweak defaults for backwards compatibility on legacy platforms
+
+    if [ "${LEGACY_PLATFORM}" = "1" ]; then
+        sed 's/^\$\$arLanAllowedSubnet_1::SubnetMask=.*/$$arLanAllowedSubnet_1::SubnetMask=255.255.0.0/' -i ${D}${sysconfdir}/utopia/system_defaults
+    fi
 
     # ------------------------------------------------------------------------
 
