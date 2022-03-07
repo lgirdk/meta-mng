@@ -14,7 +14,7 @@ IMAGE_INSTALL += " \
     ccsp-lm-lite \
     ccsp-logagent \
     ccsp-misc \
-    ccsp-moca \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'moca', 'ccsp-moca', '', d)} \
     ccsp-mta-agent \
     ccsp-p-and-m \
     ccsp-psm \
