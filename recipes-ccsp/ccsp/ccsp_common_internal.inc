@@ -44,10 +44,8 @@ CFLAGS += " \
     -D_NO_EXECINFO_H_ \
     -D_NO_PKI_KB5_SUPPORT \
     -DBUILD_WEB \
-    -DCONFIG_SYSTEM_MOCA \
     -DENABLE_SA_KEY \
     -DFEATURE_SUPPORT_SYSLOG \
-    -DMOCA_HOME_ISOLATION \
     -DNTPD_ENABLE \
     -DUSE_NOTIFY_COMPONENT \
     -DUTC_ENABLE \
@@ -58,6 +56,7 @@ CFLAGS += " \
     ${@bb.utils.contains('DISTRO_FEATURES', 'dslite', '-DDSLITE_FEATURE_SUPPORT', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'interworking', '-DFEATURE_SUPPORT_INTERWORKING', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'meshwifi', '-DFEATURE_SUPPORT_MESH -DENABLE_FEATURE_MESHWIFI', '', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'moca', '-DCONFIG_SYSTEM_MOCA -DMOCA_HOME_ISOLATION', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'multilan', '-DMULTILAN_FEATURE', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_wan_manager', '-DFEATURE_RDKB_WAN_MANAGER', '', d)} \
 "
