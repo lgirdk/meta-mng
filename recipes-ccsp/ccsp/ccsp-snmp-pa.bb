@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=2291535ca559c92189f5f6053018b3e2"
 
 require ccsp_common.inc
 
-DEPENDS += "utopia net-snmp openssl"
+DEPENDS += "utopia net-snmp openssl libsyswrapper"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
