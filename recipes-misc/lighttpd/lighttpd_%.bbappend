@@ -40,6 +40,7 @@ RRECOMMENDS_${PN} += "${PN}-www"
 RRECOMMENDS_${PN} += " \
     ccsp-jse \
     lighttpd-module-alias \
+    lighttpd-module-redirect \
     lighttpd-module-rewrite \
     lighttpd-module-setenv \
     ${@bb.utils.contains('DISTRO_FEATURES', 'fcgi', 'lighttpd-module-fastcgi', 'lighttpd-module-cgi', d)} \
