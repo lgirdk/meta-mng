@@ -31,9 +31,13 @@
 #endif
 
 static const char *interfaces[] = {
+#if defined(_LG_MV2_PLUS_)
+    "lbr0",
+#else
     "erouter0",
     "cm0",
     "wlan0",    /* Not expected to be found on a real device, but maybe useful for testing */
+#endif
 };
 
 static int skta_get_mac_address (char *macstring, const char *device)
