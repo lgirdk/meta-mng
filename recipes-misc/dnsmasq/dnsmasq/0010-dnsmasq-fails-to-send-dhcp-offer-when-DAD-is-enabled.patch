@@ -1,0 +1,70 @@
+From 8bec8c3d84f03bbc328f0772e196bcdc39e8c9d5 Mon Sep 17 00:00:00 2001
+From: Cibil <cpankiras.contractor@libertyglobal.com>
+Date: Mon, 28 Mar 2022 13:58:13 +0200
+Subject: [PATCH] dnsmasq fails to send dhcp offer when DAD is enabled (
+ OFW-2556 )
+
+As per DAD logic, dnsmasq sends an arp request(say, 192.168.0.10) and waits 250ms for a reply.
+Within this time frame, if it receives an arp reply from other clients(say, 192.168.0.111) then
+it considers 192.168.0.10 is already in use and chooses a new IP.
+
+If a rogue client continuously send an arp reply to all arp requests from the gateway, then based on the above logic
+dnsmasq will go into a continuous loop and new clients won't get IP.
+
+As a solution, ignore arp reply from other clients in DAD. If arp request and arp response IPs are not the same
+then continue waiting for the remaining time(250ms)
+
+Signed-off-by: Cibil <cpankiras.contractor@libertyglobal.com>
+---
+ src/arp.c | 21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
+
+diff --git a/src/arp.c b/src/arp.c
+index 18332ba..80d0956 100644
+--- a/src/arp.c
++++ b/src/arp.c
+@@ -417,7 +417,7 @@ out:
+  *  dest_mac : Buffer to write the dest mac
+  *  return   : 0 if success. In case of failure returns -1.
+  */
+-static int read_arp(int fd, char *dest_mac)
++static int read_arp(int fd, char *dest_mac, uint32_t arp_req_ip)
+ {
+   int ret = -1;
+   struct arp_packet arp_res;
+@@ -463,6 +463,23 @@ static int read_arp(int fd, char *dest_mac)
+         continue;
+       }
+ 
++      /* Ignore arp reply from other clients
++       * If arp request and arp response IPs are not same,
++       * then continue waiting for remaining time.
++       */
++      if(memcmp(&arp_req_ip, arp_res.sender_ip, sizeof(uint32_t)) != 0)
++      {
++        my_syslog(LOG_WARNING, "Received ARP Reply from another client\n");
++        my_syslog(LOG_WARNING, "Sender MAC: %02X:%02X:%02X:%02X:%02X:%02X",
++            arp_res.sender_mac[0],
++            arp_res.sender_mac[1],
++            arp_res.sender_mac[2],
++            arp_res.sender_mac[3],
++            arp_res.sender_mac[4],
++            arp_res.sender_mac[5]);
++        continue;
++      }
++
+       if(dest_mac != NULL)
+       {
+         memcpy(dest_mac, arp_res.sender_mac,6);
+@@ -524,7 +541,7 @@ int do_arp(char *ifname, int ifindex, struct in_addr yiaddr, char *dest_mac)
+     goto out;
+   }
+ 
+-  if(read_arp(arp_fd, dest_mac) == 0)
++  if(read_arp(arp_fd, dest_mac, yiaddr.s_addr) == 0)
+   {
+     ret = 0;
+   }
+-- 
+2.24.0
+
