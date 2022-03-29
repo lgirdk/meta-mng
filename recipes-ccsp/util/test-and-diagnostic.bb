@@ -46,3 +46,6 @@ do_install_append () {
 }
 
 FILES_${PN} += "/usr/ccsp"
+
+# scripts/resource_monitor.sh contains calls to slabtop
+RDEPENDS_${PN} += "procps"
