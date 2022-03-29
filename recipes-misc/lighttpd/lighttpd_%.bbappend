@@ -14,7 +14,19 @@ GWCONF = "${@bb.utils.contains('DISTRO_FEATURES', 'fcgi', 'ui2-fast-cgi.conf', '
 
 do_install_append () {
 
-	install -m 644 ${WORKDIR}/${GWCONF} ${D}${sysconfdir}/lighttpd/gateway.conf
+	# Insert contents of gateway.conf into lighttpd.conf
+	# ie make lighttpd.conf self contained so that a modified version
+	# created at run time in (e.g.) /tmp doesn't need a copy of
+	# gateway.conf available in /tmp too (since 'include xxx' paths are
+	# relative to the path containing lighttpd.conf).
+
+	sed -e '/include "gateway.conf"/r ${WORKDIR}/${GWCONF}' \
+	    -e '/include "gateway.conf"/d' \
+	    -i ${D}${sysconfdir}/lighttpd/lighttpd.conf
+
+	# Install empty gateway.conf to support scripts etc which still expect it ( ** TMP ** )
+
+	touch ${D}${sysconfdir}/lighttpd/gateway.conf
 
 	# Strip comments and squash empty lines from lighttpd.conf + gateway.conf
 
