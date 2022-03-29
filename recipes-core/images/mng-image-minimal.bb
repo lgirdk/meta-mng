@@ -3,7 +3,11 @@ SUMMARY = "MNG Minimal Image"
 IMAGE_FEATURES = "read-only-rootfs"
 IMAGE_FEATURES += "debug-tweaks"
 
+# Bash is required in RDKB based images. Using it as the shell in minimal
+# images too means shell support in busybox can be completely disabled.
+
 IMAGE_INSTALL = " \
+    bash \
     packagegroup-core-boot \
 "
 
