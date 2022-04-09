@@ -30,6 +30,7 @@ IMAGE_INSTALL += " \
 IMAGE_INSTALL += " \
     ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_wan_manager', 'rdk-fwupgrade-manager', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_wan_manager', 'rdk-vlanmanager', '', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_wan_manager', 'rdk-wanmanager', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_wan_manager', 'rdktelcovoicemanager', '', d)} \
 "
 
