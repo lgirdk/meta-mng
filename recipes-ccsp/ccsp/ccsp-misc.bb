@@ -23,11 +23,14 @@ EXTRA_OECONF += " \
 "
 
 CFLAGS += " \
+    -DDHCPV6_CLIENT_DIBBLER \
     -I${STAGING_INCDIR}/syscfg \
     -I${STAGING_INCDIR}/trower-base64 \
 "
 
 do_install_append () {
+	install -d ${D}${includedir}/ccsp
+	install -m 644 ${S}/source/dhcp_client_utils/dhcp_client_utils.h ${D}${includedir}/ccsp/
 	install -d ${D}/usr/ccsp
 	ln -sf ${bindir}/psmcli ${D}/usr/ccsp/psmcli
 }
