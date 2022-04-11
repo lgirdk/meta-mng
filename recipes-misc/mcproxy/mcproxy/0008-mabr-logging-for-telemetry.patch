@@ -1,0 +1,166 @@
+From d86fb733dbdd7e7e03e300abd7085499797f67cf Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Thu, 2 Jun 2022 15:46:07 -0700
+Subject: [PATCH] mabr logging for telemetry
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ mcproxy/src/main.cpp                          |  3 ++
+ mcproxy/src/proxy/querier.cpp                 | 12 +++++++
+ mcproxy/src/proxy/simple_mc_proxy_routing.cpp | 35 +++++++++++++++++++
+ mcproxy/src/utils/mc_socket.cpp               | 21 +++++++++++
+ 4 files changed, 71 insertions(+)
+
+diff --git a/mcproxy/src/main.cpp b/mcproxy/src/main.cpp
+index 627778a..f9814ab 100644
+--- a/mcproxy/src/main.cpp
++++ b/mcproxy/src/main.cpp
+@@ -40,6 +40,7 @@
+ 
+ #include <iostream>
+ #include <unistd.h>
++#include <syslog.h>
+ 
+ void test_log();
+ void test_test();
+@@ -53,6 +54,8 @@ int main(int arg_count, char* args[])
+         std::cout << e << std::endl;
+     }
+ #else
++    openlog("MCPROXY", 0, LOG_USER);
++
+     try {
+         proxy p(arg_count, args);
+     } catch (const char* e) {
+diff --git a/mcproxy/src/proxy/querier.cpp b/mcproxy/src/proxy/querier.cpp
+index 8735c4d..c0bbbc4 100644
+--- a/mcproxy/src/proxy/querier.cpp
++++ b/mcproxy/src/proxy/querier.cpp
+@@ -32,6 +32,7 @@
+ #include "include/proxy/mld_sender.hpp"
+ 
+ #include <unistd.h>
++#include <syslog.h>
+ #include <iostream>
+ #include <sstream>
+ 
+@@ -232,6 +233,17 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
+         send_Q(gaddr, ginfo, A, (A * B));
+ 
+         if (m_fast_leave && !to_remove.empty()) {
++            std::string logmsg;
++
++            logmsg.reserve(512);
++            logmsg += "fastleave remove group: ";
++            logmsg += gaddr.to_string();
++            logmsg += ", src: ";
++            for (auto& s: to_remove) {
++                logmsg += s.saddr.to_string();
++                logmsg += ",";
++            }
++            syslog(LOG_DEBUG, "%s", logmsg.c_str());
+             A -= to_remove;
+             state_change_notification(gaddr);
+         }
+diff --git a/mcproxy/src/proxy/simple_mc_proxy_routing.cpp b/mcproxy/src/proxy/simple_mc_proxy_routing.cpp
+index 4081278..9c86db2 100644
+--- a/mcproxy/src/proxy/simple_mc_proxy_routing.cpp
++++ b/mcproxy/src/proxy/simple_mc_proxy_routing.cpp
+@@ -34,6 +34,9 @@
+ #include <algorithm>
+ #include <memory>
+ 
++#include <syslog.h>
++#include <net/if.h>
++
+ #define IPV4_SSDP_ADDR    "239.255.255.250"    // Well-known multicast IPv4 site-local address for UPNP. Used to send/receive SSDP messages.
+ //-------------------------------------------------------------------------------
+ //-------------------------------------------------------------------------------
+@@ -558,6 +561,25 @@ void simple_mc_proxy_routing::set_routes(const addr_storage& gaddr, const std::l
+                 continue;
+             }
+ 
++            {   
++                char ifname[IF_NAMESIZE];
++                std::string logmsg;
++
++                logmsg.reserve(512);
++                logmsg += "add mroute gaddr: ";
++                logmsg += gaddr.to_string();
++                logmsg += ", saddr: ";
++                logmsg += e.first.saddr.to_string();
++                logmsg += ", srcif: ";
++                logmsg += std::string(if_indextoname(input_if_index, ifname) ? ifname : "(error)");
++                logmsg += ", dstifs: ";
++                for (auto vif : e.second) {
++                    logmsg += std::string(if_indextoname(vif, ifname) ? ifname : "(error)");
++                    logmsg += ",";
++                }
++                syslog(LOG_DEBUG, "%s", logmsg.c_str());
++            }
++
+             m_p->m_routing->add_route(m_p->m_interfaces->get_virtual_if_index(input_if_index), gaddr, e.first.saddr, vif_out);
+         }
+ 
+@@ -573,6 +595,19 @@ void simple_mc_proxy_routing::send_record(unsigned int upstream_if_index, const
+ void simple_mc_proxy_routing::del_route(unsigned int if_index, const addr_storage& gaddr, const addr_storage& saddr) const
+ {
+     HC_LOG_TRACE("");
++
++    char ifname[IF_NAMESIZE];
++    std::string logmsg;
++
++    logmsg.reserve(512);
++    logmsg += "del mroute gaddr: ";
++    logmsg += gaddr.to_string();
++    logmsg += ", saddr: ";
++    logmsg += saddr.to_string();
++    logmsg += " if: ";
++    logmsg += std::string(if_indextoname(if_index, ifname) ? ifname : "(error)");
++    syslog(LOG_DEBUG, "%s", logmsg.c_str());
++
+     m_p->m_routing->del_route(m_p->m_interfaces->get_virtual_if_index(if_index), gaddr, saddr);
+ }
+ 
+diff --git a/mcproxy/src/utils/mc_socket.cpp b/mcproxy/src/utils/mc_socket.cpp
+index 8925deb..8e366eb 100644
+--- a/mcproxy/src/utils/mc_socket.cpp
++++ b/mcproxy/src/utils/mc_socket.cpp
+@@ -36,6 +36,8 @@
+ #include <net/if.h>
+ #include <numeric>
+ #include <unistd.h>
++#include <syslog.h>
++#include <net/if.h>
+ 
+ #if !defined(__GLIBC__) || defined(__UCLIBC__)
+ #include "sourcefilter.cpp"
+@@ -677,6 +679,25 @@ bool mc_socket::set_source_filter(uint32_t if_index, const addr_storage& gaddr,
+         slist[i++] = e.get_sockaddr_storage();
+     }
+ 
++    {
++        char ifname[IF_NAMESIZE];
++        std::string logmsg;
++
++        logmsg.reserve(512);
++        logmsg += "set source filter: group: ";
++        logmsg += gaddr.to_string();
++        logmsg += ", srclist: ";
++        for (auto& addr : src_list) {
++            logmsg += addr.to_string();
++            logmsg += ",";
++        }
++        logmsg += " iface: ";
++        logmsg += std::string(if_indextoname(if_index, ifname) ? ifname : "(error)");
++        logmsg += " mode: ";
++        logmsg += std::to_string(filter_mode);
++        syslog(LOG_DEBUG, "%s", logmsg.c_str());
++    }
++
+     rc = setsourcefilter(m_sock, if_index, &gaddr.get_sockaddr(), gaddr.get_addr_len(), filter_mode, src_list.size(), slist.get());
+     if (rc == -1) {
+         HC_LOG_ERROR("failed to set source filter! Error: " << strerror(errno) << " errno: " << errno);
+-- 
+2.24.0
+

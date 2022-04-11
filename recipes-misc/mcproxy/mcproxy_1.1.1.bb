@@ -14,6 +14,8 @@ SRC_URI = "git://github.com/mcproxy/mcproxy;protocol=https \
            file://0004-fix-deleting-while-iterating-through-set-STL-in-C.patch \
            file://0005-filter-for-SSDP-address.patch \
            file://0006-pure-virtual-method-called-error-on-sending-sigterm-.patch \
+           file://0007-mabr-changes.patch \
+           file://0008-mabr-logging-for-telemetry.patch \
 "
 
 S = "${WORKDIR}/git"

@@ -1,0 +1,1243 @@
+From 0c506031e0c6ccc04a35bf5c378f9042d4931522 Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Thu, 2 Jun 2022 15:43:58 -0700
+Subject: [PATCH] mabr changes
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ CMakeLists.txt                           |  2 +
+ mcproxy/include/parser/interface.hpp     |  6 ++
+ mcproxy/include/parser/parser.hpp        |  4 +-
+ mcproxy/include/parser/token.hpp         |  3 +
+ mcproxy/include/proxy/igmp_receiver.hpp  |  2 +-
+ mcproxy/include/proxy/interfaces.hpp     |  1 +
+ mcproxy/include/proxy/membership_db.hpp  |  1 +
+ mcproxy/include/proxy/message_format.hpp |  8 +-
+ mcproxy/include/proxy/mld_receiver.hpp   |  2 +-
+ mcproxy/include/proxy/proxy_instance.hpp | 12 ++-
+ mcproxy/include/proxy/querier.hpp        |  7 +-
+ mcproxy/include/proxy/receiver.hpp       |  5 +-
+ mcproxy/include/utils/mc_socket.hpp      |  9 +++
+ mcproxy/include/utils/throttle.hpp       | 29 ++++++++
+ mcproxy/include/utils/timestamp.hpp      | 68 +++++++++++++++++
+ mcproxy/src/parser/configuration.cpp     |  8 ++
+ mcproxy/src/parser/interface.cpp         | 24 ++++++
+ mcproxy/src/parser/parser.cpp            | 93 +++++++++++++++++++++++-
+ mcproxy/src/parser/scanner.cpp           |  6 ++
+ mcproxy/src/parser/token.cpp             |  3 +
+ mcproxy/src/proxy/igmp_receiver.cpp      | 18 ++++-
+ mcproxy/src/proxy/interfaces.cpp         | 18 +++++
+ mcproxy/src/proxy/mld_receiver.cpp       | 18 ++++-
+ mcproxy/src/proxy/mld_sender.cpp         |  7 +-
+ mcproxy/src/proxy/proxy.cpp              |  2 +-
+ mcproxy/src/proxy/proxy_instance.cpp     | 25 ++++++-
+ mcproxy/src/proxy/querier.cpp            | 50 +++++++++++--
+ mcproxy/src/proxy/receiver.cpp           | 18 ++++-
+ mcproxy/src/utils/mc_socket.cpp          | 36 ++++++++-
+ mcproxy/src/utils/throttle.cpp           | 34 +++++++++
+ mcproxy/src/utils/timestamp.cpp          | 47 ++++++++++++
+ 31 files changed, 534 insertions(+), 32 deletions(-)
+ create mode 100644 mcproxy/include/utils/throttle.hpp
+ create mode 100644 mcproxy/include/utils/timestamp.hpp
+ create mode 100644 mcproxy/src/utils/throttle.cpp
+ create mode 100644 mcproxy/src/utils/timestamp.cpp
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1b862f6..88c242b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -13,6 +13,8 @@ add_executable(mcproxy-bin mcproxy/src/main.cpp
+                #utils
+            mcproxy/src/utils/mc_socket.cpp 
+            mcproxy/src/utils/addr_storage.cpp 
++           mcproxy/src/utils/timestamp.cpp 
++           mcproxy/src/utils/throttle.cpp 
+            mcproxy/src/utils/mroute_socket.cpp 
+            mcproxy/src/utils/if_prop.cpp 
+            mcproxy/src/utils/reverse_path_filter.cpp 
+diff --git a/mcproxy/include/parser/interface.hpp b/mcproxy/include/parser/interface.hpp
+index 78f0238..ca78fb6 100644
+--- a/mcproxy/include/parser/interface.hpp
++++ b/mcproxy/include/parser/interface.hpp
+@@ -211,6 +211,9 @@ class instance_definition
+     bool m_user_selected_table_number; 
+     std::list<std::shared_ptr<interface>> m_upstreams;
+     std::list<std::shared_ptr<interface>> m_downstreams;
++    bool m_fast_leave;
++    unsigned long m_throttle_threshold;
++    unsigned long m_throttle_hold_time;
+ 
+     std::list<std::shared_ptr<rule_binding>> m_global_settings;
+ 
+@@ -218,6 +221,9 @@ public:
+     instance_definition(const std::string& instance_name);
+     instance_definition(const std::string& instance_name, std::list<std::shared_ptr<interface>>&& upstreams, std::list<std::shared_ptr<interface>>&& downstreams, int table_number, bool user_selected_table_number);
+     const std::string& get_instance_name() const;
++    bool get_fast_leave() const;
++    unsigned long get_throttle_threshold() const;
++    unsigned long get_throttle_hold_time() const;
+     const std::list<std::shared_ptr<interface>>& get_upstreams() const;
+     const std::list<std::shared_ptr<interface>>& get_downstreams() const;
+     const std::list<std::shared_ptr<rule_binding>>& get_global_settings() const;
+diff --git a/mcproxy/include/parser/parser.hpp b/mcproxy/include/parser/parser.hpp
+index 8998317..6d204a4 100644
+--- a/mcproxy/include/parser/parser.hpp
++++ b/mcproxy/include/parser/parser.hpp
+@@ -34,7 +34,7 @@
+ #include <memory>
+ 
+ enum parser_type {
+-    PT_PROTOCOL, PT_INSTANCE_DEFINITION, PT_TABLE, PT_INTERFACE_RULE_BINDING
++    PT_PROTOCOL, PT_FAST_LEAVE, PT_THROTTLE, PT_INSTANCE_DEFINITION, PT_TABLE, PT_INTERFACE_RULE_BINDING
+ };
+ 
+ class parser
+@@ -64,6 +64,8 @@ public:
+     void parse_instance_definition(inst_def_set& ids);
+     std::unique_ptr<table> parse_table(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp);
+     void parse_interface_rule_binding(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp, const inst_def_set& ids);
++    void parse_fast_leave(const inst_def_set& ids);
++    void parse_throttle(const inst_def_set& ids);
+ 
+     std::string to_string() const;
+     friend std::ostream& operator<<(std::ostream& stream, const parser& scan);
+diff --git a/mcproxy/include/parser/token.hpp b/mcproxy/include/parser/token.hpp
+index 7cfe817..cb0043e 100644
+--- a/mcproxy/include/parser/token.hpp
++++ b/mcproxy/include/parser/token.hpp
+@@ -28,6 +28,9 @@
+ 
+ enum token_type {
+     TT_PROTOCOL,
++    TT_FAST_LEAVE,
++    TT_THROTTLE,
++    TT_HOLD_TIME,
+     TT_MLDV1,
+     TT_MLDV2,
+     TT_IGMPV1,
+diff --git a/mcproxy/include/proxy/igmp_receiver.hpp b/mcproxy/include/proxy/igmp_receiver.hpp
+index f68c4b6..2893daf 100644
+--- a/mcproxy/include/proxy/igmp_receiver.hpp
++++ b/mcproxy/include/proxy/igmp_receiver.hpp
+@@ -49,7 +49,7 @@ private:
+ 
+     int get_ctrl_min_size() override;
+     int get_iov_min_size() override;
+-    void analyse_packet(struct msghdr* msg, int info_size) override;
++    void analyse_packet(struct msghdr* msg, int info_size, const addr_storage& srcip) override;
+ 
+ public:
+     virtual ~igmp_receiver();
+diff --git a/mcproxy/include/proxy/interfaces.hpp b/mcproxy/include/proxy/interfaces.hpp
+index 9bbefd3..42d876d 100644
+--- a/mcproxy/include/proxy/interfaces.hpp
++++ b/mcproxy/include/proxy/interfaces.hpp
+@@ -72,6 +72,7 @@ public:
+ 
+     int get_virtual_if_index(unsigned int if_index) const;
+     addr_storage get_saddr(const std::string& if_name) const;
++    addr_storage get_link_local_saddr(const std::string& if_name) const;
+ 
+     static std::string get_if_name(unsigned int if_index);
+ 
+diff --git a/mcproxy/include/proxy/membership_db.hpp b/mcproxy/include/proxy/membership_db.hpp
+index 1d6d203..e9d1748 100644
+--- a/mcproxy/include/proxy/membership_db.hpp
++++ b/mcproxy/include/proxy/membership_db.hpp
+@@ -58,6 +58,7 @@ struct gaddr_info {
+ 
+     source_list<source> include_requested_list;
+     source_list<source> exclude_list;
++    std::map<addr_storage, std::set<addr_storage>> client_db; //to keep track of clients for the fast-leave funcionality
+ 
+     bool is_in_backward_compatibility_mode() const;
+     bool is_under_bakcward_compatibility_effects() const; 
+diff --git a/mcproxy/include/proxy/message_format.hpp b/mcproxy/include/proxy/message_format.hpp
+index 6b13599..b702f7d 100644
+--- a/mcproxy/include/proxy/message_format.hpp
++++ b/mcproxy/include/proxy/message_format.hpp
+@@ -324,11 +324,12 @@ struct group_record_msg : public proxy_msg {
+     //group_record_msg()
+     //: group_record_msg(0, MODE_IS_INCLUDE, addr_storage(), source_list<source>(), IGMPv3) {}
+ 
+-    group_record_msg(unsigned int if_index, mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>&& slist, group_mem_protocol grp_mem_proto)
++    group_record_msg(unsigned int if_index, mcast_addr_record_type record_type, const addr_storage& gaddr, const addr_storage& saddr, source_list<source>&& slist, group_mem_protocol grp_mem_proto)
+         : proxy_msg(GROUP_RECORD_MSG, LOSEABLE)
+         , m_if_index(if_index)
+         , m_record_type(record_type)
+         , m_gaddr(gaddr)
++        , m_saddr(saddr)
+         , m_slist(slist)
+         , m_grp_mem_proto(grp_mem_proto){}
+ 
+@@ -359,6 +360,10 @@ struct group_record_msg : public proxy_msg {
+         return m_gaddr;
+     }
+ 
++    const addr_storage& get_saddr() {
++        return m_saddr;
++    }
++
+     source_list<source>& get_slist() {
+         return m_slist;
+     }
+@@ -371,6 +376,7 @@ private:
+     unsigned int m_if_index;
+     mcast_addr_record_type m_record_type;
+     addr_storage m_gaddr;
++    addr_storage m_saddr;
+     source_list<source> m_slist;
+     group_mem_protocol m_grp_mem_proto;
+ };
+diff --git a/mcproxy/include/proxy/mld_receiver.hpp b/mcproxy/include/proxy/mld_receiver.hpp
+index d84d559..36ad52e 100644
+--- a/mcproxy/include/proxy/mld_receiver.hpp
++++ b/mcproxy/include/proxy/mld_receiver.hpp
+@@ -43,7 +43,7 @@ class mld_receiver : public receiver
+ private:
+     int get_ctrl_min_size() override; //size in byte
+     int get_iov_min_size() override; //size in byte
+-    void analyse_packet(struct msghdr* msg, int info_size) override;
++    void analyse_packet(struct msghdr* msg, int info_size, const addr_storage& srcip) override;
+ 
+ public:
+     virtual ~mld_receiver();
+diff --git a/mcproxy/include/proxy/proxy_instance.hpp b/mcproxy/include/proxy/proxy_instance.hpp
+index d968bca..946e609 100644
+--- a/mcproxy/include/proxy/proxy_instance.hpp
++++ b/mcproxy/include/proxy/proxy_instance.hpp
+@@ -34,6 +34,8 @@
+ #include "include/proxy/def.hpp"
+ #include "include/proxy/querier.hpp"
+ #include "include/parser/interface.hpp"
++#include "include/parser/configuration.hpp"
++#include "include/utils/throttle.hpp"
+ 
+ #include <memory>
+ #include <set>
+@@ -81,7 +83,7 @@ private:
+     };
+ 
+     //IGMPv1, IGMPv2, IGMPv3, MLDv1, MLDv2
+-    const group_mem_protocol m_group_mem_protocol;
++    group_mem_protocol m_group_mem_protocol;
+ 
+     //defines the mulitcast routing talbe, if set to 0 (default routing table) no other instances running on the system to simplifie the kernel calls.
+     const std::string m_instance_name;
+@@ -110,6 +112,10 @@ private:
+     std::shared_ptr<rule_binding> m_upstream_input_rule;
+     std::shared_ptr<rule_binding> m_upstream_output_rule;
+ 
++    bool m_fast_leave;
++    unsigned long m_throttle_threshold;
++    unsigned long m_throttle_hold_time;
++
+     //init
+     bool init_mrt_socket();
+     bool init_sender();
+@@ -137,13 +143,15 @@ public:
+      * @param shared_timing Stores and triggers all time-dependent events for this proxy instance.
+      * @param in_debug_testing_mode If true this proxy instance stops receiving group membership messages and prints a lot of status messages to the command line.
+      */
+-    proxy_instance(group_mem_protocol group_mem_protocol, const std::string& intance_name, int table_number, const std::shared_ptr<const interfaces>& interfaces, const std::shared_ptr<timing>& shared_timing, bool in_debug_testing_mode = false);
++    proxy_instance(const std::unique_ptr<configuration>& config, const std::string& intance_name, int table_number, const std::shared_ptr<const interfaces>& interfaces, const std::shared_ptr<timing>& shared_timing, bool in_debug_testing_mode = false);
+ 
+     /**
+      * @brief Release all resources.
+      */
+     virtual ~proxy_instance();
+ 
++    Throttle get_throttle();
++
+     static void test_querier(std::string if_name);
+ 
+     static void test_a(std::function < void(mcast_addr_record_type, source_list<source>&&, group_mem_protocol) > send_record, std::function<void()> print_proxy_instance);
+diff --git a/mcproxy/include/proxy/querier.hpp b/mcproxy/include/proxy/querier.hpp
+index 48d05e3..1b192cb 100644
+--- a/mcproxy/include/proxy/querier.hpp
++++ b/mcproxy/include/proxy/querier.hpp
+@@ -50,6 +50,7 @@ private:
+     worker* const m_msg_worker;
+     const unsigned int m_if_index;
+     membership_db m_db;
++    const bool m_fast_leave;
+     timers_values m_timers_values;
+     callback_querier_state_change m_cb_state_change;
+ 
+@@ -61,8 +62,8 @@ private:
+     bool send_general_query();
+ 
+     //
+-    void receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, gaddr_info& ginfo);
+-    void receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, gaddr_info& ginfo);
++    void receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, const addr_storage& saddr, source_list<source>& slist, gaddr_info& ginfo);
++    void receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, const addr_storage& saddr, source_list<source>& slist, gaddr_info& ginfo);
+ 
+     //RFC3810 Section 7.2.3 Definition of Souce timers
+     //Updates the filter_timer to the Multicast Address Listener Interval
+@@ -105,7 +106,7 @@ public:
+      * @param tv contain all nessesary timers and values.
+      * @param cb_state_change Callback function to publish querier state change informations.
+      */
+-    querier(worker* msg_worker, group_mem_protocol querier_version_mode, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing, const timers_values& tv, callback_querier_state_change cb_state_change);
++    querier(worker* msg_worker, group_mem_protocol querier_version_mode, bool fast_leave, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing, const timers_values& tv, callback_querier_state_change cb_state_change);
+ 
+     /**
+      * @brief All received group records of the interface maintained by this querier musst be submitted to this function. 
+diff --git a/mcproxy/include/proxy/receiver.hpp b/mcproxy/include/proxy/receiver.hpp
+index 494ca49..1c6149e 100644
+--- a/mcproxy/include/proxy/receiver.hpp
++++ b/mcproxy/include/proxy/receiver.hpp
+@@ -33,6 +33,7 @@
+ 
+ #include "include/utils/mroute_socket.hpp"
+ #include "include/utils/addr_storage.hpp"
++#include "include/utils/throttle.hpp"
+ #include "include/proxy/interfaces.hpp"
+ #include "include/proxy/message_format.hpp"
+ #include "include/proxy/def.hpp"
+@@ -75,6 +76,8 @@ protected:
+ 
+     int m_addr_family;
+ 
++    Throttle m_throttle;
++
+     const std::shared_ptr<const mroute_socket> m_mrt_sock;
+ 
+     const std::shared_ptr<const interfaces> m_interfaces;
+@@ -98,7 +101,7 @@ protected:
+      * @param msg received message
+      * @param info_size received information size
+      */
+-    virtual void analyse_packet(struct msghdr* msg, int info_size) = 0;
++    virtual void analyse_packet(struct msghdr* msg, int info_size, const addr_storage& srcip) = 0;
+ 
+ public:
+     /**
+diff --git a/mcproxy/include/utils/mc_socket.hpp b/mcproxy/include/utils/mc_socket.hpp
+index dee287d..a39a40c 100644
+--- a/mcproxy/include/utils/mc_socket.hpp
++++ b/mcproxy/include/utils/mc_socket.hpp
+@@ -182,6 +182,15 @@ public:
+      */
+     bool send_packet(const addr_storage& addr, const unsigned char* data, unsigned int data_size) const;
+ 
++    /**
++     * @brief Send data to a specific ip address and to a specific port.
++     * @param addr destination address of packet and the destination port
++     * @param data data to send
++     * @param data_size size of the data
++     * @return Return true on success.
++     */
++    bool send_packet(const addr_storage& addr, const unsigned char* data, unsigned int data_size, const addr_storage& src, int if_index) const;
++
+     /**
+      * @brief Receive a datagram
+      * @param[out] buf read N bytes into buf from socket
+diff --git a/mcproxy/include/utils/throttle.hpp b/mcproxy/include/utils/throttle.hpp
+new file mode 100644
+index 0000000..3416bef
+--- /dev/null
++++ b/mcproxy/include/utils/throttle.hpp
+@@ -0,0 +1,29 @@
++#ifndef THROTTLE_HPP
++#define THROTTLE_HPP
++
++#include "include/utils/timestamp.hpp" 
++
++class Throttle
++{
++private:
++    const unsigned long m_pps;
++    const unsigned long m_full;
++    unsigned long m_reserve;
++    Timestamp m_last_ts;
++    const Timestamp m_hold_duration;
++    Timestamp m_hold_expire;
++
++public:
++    Throttle(unsigned long pps = 0, Timestamp hold_duration = 0)
++      : m_pps(pps)
++      , m_full(pps * 1000)
++      , m_reserve(pps * 1000)
++      , m_last_ts(0)
++      , m_hold_duration(hold_duration)
++      , m_hold_expire(0) {
++    }
++
++    bool get();
++};
++
++#endif // THROTTLE_HPP
+diff --git a/mcproxy/include/utils/timestamp.hpp b/mcproxy/include/utils/timestamp.hpp
+new file mode 100644
+index 0000000..3bc0114
+--- /dev/null
++++ b/mcproxy/include/utils/timestamp.hpp
+@@ -0,0 +1,68 @@
++#ifndef TIMESTAMP_HPP
++#define TIMESTAMP_HPP
++
++#include <time.h>
++#include <iostream>
++#include <cstdio>
++
++class Timestamp
++{
++private:
++    struct timespec m_ts;
++
++public:
++    Timestamp(time_t secs = 0, long nsecs = 0) : m_ts({secs, nsecs}) {}
++    Timestamp(const struct timespec& ts) : m_ts(ts) {}
++
++    static Timestamp get();
++    inline time_t get_secs() const { return m_ts.tv_sec; }
++    inline long get_nsecs() const { return m_ts.tv_nsec; }
++
++    Timestamp& operator+=(const Timestamp& rhs);
++    Timestamp& operator-=(const Timestamp& rhs);
++
++    friend std::ostream& operator<<(std::ostream& stream, const Timestamp& t);
++    friend bool operator== (const Timestamp& lhs, const Timestamp& rhs);
++    friend bool operator< (const Timestamp& lhs, const Timestamp& rhs);
++};
++
++Timestamp operator+ (const Timestamp& lhs, const Timestamp& rhs);
++Timestamp operator- (const Timestamp& lhs, const Timestamp& rhs);
++
++inline std::ostream& operator<<(std::ostream& stream, const Timestamp& t)
++{
++    char str[64];
++    std::snprintf(str, sizeof(str), "%lu.%09lu", (unsigned long)t.m_ts.tv_sec, (unsigned long)t.m_ts.tv_nsec);
++    return stream << str;
++}
++
++inline bool operator== (const Timestamp& lhs, const Timestamp& rhs)
++{
++    return (lhs.m_ts.tv_sec == rhs.m_ts.tv_sec) && (lhs.m_ts.tv_nsec == rhs.m_ts.tv_nsec);
++}
++
++inline bool operator< (const Timestamp& lhs, const Timestamp& rhs)
++{
++    if (lhs.m_ts.tv_sec < rhs.m_ts.tv_sec)
++        return true;
++    if (lhs.m_ts.tv_sec > rhs.m_ts.tv_sec)
++        return false;
++    return (lhs.m_ts.tv_nsec < rhs.m_ts.tv_nsec) ? true : false;
++}
++
++inline bool operator<= (const Timestamp& lhs, const Timestamp& rhs)
++{
++    return (lhs == rhs) || (lhs < rhs);
++}
++
++inline bool operator> (const Timestamp& lhs, const Timestamp& rhs)
++{
++    return rhs < lhs;
++}
++
++inline bool operator>= (const Timestamp& lhs, const Timestamp& rhs)
++{
++    return rhs <= lhs;
++}
++
++#endif // TIMESTAMP_HPP
+diff --git a/mcproxy/src/parser/configuration.cpp b/mcproxy/src/parser/configuration.cpp
+index 2ef36c7..b5d8055 100644
+--- a/mcproxy/src/parser/configuration.cpp
++++ b/mcproxy/src/parser/configuration.cpp
+@@ -163,6 +163,14 @@ void configuration::run_parser()
+             p.parse_interface_rule_binding(m_global_table_set, m_gmp, m_inst_def_set);
+             break;
+         }
++        case PT_FAST_LEAVE: {
++            p.parse_fast_leave(m_inst_def_set);
++            break;
++        }
++        case PT_THROTTLE: {
++            p.parse_throttle(m_inst_def_set);
++            break;
++        }
+         default:
+             HC_LOG_ERROR("unkown parser type");
+             throw "unkown parser type";
+diff --git a/mcproxy/src/parser/interface.cpp b/mcproxy/src/parser/interface.cpp
+index 010f39d..6643b11 100644
+--- a/mcproxy/src/parser/interface.cpp
++++ b/mcproxy/src/parser/interface.cpp
+@@ -485,6 +485,9 @@ instance_definition::instance_definition(const std::string& instance_name)
+     : m_instance_name(instance_name)
+     , m_table_number(0)
+     , m_user_selected_table_number(false)
++    , m_fast_leave(true)
++    , m_throttle_threshold(32)
++    , m_throttle_hold_time(10)
+ {
+     HC_LOG_TRACE("");
+ }
+@@ -495,6 +498,9 @@ instance_definition::instance_definition(const std::string& instance_name, std::
+     , m_user_selected_table_number(user_selected_table_number)
+     , m_upstreams(std::move(upstreams))
+     , m_downstreams(std::move(downstreams))
++    , m_fast_leave(true)
++    , m_throttle_threshold(32)
++    , m_throttle_hold_time(10)
+ {
+     HC_LOG_TRACE("");
+ }
+@@ -505,6 +511,24 @@ const std::string& instance_definition::get_instance_name() const
+     return m_instance_name;
+ }
+ 
++bool instance_definition::get_fast_leave() const
++{
++    HC_LOG_TRACE("");
++    return m_fast_leave;
++}
++
++unsigned long instance_definition::get_throttle_threshold() const
++{
++    HC_LOG_TRACE("");
++    return m_throttle_threshold;
++}
++
++unsigned long instance_definition::get_throttle_hold_time() const
++{
++    HC_LOG_TRACE("");
++    return m_throttle_hold_time;
++}
++
+ const std::list<std::shared_ptr<interface>>& instance_definition::get_upstreams() const
+ {
+     HC_LOG_TRACE("");
+diff --git a/mcproxy/src/parser/parser.cpp b/mcproxy/src/parser/parser.cpp
+index e6ef554..97d48a0 100644
+--- a/mcproxy/src/parser/parser.cpp
++++ b/mcproxy/src/parser/parser.cpp
+@@ -46,8 +46,12 @@ parser_type parser::get_parser_type()
+             return PT_INSTANCE_DEFINITION;
+         } else if (cmp_token.get_type() == TT_UPSTREAM || cmp_token.get_type() == TT_DOWNSTREAM) {
+             return PT_INTERFACE_RULE_BINDING;
++        } else if (cmp_token.get_type() == TT_FAST_LEAVE) {
++            return PT_FAST_LEAVE;
++        } else if (cmp_token.get_type() == TT_THROTTLE) {
++            return PT_THROTTLE;
+         } else {
+-            HC_LOG_ERROR("failed to parse line " << m_current_line << " unknown token " << get_token_type_name(cmp_token.get_type()) << " with value " << cmp_token.get_string() << ", expected \":\" or \"upstream\" or \"downstream\"");
++            HC_LOG_ERROR("failed to parse line " << m_current_line << " unknown token " << get_token_type_name(cmp_token.get_type()) << " with value " << cmp_token.get_string() << ", expected \":\" or \"upstream\" or \"downstream\" or \"fastleave\"");
+             throw "failed to parse config file";
+         }
+     } else if(m_current_token.get_type() == TT_DISABLE) {
+@@ -374,6 +378,93 @@ addr_storage parser::get_addr(group_mem_protocol gmp)
+     }
+ }
+ 
++void parser::parse_fast_leave(const inst_def_set& ids)
++{
++    HC_LOG_TRACE("");
++
++    if (get_parser_type() != PT_FAST_LEAVE) {
++        HC_LOG_ERROR("failed to parse line " << m_current_line << " unknown token " << get_token_type_name(m_current_token.get_type()) << " with value " << m_current_token.get_string() << ", expected \"fastleave\"");
++        throw "failed to parse config file";
++    }
++
++    get_next_token();
++    if (m_current_token.get_type() == TT_STRING) {
++        std::string instance_name = m_current_token.get_string();
++        auto it = ids.find(instance_name);
++        if (it == ids.end()) {
++            HC_LOG_ERROR("failed to parse line " << m_current_line << " proxy instance " << m_current_token.get_string() << " not defined");
++            throw "failed to parse config file";
++        }
++        get_next_token();
++        if (m_current_token.get_type() == TT_FAST_LEAVE) {
++            get_next_token();
++            if (m_current_token.get_type() == TT_DISABLE) {
++                (*it)->m_fast_leave = false;
++                return;
++            }
++        }
++    }
++
++    HC_LOG_ERROR("failed to parse line " << m_current_line << " proxy instance " << m_current_token.get_string() << " not defined");
++    throw "failed to parse config file";
++}
++
++void parser::parse_throttle(const inst_def_set& ids)
++{
++    HC_LOG_TRACE("");
++
++    auto error_notification = [&]() {
++        HC_LOG_ERROR("failed to parse line " << m_current_line << " unknown token " << get_token_type_name(m_current_token.get_type()) << " with value " << m_current_token.get_string() << " in this context");
++        throw "failed to parse config file";
++    };
++
++    if (get_parser_type() != PT_THROTTLE) {
++        error_notification();
++    }
++
++    get_next_token();
++    if (m_current_token.get_type() != TT_STRING) {
++        error_notification();
++    }
++
++    std::string instance_name = m_current_token.get_string();
++    auto it = ids.find(instance_name);
++    if (it == ids.end()) {
++        HC_LOG_ERROR("failed to parse line " << m_current_line << " proxy instance " << m_current_token.get_string() << " not defined");
++        throw "failed to parse config file";
++    }
++
++    get_next_token();
++    if (m_current_token.get_type() != TT_THROTTLE) {
++        error_notification();
++    }
++
++    get_next_token();
++    if (m_current_token.get_type() != TT_STRING) {
++        error_notification();
++    }
++    int t = std::stoi(m_current_token.get_string());
++    if (t < 0) {
++        error_notification();
++    }
++    (*it)->m_throttle_threshold = t;
++
++    get_next_token();
++    if (m_current_token.get_type() == TT_HOLD_TIME) {
++        get_next_token();
++        if (m_current_token.get_type() != TT_STRING) {
++            error_notification();
++        }
++        int hold_time = std::stoi(m_current_token.get_string());
++        if (hold_time < 0) {
++            error_notification();
++        }
++        (*it)->m_throttle_hold_time = hold_time;
++    } else if (m_current_token.get_type() != TT_NIL) {
++        error_notification();
++    }
++}
++
+ void parser::parse_interface_rule_binding(const std::shared_ptr<const global_table_set>& gts, group_mem_protocol gmp, const inst_def_set& ids)
+ {
+     HC_LOG_TRACE("");
+diff --git a/mcproxy/src/parser/scanner.cpp b/mcproxy/src/parser/scanner.cpp
+index c6f81a2..efc2f2a 100644
+--- a/mcproxy/src/parser/scanner.cpp
++++ b/mcproxy/src/parser/scanner.cpp
+@@ -154,6 +154,12 @@ token scanner::read_next_token()
+             std::transform(cmp_str.begin(), cmp_str.end(), cmp_str.begin(), ::tolower);
+             if (cmp_str.compare("protocol") == 0) {
+                 return TT_PROTOCOL;
++            } else if (cmp_str.compare("fastleave") == 0) {
++                return TT_FAST_LEAVE;
++            } else if (cmp_str.compare("throttle") == 0) {
++                return TT_THROTTLE;
++            } else if (cmp_str.compare("holdtime") == 0) {
++                return TT_HOLD_TIME;
+             } else if (cmp_str.compare("mldv1") == 0) {
+                 return TT_MLDV1;
+             } else if (cmp_str.compare("mldv2") == 0) {
+diff --git a/mcproxy/src/parser/token.cpp b/mcproxy/src/parser/token.cpp
+index 7df0ce9..d456feb 100644
+--- a/mcproxy/src/parser/token.cpp
++++ b/mcproxy/src/parser/token.cpp
+@@ -29,6 +29,9 @@ std::string get_token_type_name(token_type tt)
+ {
+     std::map<token_type, std::string> name_map = {
+         {TT_PROTOCOL, "TT_PROTOCOL"},
++        {TT_FAST_LEAVE, "TT_FAST_LEAVE"},
++        {TT_THROTTLE, "TT_THROTTLE"},
++        {TT_HOLD_TIME, "TT_HOLD_TIME"},
+         {TT_MLDV1, "TT_MLDV1"},
+         {TT_MLDV2, "TT_MLDV2"},
+         {TT_IGMPV1, "TT_IGMPV1"},
+diff --git a/mcproxy/src/proxy/igmp_receiver.cpp b/mcproxy/src/proxy/igmp_receiver.cpp
+index f3a5906..7019e7a 100644
+--- a/mcproxy/src/proxy/igmp_receiver.cpp
++++ b/mcproxy/src/proxy/igmp_receiver.cpp
+@@ -101,7 +101,7 @@ igmp_receiver::~igmp_receiver()
+     m_running = false;
+ }
+ 
+-void igmp_receiver::analyse_packet(struct msghdr* msg, int)
++void igmp_receiver::analyse_packet(struct msghdr* msg, int, const addr_storage& srcip)
+ {
+     HC_LOG_TRACE("");
+ 
+@@ -146,6 +146,7 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
+         }
+     } else if (ip_hdr->ip_p == IPPROTO_IGMP && ntohs(ip_hdr->ip_len) <= get_iov_min_size()) {
+         if (igmp_hdr->igmp_type == IGMP_V2_MEMBERSHIP_REPORT || igmp_hdr->igmp_type == IGMP_V2_LEAVE_GROUP) {
++#if 0 /* LGI: Disable IGMPv2 */
+             HC_LOG_DEBUG("IGMP_V2_MEMBERSHIP_REPORT or IGMP_V2_LEAVE_GROUP received");
+ 
+             saddr = ip_hdr->ip_src;
+@@ -174,6 +175,7 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
+             } else {
+                 HC_LOG_ERROR("unkown igmp type: " << igmp_hdr->igmp_type); 
+             }
++#endif
+         } else if (igmp_hdr->igmp_type == IGMP_V3_MEMBERSHIP_REPORT) {
+             HC_LOG_DEBUG("IGMP_V3_MEMBERSHIP_REPORT received");
+ 
+@@ -197,11 +199,22 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
+                 return;
+             }
+ 
++            bool throttled = false;
++            bool throttle_checked = false;
++
+             for (int i = 0; i < num_records; ++i) {
+                 mcast_addr_record_type rec_type = static_cast<mcast_addr_record_type>(rec->type);
+                 unsigned int aux_size = rec->aux_data_len * 4; //RFC 3376 Section 4.2.6 Aux Data Len
+                 int nos = ntohs(rec->num_of_srcs);
+ 
++                if (rec_type != BLOCK_OLD_SOURCES && !throttle_checked) {
++                    throttled = m_throttle.get();
++                    throttle_checked = true;
++                }
++
++                /* LGI: Enforce INCLUDE mode and ignore non-SSM. Also apply throttling except block messages */
++                if ((rec_type != MODE_IS_EXCLUDE) && (rec_type != CHANGE_TO_EXCLUDE_MODE) && (rec_type == BLOCK_OLD_SOURCES || !throttled)) {
++
+                 gaddr = addr_storage(rec->gaddr);
+                 source_list<source> slist;
+ 
+@@ -215,8 +228,9 @@ void igmp_receiver::analyse_packet(struct msghdr* msg, int)
+                 HC_LOG_DEBUG("\tgaddr: " << gaddr);
+                 HC_LOG_DEBUG("\tnumber of sources: " << slist.size());
+                 HC_LOG_DEBUG("\tsource_list: " << slist);
+-                m_proxy_instance->add_msg(std::make_shared<group_record_msg>(if_index, rec_type, gaddr, move(slist), IGMPv3));
++                m_proxy_instance->add_msg(std::make_shared<group_record_msg>(if_index, rec_type, gaddr, srcip, move(slist), IGMPv3));
+ 
++                }
+                 rec = reinterpret_cast<igmpv3_mc_record*>(reinterpret_cast<unsigned char*>(rec) + sizeof(igmpv3_mc_record) + nos * sizeof(in_addr) + aux_size);
+             }
+ 
+diff --git a/mcproxy/src/proxy/interfaces.cpp b/mcproxy/src/proxy/interfaces.cpp
+index 093ad97..91de797 100644
+--- a/mcproxy/src/proxy/interfaces.cpp
++++ b/mcproxy/src/proxy/interfaces.cpp
+@@ -180,6 +180,24 @@ addr_storage interfaces::get_saddr(const std::string& if_name) const
+     }
+ }
+ 
++addr_storage interfaces::get_link_local_saddr(const std::string& if_name) const
++{
++    HC_LOG_TRACE("");
++
++    if  (m_addr_family == AF_INET6) {
++        auto addr_list = m_if_prop.get_ip6_if(if_name);
++
++        for (auto it = addr_list->begin(); it != addr_list->end(); ++it) {
++            struct sockaddr_in6 *addr = (struct sockaddr_in6 *)(*it)->ifa_addr;
++
++            if (addr->sin6_scope_id != 0)
++                return addr_storage(*addr);
++        }
++    }
++
++    return addr_storage();
++}
++
+ std::string interfaces::get_if_name(unsigned int if_index)
+ {
+     HC_LOG_TRACE("");
+diff --git a/mcproxy/src/proxy/mld_receiver.cpp b/mcproxy/src/proxy/mld_receiver.cpp
+index ea7964b..9293432 100644
+--- a/mcproxy/src/proxy/mld_receiver.cpp
++++ b/mcproxy/src/proxy/mld_receiver.cpp
+@@ -69,7 +69,7 @@ mld_receiver::~mld_receiver()
+     m_running = false;
+ }
+ 
+-void mld_receiver::analyse_packet(struct msghdr* msg, int)
++void mld_receiver::analyse_packet(struct msghdr* msg, int, const addr_storage& srcip)
+ {
+     HC_LOG_TRACE("");
+ 
+@@ -111,6 +111,7 @@ void mld_receiver::analyse_packet(struct msghdr* msg, int)
+             HC_LOG_WARN("unknown kernel message");
+         }
+     } else if (hdr->mld_type == MLD_LISTENER_REPORT || hdr->mld_type == MLD_LISTENER_REDUCTION) {
++#if 0 /* LGI: only MLDv2 SSM should be processed */
+         HC_LOG_DEBUG("MLD_LISTENER_REPORT or MLD_LISTENER_REDUCTION received");
+ 
+         struct in6_pktinfo* packet_info = nullptr;
+@@ -145,6 +146,7 @@ void mld_receiver::analyse_packet(struct msghdr* msg, int)
+         } else {
+             HC_LOG_ERROR("unkown mld type: " << hdr->mld_type);
+         }
++#endif
+     } else if (hdr->mld_type == MLD_V2_LISTENER_REPORT) {
+         HC_LOG_DEBUG("MLD_V2_LISTENER_REPORT received");
+ 
+@@ -173,11 +175,22 @@ void mld_receiver::analyse_packet(struct msghdr* msg, int)
+             return;
+         }
+ 
++        bool throttled = false;
++        bool throttle_checked = false;
++
+         for (int i = 0; i < num_records; ++i) {
+             mcast_addr_record_type rec_type = static_cast<mcast_addr_record_type>(rec->type);
+             unsigned int aux_size = rec->aux_data_len * 4; //RFC 3810 Section 5.2.6 Aux Data Len
+             int nos = ntohs(rec->num_of_srcs);
+ 
++            if (rec_type != BLOCK_OLD_SOURCES && !throttle_checked) {
++                throttled = m_throttle.get();
++                throttle_checked = true;
++            }
++
++            /* LGI: Enforce INCLUDE mode and ignore non-SSM. Also apply throttling except block messages */
++            if ((rec_type != MODE_IS_EXCLUDE) && (rec_type != CHANGE_TO_EXCLUDE_MODE) && (rec_type == BLOCK_OLD_SOURCES || !throttled)) {
++
+             gaddr = addr_storage(rec->gaddr);
+             source_list<source> slist;
+ 
+@@ -191,8 +204,9 @@ void mld_receiver::analyse_packet(struct msghdr* msg, int)
+             HC_LOG_DEBUG("\tgaddr: " << gaddr);
+             HC_LOG_DEBUG("\tnumber of sources: " << slist.size());
+             HC_LOG_DEBUG("\tsource_list: " << slist);
+-            m_proxy_instance->add_msg(std::make_shared<group_record_msg>(if_index, rec_type, gaddr, move(slist), MLDv2));
++            m_proxy_instance->add_msg(std::make_shared<group_record_msg>(if_index, rec_type, gaddr, srcip, move(slist), MLDv2));
+ 
++            }
+             rec = reinterpret_cast<mldv2_mc_record*>(reinterpret_cast<unsigned char*>(rec) + sizeof(mldv2_mc_record) + nos * sizeof(in6_addr) + aux_size);
+         }
+     } else if (hdr->mld_type == MLD_LISTENER_QUERY) {
+diff --git a/mcproxy/src/proxy/mld_sender.cpp b/mcproxy/src/proxy/mld_sender.cpp
+index 7dbc3ee..a8d44bc 100644
+--- a/mcproxy/src/proxy/mld_sender.cpp
++++ b/mcproxy/src/proxy/mld_sender.cpp
+@@ -176,7 +176,7 @@ bool mld_sender::send_mldv2_query(unsigned int if_index, const timers_values& tv
+         return false;
+     }
+ 
+-    return m_sock.send_packet(dst_addr, reinterpret_cast<unsigned char*>(q.get()), size);
++    return m_sock.send_packet(dst_addr, reinterpret_cast<unsigned char*>(q.get()), size, m_interfaces->get_link_local_saddr(interfaces::get_if_name(if_index)), if_index);
+ }
+ 
+ bool mld_sender::add_hbh_opt_header() const
+@@ -187,7 +187,7 @@ bool mld_sender::add_hbh_opt_header() const
+ 
+     struct ip6_hbh* hbh_Hdr = (struct ip6_hbh*)extbuf;
+     struct ip6_opt_router* opt_Hdr = (struct ip6_opt_router*)(extbuf + sizeof(struct ip6_hbh));
+-    pad2* pad_Hdr = (pad2*)(extbuf + sizeof(struct ip6_hbh) + sizeof(struct ip6_opt_router));
++    unsigned char *pad_Hdr = extbuf + sizeof(struct ip6_hbh) + sizeof(struct ip6_opt_router);
+ 
+     hbh_Hdr->ip6h_nxt = IPPROTO_ICMPV6;
+     hbh_Hdr->ip6h_len =  MC_MASSAGES_IPV6_ROUTER_ALERT_OPT_SIZE; //=> 8 Bytes
+@@ -196,7 +196,8 @@ bool mld_sender::add_hbh_opt_header() const
+     opt_Hdr->ip6or_len = sizeof(opt_Hdr->ip6or_value);
+     *(u_int16_t*)&opt_Hdr->ip6or_value[0] = IP6_ALERT_MLD;
+ 
+-    *pad_Hdr = IP6OPT_PADN;
++    pad_Hdr[0] = IP6OPT_PADN;
++    pad_Hdr[1] = 0;
+ 
+     if (!m_sock.add_ipv6_extension_header((unsigned char*)hbh_Hdr, sizeof(struct ip6_hbh) + sizeof(struct ip6_opt_router) + sizeof(pad2))) {
+         return false;
+diff --git a/mcproxy/src/proxy/proxy.cpp b/mcproxy/src/proxy/proxy.cpp
+index f49e441..be160ae 100644
+--- a/mcproxy/src/proxy/proxy.cpp
++++ b/mcproxy/src/proxy/proxy.cpp
+@@ -218,7 +218,7 @@ void proxy::start_proxy_instances()
+ 
+         auto& interfaces = m_configuration->get_interfaces_for_pinstance(instance_name);
+ 
+-        std::unique_ptr<proxy_instance> pr_i(new proxy_instance(m_configuration->get_group_mem_protocol(), instance_name, table_number, interfaces, m_timing));
++        std::unique_ptr<proxy_instance> pr_i(new proxy_instance(m_configuration, instance_name, table_number, interfaces, m_timing));
+ 
+         //global rule bindung      
+         auto& global_settings = pinstance->get_global_settings();
+diff --git a/mcproxy/src/proxy/proxy_instance.cpp b/mcproxy/src/proxy/proxy_instance.cpp
+index 9a1a372..15136ac 100644
+--- a/mcproxy/src/proxy/proxy_instance.cpp
++++ b/mcproxy/src/proxy/proxy_instance.cpp
+@@ -34,6 +34,7 @@
+ #include "include/proxy/querier.hpp"
+ #include "include/proxy/interfaces.hpp"
+ #include "include/proxy/timing.hpp"
++#include "include/utils/throttle.hpp"
+ #include "include/proxy/routing_management.hpp"
+ #include "include/proxy/simple_mc_proxy_routing.hpp"
+ 
+@@ -45,9 +46,8 @@
+ #include <unistd.h>
+ #include <net/if.h>
+ 
+-proxy_instance::proxy_instance(group_mem_protocol group_mem_protocol, const std::string& instance_name, int table_number, const std::shared_ptr<const interfaces>& interfaces, const std::shared_ptr<timing>& shared_timing, bool in_debug_testing_mode)
+-: m_group_mem_protocol(group_mem_protocol)
+-, m_instance_name(instance_name)
++proxy_instance::proxy_instance(const std::unique_ptr<configuration>& config, const std::string& instance_name, int table_number, const std::shared_ptr<const interfaces>& interfaces, const std::shared_ptr<timing>& shared_timing, bool in_debug_testing_mode)
++: m_instance_name(instance_name)
+ , m_table_number(table_number)
+ , m_in_debug_testing_mode(in_debug_testing_mode)
+ , m_interfaces(interfaces)
+@@ -64,6 +64,17 @@ proxy_instance::proxy_instance(group_mem_protocol group_mem_protocol, const std:
+     //rule_binding(const std::string& instance_name, rb_interface_type interface_type, const std::string& if_name, rb_interface_direction filter_direction, rb_rule_matching_type rule_matching_type, const std::chrono::milliseconds& timeout);
+     HC_LOG_TRACE("");
+ 
++    m_group_mem_protocol = config->get_group_mem_protocol();
++
++    auto inst_set = config->get_inst_def_set();
++    auto pinstance = inst_set.find(instance_name);
++    if (pinstance == inst_set.end()) {
++        throw "cannot find instance"; 
++    }
++    m_fast_leave = (*pinstance)->get_fast_leave();
++    m_throttle_threshold = (*pinstance)->get_throttle_threshold();
++    m_throttle_hold_time = (*pinstance)->get_throttle_hold_time();
++
+     if (!init_mrt_socket()) {
+         throw "failed to initialize mroute socket";
+     }
+@@ -87,6 +98,12 @@ proxy_instance::proxy_instance(group_mem_protocol group_mem_protocol, const std:
+     start();
+ }
+ 
++Throttle proxy_instance::get_throttle()
++{
++    HC_LOG_TRACE("");
++    return Throttle(m_throttle_threshold, m_throttle_hold_time);
++}
++
+ bool proxy_instance::init_mrt_socket()
+ {
+     HC_LOG_TRACE("");
+@@ -284,7 +301,7 @@ void proxy_instance::handle_config(const std::shared_ptr<config_msg>& msg)
+ 
+             //create a querier
+             std::function<void(unsigned int, const addr_storage&)> cb_state_change = std::bind(&routing_management::event_querier_state_change, m_routing_management.get(), std::placeholders::_1, std::placeholders::_2);
+-            std::unique_ptr<querier> q(new querier(this, m_group_mem_protocol, msg->get_if_index(), m_sender, m_timing, msg->get_timers_values(), cb_state_change));
++            std::unique_ptr<querier> q(new querier(this, m_group_mem_protocol, m_fast_leave, msg->get_if_index(), m_sender, m_timing, msg->get_timers_values(), cb_state_change));
+             m_downstreams.insert(std::pair<unsigned int, downstream_infos>(msg->get_if_index(), downstream_infos(move(q), msg->get_interface())));
+         } else {
+             HC_LOG_WARN("downstream interface: " << interfaces::get_if_name(msg->get_if_index()) << " already exists");
+diff --git a/mcproxy/src/proxy/querier.cpp b/mcproxy/src/proxy/querier.cpp
+index 9e6c322..8735c4d 100644
+--- a/mcproxy/src/proxy/querier.cpp
++++ b/mcproxy/src/proxy/querier.cpp
+@@ -35,10 +35,11 @@
+ #include <iostream>
+ #include <sstream>
+ 
+-querier::querier(worker* msg_worker, group_mem_protocol querier_version_mode, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing, const timers_values& tv, callback_querier_state_change cb_state_change)
++querier::querier(worker* msg_worker, group_mem_protocol querier_version_mode, bool fast_leave, int if_index, const std::shared_ptr<const sender>& sender, const std::shared_ptr<timing>& timing, const timers_values& tv, callback_querier_state_change cb_state_change)
+     : m_msg_worker(msg_worker)
+     , m_if_index(if_index)
+     , m_db(querier_version_mode)
++    , m_fast_leave(fast_leave)
+     , m_timers_values(tv)
+     , m_cb_state_change(cb_state_change)
+     , m_sender(sender)
+@@ -154,7 +155,7 @@ void querier::receive_record(const std::shared_ptr<proxy_msg>& msg)
+ 
+     switch (db_info_it->second.filter_mode) {
+     case  INCLUDE_MODE:
+-        receive_record_in_include_mode(gr->get_record_type(), gr->get_gaddr(), gr->get_slist(), db_info_it->second);
++        receive_record_in_include_mode(gr->get_record_type(), gr->get_gaddr(), gr->get_saddr(), gr->get_slist(), db_info_it->second);
+ 
+         //if the new created group is not used delete it
+         if (db_info_it->second.filter_mode == INCLUDE_MODE && db_info_it->second.include_requested_list.empty()) {
+@@ -163,7 +164,7 @@ void querier::receive_record(const std::shared_ptr<proxy_msg>& msg)
+ 
+         break;
+     case EXCLUDE_MODE:
+-        receive_record_in_exclude_mode(gr->get_record_type(), gr->get_gaddr(), gr->get_slist(), db_info_it->second);
++        receive_record_in_exclude_mode(gr->get_record_type(), gr->get_gaddr(), gr->get_saddr(), gr->get_slist(), db_info_it->second);
+         break;
+     default :
+         HC_LOG_ERROR("wrong filter mode: " << db_info_it->second.filter_mode);
+@@ -172,7 +173,16 @@ void querier::receive_record(const std::shared_ptr<proxy_msg>& msg)
+ 
+ }
+ 
+-void querier::receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, gaddr_info& ginfo)
++/* LGI: update fast-leave db */
++static void add_client_to_slist(gaddr_info& ginfo, source_list<source>& slist, const addr_storage& saddr)
++{
++    for (auto s : slist) {
++        auto& srclist = ginfo.client_db[s.saddr];
++        srclist.emplace(saddr);
++    }
++}
++
++void querier::receive_record_in_include_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, const addr_storage& saddr, source_list<source>& slist, gaddr_info& ginfo)
+ {
+     HC_LOG_TRACE("record type: " << record_type);
+     //7.4.1.  Reception of Current State Records
+@@ -191,6 +201,9 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
+     case ALLOW_NEW_SOURCES: {//ALLOW(x)
+         A += B;
+ 
++        if (m_fast_leave)
++            add_client_to_slist(ginfo, slist, saddr);
++
+         mali(gaddr, A, std::move(B));
+ 
+         state_change_notification(gaddr);
+@@ -200,7 +213,28 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
+ 
+     //INCLUDE (A)     BLOCK (B)      INCLUDE (A)          Send Q(MA,A*B)
+     case BLOCK_OLD_SOURCES: {//BLOCK(x)
++        /* LGI: update fast-leave db and act upon the empty ones */
++        source_list<source> to_remove;
++
++        if (m_fast_leave) {
++            for (auto s : B) {
++                auto it = ginfo.client_db.find(s.saddr);
++                if (it != ginfo.client_db.end()) {
++                    it->second.erase(saddr);
++                    if (it->second.empty()) {
++                        ginfo.client_db.erase(it);
++                        to_remove.emplace(s.saddr);
++                    }
++                }
++            }
++        }
++
+         send_Q(gaddr, ginfo, A, (A * B));
++
++        if (m_fast_leave && !to_remove.empty()) {
++            A -= to_remove;
++            state_change_notification(gaddr);
++        }
+     }
+     break;
+ 
+@@ -228,6 +262,9 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
+     case CHANGE_TO_INCLUDE_MODE: {//TO_IN(x)
+         A += B;
+ 
++        if (m_fast_leave)
++            add_client_to_slist(ginfo, slist, saddr);
++
+         send_Q(gaddr, ginfo, A, (A - B));
+         mali(gaddr, A, std::move(B));
+ 
+@@ -255,6 +292,9 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
+     case MODE_IS_INCLUDE: {//IS_IN(x)
+         A += B;
+ 
++        if (m_fast_leave)
++            add_client_to_slist(ginfo, slist, saddr);
++
+         mali(gaddr, A, move(B));
+ 
+         state_change_notification(gaddr);
+@@ -269,7 +309,7 @@ void querier::receive_record_in_include_mode(mcast_addr_record_type record_type,
+ 
+ }
+ 
+-void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, source_list<source>& slist, gaddr_info& ginfo)
++void querier::receive_record_in_exclude_mode(mcast_addr_record_type record_type, const addr_storage& gaddr, const addr_storage& saddr, source_list<source>& slist, gaddr_info& ginfo)
+ {
+     HC_LOG_TRACE("record type: " << record_type);
+     //7.4.1.  Reception of Current State Records
+diff --git a/mcproxy/src/proxy/receiver.cpp b/mcproxy/src/proxy/receiver.cpp
+index 07cc009..68189f0 100644
+--- a/mcproxy/src/proxy/receiver.cpp
++++ b/mcproxy/src/proxy/receiver.cpp
+@@ -23,6 +23,7 @@
+ 
+ #include "include/hamcast_logging.h"
+ #include "include/proxy/receiver.hpp"
++#include "include/proxy/proxy_instance.hpp"
+ 
+ #include <unistd.h>
+ 
+@@ -32,6 +33,7 @@ receiver::receiver(proxy_instance* pr_i, int addr_family, const std::shared_ptr<
+     , m_thread(nullptr)
+     , m_proxy_instance(pr_i)
+     , m_addr_family(addr_family)
++    , m_throttle(pr_i->get_throttle())
+     , m_mrt_sock(mrt_sock)
+     , m_interfaces(interfaces)
+ {
+@@ -96,8 +98,18 @@ void receiver::worker_thread()
+ 
+     //create msghdr
+     struct msghdr msg;
+-    msg.msg_name = nullptr;
+-    msg.msg_namelen = 0;
++    union {
++        struct sockaddr_in ipv4;
++        struct sockaddr_in6 ipv6;
++    } src;
++
++    if (m_addr_family == AF_INET) {
++        msg.msg_name = &src.ipv4;
++        msg.msg_namelen = sizeof(src.ipv4);
++    } else {
++        msg.msg_name = &src.ipv6;
++        msg.msg_namelen = sizeof(src.ipv6);
++    }
+ 
+     msg.msg_iov = &iov;
+     msg.msg_iovlen = 1;
+@@ -120,7 +132,7 @@ void receiver::worker_thread()
+ 
+         m_data_lock.lock();
+         if(m_running)
+-        analyse_packet(&msg, info_size);
++        analyse_packet(&msg, info_size, (m_addr_family == AF_INET) ? addr_storage(src.ipv4) : addr_storage(src.ipv6));
+         m_data_lock.unlock();
+     }
+ }
+diff --git a/mcproxy/src/utils/mc_socket.cpp b/mcproxy/src/utils/mc_socket.cpp
+index dc12bc8..8925deb 100644
+--- a/mcproxy/src/utils/mc_socket.cpp
++++ b/mcproxy/src/utils/mc_socket.cpp
+@@ -303,6 +303,11 @@ bool mc_socket::send_packet(const addr_storage& addr, std::string data) const
+ }
+ 
+ bool mc_socket::send_packet(const addr_storage& addr, const unsigned char* data, unsigned int data_size) const
++{
++	return send_packet(addr, data, data_size, addr_storage(), 0);
++}
++
++bool mc_socket::send_packet(const addr_storage& addr, const unsigned char* data, unsigned int data_size, const addr_storage& src, int if_index) const
+ {
+     HC_LOG_TRACE("addr: " << addr << " port: " << addr.get_port() << " data_size: " << data_size);
+ 
+@@ -311,9 +316,38 @@ bool mc_socket::send_packet(const addr_storage& addr, const unsigned char* data,
+         return false;
+     }
+ 
++    struct msghdr msg;
++    struct iovec iov;
++    char msg_control[CMSG_SPACE(sizeof(struct in6_pktinfo))];
++
++    iov.iov_base = const_cast<uint8_t*>(data);
++    iov.iov_len = data_size;
++    memset(&msg, 0, sizeof(msg));
++    msg.msg_iov = &iov;
++    msg.msg_iovlen = 1;
++    msg.msg_name = const_cast<struct sockaddr*>(&addr.get_sockaddr());
++    msg.msg_namelen = addr.get_addr_len();
++
++    if (m_addrFamily == AF_INET6 && src.is_valid()) {
++        struct cmsghdr *cmsg;
++        struct in6_pktinfo *pktinfo;
++
++        msg.msg_control = msg_control;
++        msg.msg_controllen = sizeof(msg_control);
++        cmsg = CMSG_FIRSTHDR(&msg);
++        cmsg->cmsg_len = CMSG_LEN(sizeof(struct in6_pktinfo));
++        cmsg->cmsg_level = IPPROTO_IPV6;
++        cmsg->cmsg_type = IPV6_PKTINFO;
++        pktinfo = (struct in6_pktinfo *)CMSG_DATA(cmsg);
++
++        memset(pktinfo, 0, sizeof(*pktinfo));
++        pktinfo->ipi6_addr = src.get_in6_addr();
++        pktinfo->ipi6_ifindex = if_index;
++    }
++
+     int rc = 0;
+ 
+-    rc = sendto(m_sock, data, data_size, 0, &addr.get_sockaddr() , addr.get_addr_len());
++    rc = sendmsg(m_sock, &msg, 0);
+ 
+     if (rc == -1) {
+         HC_LOG_ERROR("failed to send! Error: " << strerror(errno)  << " errno: " << errno);
+diff --git a/mcproxy/src/utils/throttle.cpp b/mcproxy/src/utils/throttle.cpp
+new file mode 100644
+index 0000000..24ebd37
+--- /dev/null
++++ b/mcproxy/src/utils/throttle.cpp
+@@ -0,0 +1,34 @@
++
++#include "include/utils/throttle.hpp"
++#include "include/utils/timestamp.hpp"
++
++bool Throttle::get()
++{
++    if (m_pps == 0 || m_hold_duration == 0)
++        return false;
++
++    Timestamp now = Timestamp::get();
++    if (now < m_hold_expire)
++        return true;
++
++    Timestamp delta = now - m_last_ts;
++    m_last_ts = now;
++
++    unsigned long ticks = (delta.get_secs() > 0) ? 1000 : delta.get_nsecs() / 1000000;
++
++    if (ticks < 1000) {
++        m_reserve += ticks * m_pps;
++        if (m_reserve > m_full)
++            m_reserve = m_full;
++    } else {
++        m_reserve = m_full;
++    }
++
++    if (m_reserve >= 1000) {
++        m_reserve -= 1000;
++        return false;
++    } else {
++        m_hold_expire = now + m_hold_duration;
++        return true;
++    }
++}
+diff --git a/mcproxy/src/utils/timestamp.cpp b/mcproxy/src/utils/timestamp.cpp
+new file mode 100644
+index 0000000..32c9db6
+--- /dev/null
++++ b/mcproxy/src/utils/timestamp.cpp
+@@ -0,0 +1,47 @@
++
++#include "include/utils/timestamp.hpp"
++
++Timestamp Timestamp::get()
++{
++    struct timespec ts;
++
++    clock_gettime(CLOCK_MONOTONIC, &ts);
++    return Timestamp(ts);
++}
++
++Timestamp& Timestamp::operator+= (const Timestamp& rhs)
++{
++    m_ts.tv_sec += rhs.m_ts.tv_sec;
++    m_ts.tv_nsec += rhs.m_ts.tv_nsec;
++    if (m_ts.tv_nsec >= 1000000000) {
++        m_ts.tv_nsec -= 1000000000;
++        m_ts.tv_sec++;
++    }
++    return *this;
++}
++
++Timestamp operator+ (const Timestamp& lhs, const Timestamp& rhs)
++{
++    Timestamp ret = lhs;
++    ret += rhs;
++    return ret;
++}
++
++Timestamp& Timestamp::operator-= (const Timestamp& rhs)
++{
++    if (m_ts.tv_nsec < rhs.m_ts.tv_nsec) {
++        m_ts.tv_nsec += 1000000000;
++        m_ts.tv_sec--;
++    }
++    m_ts.tv_sec -= rhs.m_ts.tv_sec;
++    m_ts.tv_nsec -= rhs.m_ts.tv_nsec;
++    return *this;
++}
++
++Timestamp operator- (const Timestamp& lhs, const Timestamp& rhs)
++{
++    Timestamp ret = lhs;
++    ret -= rhs;
++    return ret;
++}
++
+-- 
+2.24.0
+
