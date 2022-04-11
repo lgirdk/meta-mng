@@ -34,7 +34,6 @@ CFLAGS += " \
     -D_LG_OFW_ \
     -D_ANSC_AES_USED_ \
     -D_ANSC_IPV6_COMPATIBLE_ \
-    -D_ANSC_LINUX \
     -D_ANSC_USE_OPENSSL_ \
     -D_CCSP_CWMP_TCP_CONNREQ_HANDLER \
     -D_DEBUG \
