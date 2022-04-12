@@ -165,6 +165,11 @@ do_install_append () {
 
     mv ${D}${sysconfdir}/utopia/service.d/nat_passthrough.sh                                    ${D}${sysconfdir}/utopia/
 
+    # waninfo.sh gets installed into /etc/utopia/service.d by the *.sh
+    # wildcard install above, but it should be in /etc
+
+    mv ${D}${sysconfdir}/utopia/service.d/waninfo.sh                                            ${D}${sysconfdir}/
+
     # Over-write the default scripts installed above with the _arm versions.
     # Note that _arm versions are not necessarily ARM CPU specific, but they
     # are generally the most well maintained and up to date.
