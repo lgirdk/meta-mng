@@ -37,7 +37,6 @@ CFLAGS += " \
     -D_ANSC_USE_OPENSSL_ \
     -D_CCSP_CWMP_TCP_CONNREQ_HANDLER \
     -D_DEBUG \
-    -D_DSLH_STUN_ \
     -D_NO_ANSC_ZLIB_ \
     -D_NO_EXECINFO_H_ \
     -D_NO_PKI_KB5_SUPPORT \

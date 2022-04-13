@@ -18,6 +18,7 @@ inherit autotools pkgconfig systemd
 
 CFLAGS += " \
     -D_GNU_SOURCE -D__USE_XOPEN \
+    -D_DSLH_STUN_ \
 "
 
 LDFLAGS += " \
