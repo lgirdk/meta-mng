@@ -24,13 +24,9 @@ do_install_append () {
 	    -e '/include "gateway.conf"/d' \
 	    -i ${D}${sysconfdir}/lighttpd/lighttpd.conf
 
-	# Install empty gateway.conf to support scripts etc which still expect it ( ** TMP ** )
+	# Strip comments and squash empty lines from lighttpd.conf
 
-	touch ${D}${sysconfdir}/lighttpd/gateway.conf
-
-	# Strip comments and squash empty lines from lighttpd.conf + gateway.conf
-
-	for f in lighttpd.conf gateway.conf
+	for f in lighttpd.conf
 	do
 		sed 's/[ \t]\+$//; /^#/d' ${D}${sysconfdir}/lighttpd/$f | cat --squeeze-blank > ${D}${sysconfdir}/lighttpd/xxx_$f
 		mv ${D}${sysconfdir}/lighttpd/xxx_$f ${D}${sysconfdir}/lighttpd/$f
