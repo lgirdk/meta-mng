@@ -12,7 +12,6 @@ IMAGE_INSTALL += " \
     ccsp-hotspot \
     ccsp-hotspot-kmod \
     ccsp-lm-lite \
-    ccsp-logagent \
     ccsp-misc \
     ${@bb.utils.contains('DISTRO_FEATURES', 'moca', 'ccsp-moca', '', d)} \
     ccsp-mta-agent \
