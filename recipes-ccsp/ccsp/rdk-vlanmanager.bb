@@ -16,15 +16,14 @@ S = "${WORKDIR}/git"
 
 inherit autotools pkgconfig
 
-do_install_append () {
-	install -d ${D}/usr/rdk/vlanmanager
-	install -m 644 ${S}/config/RdkVlanManager.xml ${D}/usr/rdk/vlanmanager/
+do_compile_prepend () {
+	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/config/RdkVlanManager.xml ${S}/source/RdkVlanManager/dm_pack_datamodel.c )
+}
 
+do_install_append () {
 	install -d ${D}${sysconfdir}/rdk/conf
 	install -m 644 ${S}/config/vlan_manager_conf.json ${D}${sysconfdir}/rdk/conf/
 
 	install -d ${D}/${sysconfdir}/rdk/schemas
 	install -m 644 ${S}/hal_schema/ethlinkvlanterm_hal_schema.json ${D}/${sysconfdir}/rdk/schemas/
 }
-
-FILES_${PN} += "/usr/rdk/vlanmanager"
