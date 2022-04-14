@@ -89,6 +89,7 @@ DL_DIR_pn-rdk-fwupgrade-manager         = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SY
 DL_DIR_pn-rdk-logger                    = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
 DL_DIR_pn-rdk-vlanmanager               = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
 DL_DIR_pn-rdk-wanmanager                = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
+DL_DIR_pn-rdkgponmanager                = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
 DL_DIR_pn-rdklist                       = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
 DL_DIR_pn-rdktelcovoicemanager          = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
 DL_DIR_pn-rtmessage                     = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
