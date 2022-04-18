@@ -22,10 +22,6 @@ CFLAGS += " \
     ${@bb.utils.contains('DISTRO_FEATURES','rdkb_voice_manager_dmltr104_v2','-DFEATURE_RDKB_VOICE_DM_TR104_V2=ON','',d)} \
 "
 
-CFLAGS += " \
-    -I${STAGING_INCDIR}/libparodus \
-"
-
 do_install_append () {
 	install -d ${D}/usr/rdk/voicemanager
 	install -m 644 ${S}/config/telcovoice_config_default.json ${D}/usr/rdk/voicemanager/telcovoice_config_default.json
