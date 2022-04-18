@@ -34,7 +34,6 @@ do_compile_prepend () {
 do_install_append () {
 	install -d ${D}/usr/rdk/voicemanager
 	install -m 644 ${S}/config/telcovoice_config_default.json ${D}/usr/rdk/voicemanager/telcovoice_config_default.json
-	ln -sf ${bindir}/telcovoice_manager ${D}/usr/rdk/voicemanager/telcovoice_manager
 
 	install -d ${D}${sysconfdir}/rdk/conf
 	install -m 644 ${S}/config/telcovoice_manager_conf.json ${D}${sysconfdir}/rdk/conf/
