@@ -40,9 +40,6 @@ do_install_append () {
 		install -m 644 ${S}/hal_schema/telcovoice_hal_schema_v1.json ${D}/${sysconfdir}/rdk/schemas/telcovoice_hal_schema.json
 		install -m 644 ${S}/config/RdkTelcoVoiceManager_v1.xml ${D}/usr/rdk/voicemanager/RdkTelcoVoiceManager.xml
 	fi
-
-	install -d ${D}/usr/ccsp/harvester
-	install -m 644 ${S}/source/TR-181/integration_src.shared/VoiceDiagnostics.avsc ${D}/usr/ccsp/harvester/
 }
 
 FILES_${PN} += "/usr/ccsp /usr/rdk/voicemanager"
