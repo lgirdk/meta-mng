@@ -35,7 +35,7 @@ python create_version_file() {
     t = time.strptime(stamp, '%Y%m%d%H%M%S')
     build_time = time.strftime('"%Y-%m-%d %H:%M:%S"', t)
     with open(version_file, 'w') as fw:
-        fw.write('imagename:{0}\n'.format(image_name))
+        fw.write('imagename="{0}"\n'.format(image_name))
         fw.write('BRANCH="{0}"\n'.format(branch))
         fw.write('VERSION="{0}"\n'.format(release_version))
         fw.write('SPIN="{0}"\n'.format(release_spin))
