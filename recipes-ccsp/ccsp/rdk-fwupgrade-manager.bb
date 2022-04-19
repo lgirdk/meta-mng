@@ -16,10 +16,6 @@ S = "${WORKDIR}/git"
 
 inherit autotools pkgconfig
 
-do_install_append () {
-	install -d ${D}/usr/rdk/fwupgrademanager
-	install -m 644 ${S}/config/RdkFwUpgradeManager.xml ${D}/usr/rdk/fwupgrademanager/
-	ln -sf ${bindir}/fwupgrademanager ${D}/usr/rdk/fwupgrademanager/fwupgrademanager
+do_compile_prepend () {
+	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/config/RdkFwUpgradeManager.xml ${S}/source/FwUpgradeManager/dm_pack_datamodel.c )
 }
-
-FILES_${PN} += "/usr/rdk/fwupgrademanager"
