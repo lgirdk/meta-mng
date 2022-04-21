@@ -7,12 +7,11 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=6d502b41f76179fc84e536236f359cae"
 
 DEPENDS = "jansson zlib xz"
 
-BRANCH = "branch-1.9"
-SRCREV = "bf20128ca6138a830b2ea13e0490f3df6b035639"
-SRC_URI = "git://github.com/apache/avro;branch=${BRANCH} \
-           file://0001-cmake-Use-GNUInstallDirs-instead-of-hard-coded-paths.patch;patchdir=../../ \
-          "
+SRC_URI = "https://archive.apache.org/dist/avro/avro-${PV}/c/avro-c-${PV}.tar.gz \
+           file://0001-cmake-Use-GNUInstallDirs-instead-of-hard-coded-paths.patch \
+"
 
-S = "${WORKDIR}/git/lang/c"
+SRC_URI[md5sum] = "f8cba983e36b0494608e4017a1da5311"
+SRC_URI[sha256sum] = "08697f7dc9ff52829ff90368628a80f6fd5c118004ced931211c26001e080cd2"
 
 inherit cmake lib_package

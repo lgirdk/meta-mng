@@ -5,13 +5,13 @@ Subject: [PATCH] disable liblzma dependency
 
 Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
 ---
- lang/c/CMakeLists.txt | 4 +++-
+ CMakeLists.txt | 4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/lang/c/CMakeLists.txt b/lang/c/CMakeLists.txt
+diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 11cbf018e..59f702fe1 100644
---- a/lang/c/CMakeLists.txt
-+++ b/lang/c/CMakeLists.txt
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
 @@ -162,7 +162,9 @@ else (SNAPPY_FOUND AND ZLIB_FOUND)
  endif (SNAPPY_FOUND AND ZLIB_FOUND)
  

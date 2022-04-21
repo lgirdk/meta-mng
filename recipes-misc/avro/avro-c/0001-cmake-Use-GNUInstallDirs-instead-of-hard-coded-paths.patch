@@ -9,14 +9,14 @@ This ensures that it can be built on platforms where libdir is not
 Upstream-Status: Submitted [https://github.com/apache/avro/pull/749]
 Signed-off-by: Khem Raj <raj.khem@gmail.com>
 ---
- lang/c/CMakeLists.txt     |  2 +-
- lang/c/src/CMakeLists.txt | 16 +++++++++-------
+ CMakeLists.txt     |  2 +-
+ src/CMakeLists.txt | 16 +++++++++-------
  2 files changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/lang/c/CMakeLists.txt b/lang/c/CMakeLists.txt
+diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 11cbf018e..6c8d7aaf3 100644
---- a/lang/c/CMakeLists.txt
-+++ b/lang/c/CMakeLists.txt
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
 @@ -16,7 +16,7 @@
  # specific language governing permissions and limitations
  # under the License.
@@ -26,10 +26,10 @@ index 11cbf018e..6c8d7aaf3 100644
  project(AvroC)
  enable_testing()
  
-diff --git a/lang/c/src/CMakeLists.txt b/lang/c/src/CMakeLists.txt
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
 index 6f5659750..c1761c8de 100644
---- a/lang/c/src/CMakeLists.txt
-+++ b/lang/c/src/CMakeLists.txt
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
 @@ -106,17 +106,19 @@ install(DIRECTORY
          DESTINATION include
          FILES_MATCHING PATTERN "*.h")

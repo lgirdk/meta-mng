@@ -7,4 +7,4 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
 DEPENDS_remove = "xz"
 
-SRC_URI += "file://0001-disable-liblzma-dependency.patch;patchdir=../../"
+SRC_URI += "file://0001-disable-liblzma-dependency.patch"
