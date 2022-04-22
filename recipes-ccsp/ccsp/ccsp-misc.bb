@@ -23,7 +23,9 @@ EXTRA_OECONF += " \
 "
 
 CFLAGS += " \
+    -DDHCPV4_CLIENT_UDHCPC \
     -DDHCPV6_CLIENT_DIBBLER \
+    -DUDHCPC_RUN_IN_BACKGROUND \
     -I${STAGING_INCDIR}/syscfg \
     -I${STAGING_INCDIR}/trower-base64 \
 "
