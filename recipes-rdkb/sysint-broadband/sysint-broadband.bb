@@ -63,6 +63,7 @@ do_install() {
 	# Remove scripts which are Comcast specific or otherwise not applicable
 	# for the generic RDKB.
 
+	rm ${D}${base_libdir}/rdk/apply_partner_customization.sh
 	rm ${D}${base_libdir}/rdk/getip_file.sh
 	rm ${D}${base_libdir}/rdk/getipv6_container.sh
 	rm ${D}${base_libdir}/rdk/iptables_container.sh
