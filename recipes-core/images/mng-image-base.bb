@@ -20,13 +20,14 @@ IMAGE_INSTALL += " \
 
 IMAGE_INSTALL += " \
     dropbear \
-    lrzsz \
     openssl-bin \
     procps \
     tinymembench \
     ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', '', 'strace', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', '', 'tcpdump', d)} \
 "
+
+# IMAGE_INSTALL += "lrzsz"
 
 # IMAGE_INSTALL += "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'systemd-analyze', '', d)}"
 # IMAGE_INSTALL += "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'systemd-bootchart', '', d)}"
