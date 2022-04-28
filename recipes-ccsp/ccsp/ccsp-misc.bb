@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=175792518e4ac015ab6696d16c4f607e"
 
 require ccsp_common.inc
 
-DEPENDS += "hal-platform trower-base64 rdklist utopia"
+DEPENDS += "utopia hal-platform libsyswrapper trower-base64 rdklist"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
