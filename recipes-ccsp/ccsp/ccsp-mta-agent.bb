@@ -16,8 +16,6 @@ S = "${WORKDIR}/git"
 
 inherit autotools pkgconfig
 
-LDFLAGS += "-lcjson"
-
 do_compile_prepend () {
 	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/config/CcspMtaAgent.xml ${S}/source/MtaAgentSsp/dm_pack_datamodel.c )
 }
