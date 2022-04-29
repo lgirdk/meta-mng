@@ -16,8 +16,10 @@ S = "${WORKDIR}/git"
 
 inherit autotools pkgconfig
 
+DATAMODEL_XML = "config/CcspMtaAgent.xml"
+
 do_compile_prepend () {
-	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/config/CcspMtaAgent.xml ${S}/source/MtaAgentSsp/dm_pack_datamodel.c )
+	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/${DATAMODEL_XML} ${S}/source/MtaAgentSsp/dm_pack_datamodel.c )
 }
 
 do_install_append () {

@@ -21,8 +21,10 @@ CFLAGS += "${@oe.utils.conditional('SITEINFO_ENDIANNESS', 'le', '-D__686__', '',
 
 LDFLAGS += "-ltelemetry_msgsender"
 
+DATAMODEL_XML = "source/hotspotfd/config/hotspot.XML"
+
 do_compile_prepend(){
-	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/source/hotspotfd/config/hotspot.XML ${S}/source/hotspotfd/dm_pack_datamodel.c )
+	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/${DATAMODEL_XML} ${S}/source/hotspotfd/dm_pack_datamodel.c )
 }
 
 do_install_append () {
