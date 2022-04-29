@@ -16,8 +16,10 @@ S = "${WORKDIR}/git/notify_comp"
 
 inherit autotools pkgconfig
 
+DATAMODEL_XML = "scripts/NotifyComponent.xml"
+
 do_compile_prepend () {
-	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/scripts/NotifyComponent.xml ${S}/source/NotifyComponent/dm_pack_datamodel.c )
+	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/${DATAMODEL_XML} ${S}/source/NotifyComponent/dm_pack_datamodel.c )
 }
 
 do_install_append () {

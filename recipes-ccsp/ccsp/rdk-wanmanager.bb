@@ -23,6 +23,8 @@ CFLAGS += " \
     -DFEATURE_802_1P_COS_MARKING \
 "
 
+DATAMODEL_XML = "config/RdkWanManager.xml"
+
 do_compile_prepend () {
-	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/config/RdkWanManager.xml ${S}/source/WanManager/dm_pack_datamodel.c )
+	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/${DATAMODEL_XML} ${S}/source/WanManager/dm_pack_datamodel.c )
 }

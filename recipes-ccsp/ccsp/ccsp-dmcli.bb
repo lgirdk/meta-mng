@@ -16,8 +16,10 @@ S = "${WORKDIR}/git"
 
 inherit autotools pkgconfig
 
+DATAMODEL_XML = "source/MsgBusTestServer/config/MsgBusTest.XML"
+
 do_compile_prepend () {
-	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/source/MsgBusTestServer/config/MsgBusTest.XML ${S}/source/MsgBusTestServer/dm_pack_datamodel.c )
+	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/${DATAMODEL_XML} ${S}/source/MsgBusTestServer/dm_pack_datamodel.c )
 }
 
 do_install_append () {

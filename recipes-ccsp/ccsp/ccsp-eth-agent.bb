@@ -36,8 +36,10 @@ LDFLAGS += " \
     -lprivilege \
 "
 
+DATAMODEL_XML = "config/TR181-EthAgent.xml"
+
 do_compile_prepend () {
-	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/config/TR181-EthAgent.xml ${S}/source/EthSsp/dm_pack_datamodel.c )
+	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/${DATAMODEL_XML} ${S}/source/EthSsp/dm_pack_datamodel.c )
 }
 
 do_install_append () {

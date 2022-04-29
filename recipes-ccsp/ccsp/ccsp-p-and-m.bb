@@ -46,12 +46,10 @@ CFLAGS += " \
     -D_DISABLE_WIFI_HEALTH_STATS_TO_NVRAM_ \
 "
 
+DATAMODEL_XML = "config-arm/TR181-USGv2.XML"
+
 do_compile_prepend () {
-	if ${@bb.utils.contains('DISTRO_FEATURES', 'bci', 'true', 'false', d)}; then
-		( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/config-arm/TR181-USGv2_bci.XML ${S}/source/PandMSsp/dm_pack_datamodel.c )
-	else
-		( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/config-arm/TR181-USGv2.XML ${S}/source/PandMSsp/dm_pack_datamodel.c )
-	fi
+	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/${DATAMODEL_XML} ${S}/source/PandMSsp/dm_pack_datamodel.c )
 }
 
 do_install_append () {

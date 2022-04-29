@@ -22,13 +22,10 @@ CFLAGS += " \
     ${@bb.utils.contains('DISTRO_FEATURES','rdkb_voice_manager_dmltr104_v2','-DFEATURE_RDKB_VOICE_DM_TR104_V2=ON','',d)} \
 "
 
+DATAMODEL_XML = "config/${@bb.utils.contains('DISTRO_FEATURES','rdkb_voice_manager_dmltr104_v2','RdkTelcoVoiceManager_v2.xml','RdkTelcoVoiceManager_v1.xml',d)}"
+
 do_compile_prepend () {
-	if [ "${@bb.utils.contains('DISTRO_FEATURES','rdkb_voice_manager_dmltr104_v2','true','false',d)}" = "true" ]
-	then
-		( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/config/RdkTelcoVoiceManager_v2.xml ${S}/source/TelcoVoiceManager/dm_pack_datamodel.c )
-	else
-		( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/config/RdkTelcoVoiceManager_v1.xml ${S}/source/TelcoVoiceManager/dm_pack_datamodel.c )
-	fi
+	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/${DATAMODEL_XML} ${S}/source/TelcoVoiceManager/dm_pack_datamodel.c )
 }
 
 do_install_append () {

@@ -36,8 +36,10 @@ LDFLAGS += " \
     -lpthread \
 "
 
+DATAMODEL_XML = "config-atom/TR181-WiFi-USGv2.XML"
+
 do_compile_prepend () {
-	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/config-atom/TR181-WiFi-USGv2.XML ${S}/source/WifiSsp/dm_pack_datamodel.c )
+	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/${DATAMODEL_XML} ${S}/source/WifiSsp/dm_pack_datamodel.c )
 }
 
 do_install_append () {
