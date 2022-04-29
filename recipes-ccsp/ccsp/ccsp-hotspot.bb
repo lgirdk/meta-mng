@@ -31,10 +31,6 @@ do_install_append () {
 	install -m 644 ${S}/source/hotspotfd/include/hotspotfd.h ${D}${includedir}/ccsp/
 	install -m 644 ${S}/source/HotspotApi/libHotspotApi.h ${D}${includedir}/ccsp/
 
-	# These were previously installed by a .bbappend in meta-cmf-broadband. Fixme: still required ?
-	# install -m 644 ${S}/source/hotspotfd/include/debug.h ${D}${includedir}/ccsp/
-	# install -m 644 ${S}/source/hotspotfd/include/dhcp.h ${D}${includedir}/ccsp/
-
 	install -d ${D}/usr/ccsp/hotspot
 	ln -sf ${bindir}/CcspHotspot ${D}/usr/ccsp/hotspot/CcspHotspot
 }
