@@ -25,6 +25,10 @@ CFLAGS += " \
     -I${STAGING_INCDIR}/trower-base64 \
 "
 
+CFLAGS += " \
+    -D_LG_OFW_ \
+"
+
 LDFLAGS += " \
     -lcimplog \
     -llibparodus \
