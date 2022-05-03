@@ -17,7 +17,3 @@ S = "${WORKDIR}/git"
 inherit autotools pkgconfig
 
 DATAMODEL_XML = "config/RdkFwUpgradeManager.xml"
-
-do_compile_prepend () {
-	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/${DATAMODEL_XML} ${S}/source/FwUpgradeManager/dm_pack_datamodel.c )
-}

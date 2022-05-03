@@ -18,10 +18,6 @@ inherit autotools pkgconfig
 
 DATAMODEL_XML = "config/RdkVlanManager.xml"
 
-do_compile_prepend () {
-	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/${DATAMODEL_XML} ${S}/source/RdkVlanManager/dm_pack_datamodel.c )
-}
-
 do_install_append () {
 	install -d ${D}${sysconfdir}/rdk/conf
 	install -m 644 ${S}/config/vlan_manager_conf.json ${D}${sysconfdir}/rdk/conf/

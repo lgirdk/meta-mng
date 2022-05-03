@@ -40,10 +40,6 @@ LDFLAGS += " \
 
 DATAMODEL_XML = "config/TR181-MoCA.XML"
 
-do_compile_prepend () {
-	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/${DATAMODEL_XML} ${S}/source/MoCASsp/dm_pack_datamodel.c )
-}
-
 do_install_append () {
 	install -d ${D}/usr/ccsp/moca
 	install -m 644 ${S}/config/CcspMoCA.cfg ${D}/usr/ccsp/moca/

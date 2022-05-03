@@ -23,10 +23,6 @@ LDFLAGS += "-ltelemetry_msgsender"
 
 DATAMODEL_XML = "source/hotspotfd/config/hotspot.XML"
 
-do_compile_prepend(){
-	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/${DATAMODEL_XML} ${S}/source/hotspotfd/dm_pack_datamodel.c )
-}
-
 do_install_append () {
 	install -d ${D}${includedir}/ccsp
 	install -m 644 ${S}/source/hotspotfd/include/dhcpsnooper.h ${D}${includedir}/ccsp/

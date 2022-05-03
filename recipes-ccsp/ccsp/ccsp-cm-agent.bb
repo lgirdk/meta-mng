@@ -21,10 +21,6 @@ EXTRA_OECONF += "${@bb.utils.contains('DISTRO_FEATURES','systemd','--enable-noti
 
 DATAMODEL_XML = "config-arm/TR181-CM.XML"
 
-do_compile_prepend () {
-	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/${DATAMODEL_XML} ${S}/source/CMAgentSsp/dm_pack_datamodel.c )
-}
-
 do_install_append () {
 	install -d ${D}/usr/ccsp/cm
 	ln -sf ${bindir}/CcspCMAgentSsp ${D}/usr/ccsp/cm/CcspCMAgentSsp

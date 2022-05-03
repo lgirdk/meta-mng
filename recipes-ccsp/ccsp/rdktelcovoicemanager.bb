@@ -24,10 +24,6 @@ CFLAGS += " \
 
 DATAMODEL_XML = "config/${@bb.utils.contains('DISTRO_FEATURES','rdkb_voice_manager_dmltr104_v2','RdkTelcoVoiceManager_v2.xml','RdkTelcoVoiceManager_v1.xml',d)}"
 
-do_compile_prepend () {
-	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/${DATAMODEL_XML} ${S}/source/TelcoVoiceManager/dm_pack_datamodel.c )
-}
-
 do_install_append () {
 	install -d ${D}/usr/rdk/voicemanager
 	install -m 644 ${S}/config/telcovoice_config_default.json ${D}/usr/rdk/voicemanager/telcovoice_config_default.json

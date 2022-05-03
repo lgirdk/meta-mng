@@ -21,10 +21,6 @@ EXTRA_OECONF += "${@bb.utils.contains('DISTRO_FEATURES','systemd','--enable-noti
 
 DATAMODEL_XML = "scripts/LogAgent.xml"
 
-do_compile_prepend () {
-	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/${DATAMODEL_XML} ${S}/source/LogComponent/dm_pack_datamodel.c )
-}
-
 do_install_append () {
 	install -d ${D}/usr/ccsp/logagent
 	install -m 644 ${S}/scripts/msg_daemon.cfg ${D}/usr/ccsp/logagent/msg_daemon.cfg
