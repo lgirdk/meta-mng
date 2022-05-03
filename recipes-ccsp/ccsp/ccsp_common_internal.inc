@@ -92,6 +92,31 @@ do_compile_prepend () {
 			fi
 		done
 
+		# Clear all flags first, mainly as a workaround for badly behaved SOC
+		# SDKs which force their own hardcoded defines into .XML files
+
+		sed -e '/<?define AUTOWAN_ENABLE=True?>/d' \
+		    -e '/<?define DDNS_BROADBANDFORUM=True?>/d' \
+		    -e '/<?define DSLITE_FEATURE_SUPPORT=True?>/d' \
+		    -e '/<?define FEATURE_FWUPGRADE_MANAGER=True?>/d' \
+		    -e '/<?define FEATURE_SUPPORT_INTERWORKING=True?>/d' \
+		    -e '/<?define FEATURE_RDKB_AUTO_PORT_SWITCH=True?>/d' \
+		    -e '/<?define FEATURE_RDKB_WAN_MANAGER=True?>/d' \
+		    -e '/<?define FEATURE_RDKB_WAN_UPSTREAM=True?>/d' \
+		    -i ${S}/${DATAMODEL_XML}
+
+		for f in ${@bb.utils.contains('DISTRO_FEATURES', 'autowan', 'AUTOWAN_ENABLE', '', d)} \
+			 ${@bb.utils.contains('DISTRO_FEATURES', 'ddns_broadband', 'DDNS_BROADBANDFORUM', '', d)} \
+			 ${@bb.utils.contains('DISTRO_FEATURES', 'dslite', 'DSLITE_FEATURE_SUPPORT', '', d)} \
+			 ${@bb.utils.contains('DISTRO_FEATURES', 'fwupgrade_manager', 'FEATURE_FWUPGRADE_MANAGER', '', d)} \
+			 ${@bb.utils.contains('DISTRO_FEATURES', 'interworking', 'FEATURE_SUPPORT_INTERWORKING', '', d)} \
+			 ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_auto_port_switch', 'FEATURE_RDKB_AUTO_PORT_SWITCH', '', d)} \
+			 ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_wan_manager', 'FEATURE_RDKB_WAN_MANAGER', '', d)} \
+			 ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_wan_upstream', 'FEATURE_RDKB_WAN_UPSTREAM', '', d)}
+		do
+			sed "2i <?define $f=True?>" -i ${S}/${DATAMODEL_XML}
+		done
+
 		/usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/${DATAMODEL_XML} $dmpath/dm_pack_datamodel.c
 	fi
 }
