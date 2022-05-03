@@ -21,10 +21,5 @@ CFLAGS += " \
     ${@bb.utils.contains('DISTRO_FEATURES','bci','','-DFEATURE_SUPPORT_ONBOARD_LOGGING',d)} \
 "
 
-LDFLAGS += " \
-    -ltelemetry_msgsender \
-    -lcimplog \
-    -pthread \
-"
 
 FILES_${PN} += "/usr/ccsp"
