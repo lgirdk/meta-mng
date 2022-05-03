@@ -36,10 +36,6 @@ LDFLAGS += " \
 
 DATAMODEL_XML = "config/LMLite.XML"
 
-do_compile_prepend () {
-	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/${DATAMODEL_XML} ${S}/source/Ssp/dm_pack_datamodel.c )
-}
-
 #force lib to be built first
 do_compile () {
 	oe_runmake liblmapi.la

@@ -48,10 +48,6 @@ CFLAGS += " \
 
 DATAMODEL_XML = "config-arm/TR181-USGv2.XML"
 
-do_compile_prepend () {
-	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/${DATAMODEL_XML} ${S}/source/PandMSsp/dm_pack_datamodel.c )
-}
-
 do_install_append () {
 
 	install -d ${D}${includedir}/ccsp

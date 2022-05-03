@@ -27,10 +27,6 @@ CFLAGS += " \
 
 DATAMODEL_XML = "config/TestAndDiagnostic_arm.XML"
 
-do_compile_prepend () {
-	( /usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/${DATAMODEL_XML} ${S}/source/TandDSsp/dm_pack_datamodel.c )
-}
-
 do_install_append () {
 	install -d ${D}${includedir}/ccsp
 	install -m 644 ${S}/source/dmltad/diag*.h ${D}${includedir}/ccsp/

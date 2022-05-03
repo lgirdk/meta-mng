@@ -68,6 +68,31 @@ CFLAGS += "${CCSP_CFLAGS_MACHINE}"
 include recipes-ccsp/ccsp/ccsp_soc.inc
 include recipes-ccsp/ccsp/ccsp_oem.inc
 
+
+# ----------------------------------------------------------------------------
+
+DATAMODEL_XML ?= ""
+
+do_compile_prepend () {
+
+	if [ -n "${DATAMODEL_XML}" ] ; then
+		x=$(find ${S} -name Makefile.am | xargs grep dm_pack_datamodel.c | head -n1)
+		if [ -z "$x" ] ; then
+			echo "DATAMODEL_XML defined but dm_pack_datamodel.c not found in any Makefile.am"
+			exit 1
+		fi
+		dmpath=""
+		for y in $x ; do
+			if [ "$(basename $y)" = "dm_pack_datamodel.c" ] ; then
+				dmpath=${x%%/Makefile.am:*}/$(dirname $y)
+				break
+			fi
+		done
+
+		/usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/${DATAMODEL_XML} $dmpath/dm_pack_datamodel.c
+	fi
+}
+
 # ----------------------------------------------------------------------------
 
 FILES_${PN} += "${libdir}/*.so"
