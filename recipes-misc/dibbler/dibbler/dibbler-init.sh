@@ -41,6 +41,10 @@ touch /var/lib/dibbler/client.sh-log
 #client-notify can be read-only -> "script /etc/dibbler/client-notify.sh" in client.conf
 #cp /etc/dibbler/client-notify.sh /var/lib/dibbler/
 
+if [ ! -d /var/log/dibbler ]; then
+    mkdir -p /var/log/dibbler
+fi
+
 echo > /tmp/dibbler/radvd.conf
 #QMxxx root only to avoid radvd insecure file permission
 chmod 600 /tmp/dibbler/radvd.conf
