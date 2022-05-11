@@ -388,6 +388,19 @@ else
     echo "DHCP DS-Lite Option 64 not received" >> $LOGFILE
 fi
 
+# Option 56 suboption 1 is NTP server IPv6 address ( NTP_SUBOPTION_SRV_ADDR )
+# just parse the first suboption. We don't support 2nd(NTP_SUBOPTION_MC_ADDR) and
+# 3rd(NTP_SUBOPTION_SRV_FQDN) for now.
+#                                       Suboption 1 format
+#             2 bytes                           2 bytes                     16 bytes
+#  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+-+-+-+-+-+-+-+-+-+-+-+-+
+#  |    NTP_SUBOPTION_SRV_ADDR      |        suboption-len = 16     | NTP_SUBOPTION_SRV_ADDR  |
+#  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+-+-+-+-+-+-+-+-+-+-+-+-+
+if [ "$SRV_OPTION56" != "" ]; then
+    ntpv6_server=$(echo "$SRV_OPTION56" | cut -d : -f5- | sed 's/://g;s/..../&:/g;s/:$//')
+    SYSEVENT_SET_CMD+=(dhcpv6_ntp_server=$ntpv6_server)
+fi
+
 if [ "$PREFIX1" != "" ]; then
     echo "Prefix ${PREFIX1} (operation $1) to client $REMOTE_ADDR on inteface $IFACE/$IFINDEX" >> $LOGFILE
 
