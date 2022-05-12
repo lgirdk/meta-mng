@@ -86,6 +86,7 @@ do_install() {
 
 	echo "WAN_TYPE=DOCSIS" >> ${D}${sysconfdir}/device.properties
 
+	install -m 644 ${S}/logFiles.properties ${D}${sysconfdir}/
 	install -m 644 ${S}/etc/dcm.properties ${D}${sysconfdir}/
 	install -m 644 ${S}/etc/include.properties ${D}${sysconfdir}/
 	install -m 644 ${S}/etc/telemetry2_0.properties ${D}${sysconfdir}/
