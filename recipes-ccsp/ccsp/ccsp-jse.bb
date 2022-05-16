@@ -29,11 +29,6 @@ CFLAGS += " \
     -I${STAGING_INCDIR}/duktape \
     -I${STAGING_INCDIR}/libxml2 \
 "
-
-LDFLAGS += " \
-    -ldbus-1 \
-"
-
 CFLAGS += "-ffunction-sections -fdata-sections"
 LDFLAGS += "-Wl,--gc-sections"
 
