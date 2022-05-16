@@ -28,14 +28,6 @@ CFLAGS += " \
     -I${STAGING_INCDIR}/utctx \
 "
 
-LDFLAGS += " \
-    -lccsp_common \
-    -lutctx \
-    -lutapi \
-    -lcimplog \
-    -lprivilege \
-"
-
 DATAMODEL_XML = "config/TR181-EthAgent.xml"
 
 do_install_append () {
