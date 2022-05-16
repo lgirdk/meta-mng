@@ -19,11 +19,6 @@ inherit autotools pkgconfig
 
 EXTRA_OECONF += "${@bb.utils.contains('DISTRO_FEATURES','systemd','--enable-notify','',d)}"
 
-LDFLAGS += " \
-    -lcjson \
-    -lpthread \
-"
-
 # ----------------------------------------------------------------------------
 
 # Setting these (e.g. from a platform specific ccsp-psm.bbappend) will cause
