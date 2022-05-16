@@ -20,10 +20,6 @@ CFLAGS += " \
     -I${STAGING_INCDIR}/syscfg \
 "
 
-LDFLAGS += " \
-    -ltelemetry_msgsender \
-"
-
 do_install_append () {
 	install -d ${D}/usr/ccsp/tr069pa
 	install -m 644 ${S}/config/ccsp_tr069_pa_certificate_cfg_arm.xml  ${D}/usr/ccsp/tr069pa/ccsp_tr069_pa_certificate_cfg.xml
