@@ -29,13 +29,6 @@ CFLAGS += " \
     -D_LG_OFW_ \
 "
 
-LDFLAGS += " \
-    -lcimplog \
-    -llibparodus \
-    -ltelemetry_msgsender \
-    -lpthread \
-"
-
 DATAMODEL_XML = "config-atom/TR181-WiFi-USGv2.XML"
 
 do_install_append () {
