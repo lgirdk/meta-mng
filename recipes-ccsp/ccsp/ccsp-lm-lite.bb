@@ -27,13 +27,6 @@ CFLAGS += " \
 CFLAGS += " \
     -DDEVICE_GATEWAY_ASSOCIATION_FEATURE \
 "
-
-LDFLAGS += " \
-    -ltelemetry_msgsender \
-    -lcurl \
-    -lxml2 \
-"
-
 DATAMODEL_XML = "config/LMLite.XML"
 
 #force lib to be built first
