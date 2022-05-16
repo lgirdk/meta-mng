@@ -19,8 +19,6 @@ inherit autotools pkgconfig siteinfo
 # Workaround for dhcpsnooper.c which relies on #ifdef __686__ to detect little endian targets
 CFLAGS += "${@oe.utils.conditional('SITEINFO_ENDIANNESS', 'le', '-D__686__', '', d)}"
 
-LDFLAGS += "-ltelemetry_msgsender"
-
 DATAMODEL_XML = "source/hotspotfd/config/hotspot.XML"
 
 do_install_append () {
