@@ -27,14 +27,6 @@ CFLAGS += " \
     -I${STAGING_INCDIR}/libxml2 \
 "
 
-LDFLAGS += " \
-    -ltelemetry_msgsender \
-    -lprivilege \
-    -lutapi \
-    -lutctx \
-    -lsyscfg \
-"
-
 do_install_append () {
 	install -d ${D}/usr/ccsp
 	install -m 644 ${S}/source/cr-ethwan-deviceprofile.xml ${D}/usr/ccsp/
