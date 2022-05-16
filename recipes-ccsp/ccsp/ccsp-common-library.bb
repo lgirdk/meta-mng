@@ -21,11 +21,6 @@ CFLAGS += " \
     -D_DSLH_STUN_ \
 "
 
-LDFLAGS += " \
-    -lrbus-core \
-    -lrtMessage \
-"
-
 do_compile_prepend () {
 
 	# Note that convert_alias_xml writes its output to files (with
