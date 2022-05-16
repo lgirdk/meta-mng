@@ -21,10 +21,6 @@ CFLAGS += " \
     ${@bb.utils.contains('DISTRO_FEATURES','snmppa','-DSNMP_PA_ENABLE','',d)} \
 "
 
-LDFLAGS += " \
-    -lsyscfg \
-"
-
 do_install_append () {
 	if ${@bb.utils.contains('DISTRO_FEATURES','snmppa','true','false',d)}
 	then
