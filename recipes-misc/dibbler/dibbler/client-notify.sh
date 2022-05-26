@@ -17,10 +17,15 @@ SYSEVENT_SET_CMD=()
 mta_dhcp_option_received=0
 echo "-----------" >> $LOGFILE
 
+PREV_PREFIX=`sysevent get wan6_prefix`
+PREV_PREFIXLEN=`sysevent get wan6_prefixlen`
+
 # Handle prefix expire event
 if [ "$PREFIX1" != "" ]; then
     if [ "$1" = "expire" ]; then
-        sysevent batchset "dhcpv6_server-status=down" "zebra-restart="
+        if [ x"$PREFIX1" = x"$PREV_PREFIX" ]; then
+            sysevent batchset "dhcpv6_server-status=down" "zebra-restart="
+        fi
         # Exiting here in case of 'expire' event, as CCSP doesn't handle delete event for prefix/address.
         exit 0
     else
@@ -404,8 +409,6 @@ fi
 if [ "$PREFIX1" != "" ]; then
     echo "Prefix ${PREFIX1} (operation $1) to client $REMOTE_ADDR on inteface $IFACE/$IFINDEX" >> $LOGFILE
 
-    PREV_PREFIX=`sysevent get wan6_prefix`
-    PREV_PREFIXLEN=`sysevent get wan6_prefixlen`
     if [ "$PREV_PREFIX" != "$PREFIX1" ]; then
     	ip -6 addr del ${PREV_PREFIX}1/${PREV_PREFIXLEN} dev brlan0
     fi
