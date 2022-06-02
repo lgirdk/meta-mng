@@ -1,7 +1,7 @@
-From 174960dee476232094af2a29b2cbe3f3744d66ec Mon Sep 17 00:00:00 2001
+From b347a4561d1fb4c23dbc8ab528f4af36d5d71bdc Mon Sep 17 00:00:00 2001
 From: Tarun Saha <tsaha@libertyglobal.com>
 Date: Wed, 11 Aug 2021 08:53:10 -0700
-Subject: [PATCH 1/1] filter for SSDP address
+Subject: [PATCH] filter for SSDP address
 
 multicast traffic for SSDP address are not required to be forwarded to
 upstream interface
@@ -38,5 +38,5 @@ index b87043c..4081278 100644
  
          //route calculation
 -- 
-2.17.1
+2.24.0
 

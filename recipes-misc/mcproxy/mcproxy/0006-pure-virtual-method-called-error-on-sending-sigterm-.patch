@@ -1,4 +1,4 @@
-From 48298c8180764d1641038cf362a6223ac051e32e Mon Sep 17 00:00:00 2001
+From 31b5af1b9e9994e80cf740c2d0d9f9acd479a02b Mon Sep 17 00:00:00 2001
 From: mkamat <mkamate@libertyglobal.com>
 Date: Fri, 4 Feb 2022 11:38:02 -0800
 Subject: [PATCH] pure virtual method called error on sending sigterm signal to
@@ -102,5 +102,5 @@ index 20d6344..07cc009 100644
          m_data_lock.unlock();
      }
 -- 
-2.17.1
+2.24.0
 
