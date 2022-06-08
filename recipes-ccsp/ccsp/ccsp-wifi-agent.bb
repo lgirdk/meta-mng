@@ -25,10 +25,6 @@ CFLAGS += " \
     -I${STAGING_INCDIR}/trower-base64 \
 "
 
-CFLAGS += " \
-    -D_LG_OFW_ \
-"
-
 DATAMODEL_XML = "config-atom/TR181-WiFi-USGv2.XML"
 
 do_install_append () {

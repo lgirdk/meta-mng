@@ -31,6 +31,7 @@ CXXFLAGS += "${@bb.utils.contains('DISTRO_FEATURES', 'breakpad', '-DINCLUDE_BREA
 # machine specific flags should be defined via CCSP_CFLAGS_MACHINE.
 
 CFLAGS += " \
+    -D_LG_OFW_ \
     -D_ANSC_AES_USED_ \
     -D_ANSC_IPV6_COMPATIBLE_ \
     -D_ANSC_LINUX \
