@@ -39,6 +39,7 @@ EXTRA_OECONF += "${@bb.utils.contains('DISTRO_FEATURES', 'multilan', 'MULTILAN_F
 
 CFLAGS += " \
     -DCONFIG_BUILD_TRIGGER \
+    -DXT_TIME_MODULE_SUPPORT \
     ${@bb.utils.contains('DISTRO_FEATURES','bci','-DCISCO_CONFIG_TRUE_STATIC_IP -DCISCO_CONFIG_DHCPV6_PREFIX_DELEGATION','',d)} \
 "
 
