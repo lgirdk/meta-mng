@@ -52,6 +52,7 @@ CFLAGS += " \
     ${@bb.utils.contains('DISTRO_FEATURES', 'ddns_broadband', '-DDDNS_BROADBANDFORUM -DDDNS_SERVICE_BIN', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'dslite', '-DDSLITE_FEATURE_SUPPORT', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'fwupgrade_manager', '-DFEATURE_FWUPGRADE_MANAGER', '', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'gpon', '-DFEATURE_GPON', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'interworking', '-DFEATURE_SUPPORT_INTERWORKING', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'meshwifi', '-DFEATURE_SUPPORT_MESH -DENABLE_FEATURE_MESHWIFI', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'moca', '-DCONFIG_SYSTEM_MOCA -DMOCA_HOME_ISOLATION', '', d)} \
