@@ -4,6 +4,8 @@ LIC_FILES_CHKSUM = "file://skta.c;endline=15;md5=3624884a41910c90c0cc8e345c94406
 
 SRC_URI = "file://skta.c;subdir=${BP}"
 
+CFLAGS += "${@bb.utils.contains('DISTRO_FEATURES', 'gpon', '-DFEATURE_GPON', '', d)}"
+
 do_compile() {
 	${CC} ${CFLAGS} -ffunction-sections -fdata-sections -c skta.c -o skta.o
 	${CC} ${CFLAGS} ${LDFLAGS} -Wl,--gc-sections skta.o -o skta

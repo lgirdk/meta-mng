@@ -26,7 +26,11 @@
 #include <ctype.h>
 
 #ifndef SYSDESC
+#if defined (FEATURE_GPON)
+#define SYSDESC "Fiber Gateway Device <<HW_REV: 1.2; VENDOR: Liberty Global; SW_REV: 3.4; MODEL: ABC3000>>"
+#else
 #define SYSDESC "DOCSIS Cable Modem Gateway Device <<HW_REV: 1.2; VENDOR: Liberty Global; SW_REV: 3.4; MODEL: ABC3000>>"
+#endif
 #endif
 
 #ifndef PROPERTY
@@ -163,6 +167,39 @@ static int skta_get_mac_address_via_snmp (char *macstring)
 
 #endif
 
+#if defined (FEATURE_GPON)
+
+static int skta_get_serial_number_via_dmcli (char *buf, size_t len)
+{
+    FILE *fp;
+    char *cmd = "dmcli eRT retv Device.DeviceInfo.SerialNumber";
+    int result = -1;
+
+    fp = popen (cmd, "r");
+
+    if (fp == NULL)
+        return -1;
+
+    if (fgets (buf, len, fp) != NULL) {
+        len = strlen(buf);
+        if (len > 0) {
+            if (buf[len - 1] == '\n') {
+                buf[len - 1] = 0;
+                len--;
+            }
+            if (len > 0) {
+                result = 0;
+            }
+        }
+    }
+
+    pclose (fp);
+
+    return result;
+}
+
+#endif
+
 static int skta_sync_counters (void)
 {
 #if defined(_LG_MV2_PLUS_)
@@ -267,6 +304,9 @@ int main (int argc, char* argv[])
     char macstring[18];
     char sysdesc[200];
     char property[64];
+#if defined (FEATURE_GPON)
+    char serialnumber[64];
+#endif
     unsigned long long counters[4];     /* tx_packets, rx_packets, tx_bytes and rx_bytes */
     int i;
 
@@ -315,6 +355,14 @@ int main (int argc, char* argv[])
     }
 #endif
 
+
+#if defined (FEATURE_GPON)
+    if (skta_get_serial_number_via_dmcli (serialnumber, sizeof(serialnumber)) != 0) {
+        fprintf (stderr, "Error reading Serial Number\n");
+        return 1;
+    }
+#endif
+
     skta_sync_counters();
 
     if (skta_get_counters (counters, interface) != 0) {
@@ -349,7 +397,11 @@ int main (int argc, char* argv[])
             "Docsis Byte Down Count: %llu\n"
             "SysDesc: %s\n"
             "Property: %s\n",
+#if defined (FEATURE_GPON)
+            serialnumber,
+#else
             macstring,
+#endif
             counters[0], counters[1], counters[2], counters[3],
             sysdesc,
             property);
