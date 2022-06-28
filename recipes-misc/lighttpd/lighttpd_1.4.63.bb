@@ -16,6 +16,7 @@ SRC_URI = "http://download.lighttpd.net/lighttpd/releases-1.4.x/lighttpd-${PV}.t
         file://index.html.lighttpd \
         file://lighttpd.conf \
         file://lighttpd \
+        file://0001-mod_extforward-fix-out-of-bounds-OOB-write-of-4-byte.patch \
         file://0001-use-pkg-config-to-probe-libpcre-and-libpcre2.patch \
         file://0001-fix-build-when-openssl-is-configured-without-md4-sup.patch \
         "
