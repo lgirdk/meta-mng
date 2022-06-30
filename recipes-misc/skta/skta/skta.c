@@ -390,6 +390,21 @@ int main (int argc, char* argv[])
             macstring[i] -= ('a' - 'A');
     }
 
+#if defined (FEATURE_GPON)
+    printf ("Serial Number: %s\n"
+            "WAN MAC Address: %s\n"
+            "WAN Packet Up Count: %llu\n"
+            "WAN Packet Down Count: %llu\n"
+            "WAN Byte Up Count: %llu\n"
+            "WAN Byte Down Count: %llu\n"
+            "SysDesc: %s\n"
+            "Property: %s\n",
+            serialnumber,
+            macstring,
+            counters[0], counters[1], counters[2], counters[3],
+            sysdesc,
+            property);
+#else
     printf ("CM MAC Address: %s\n"
             "Docsis Packet Up Count: %llu\n"
             "Docsis Packet Down Count: %llu\n"
@@ -397,14 +412,11 @@ int main (int argc, char* argv[])
             "Docsis Byte Down Count: %llu\n"
             "SysDesc: %s\n"
             "Property: %s\n",
-#if defined (FEATURE_GPON)
-            serialnumber,
-#else
             macstring,
-#endif
             counters[0], counters[1], counters[2], counters[3],
             sysdesc,
             property);
+#endif
 
     return 0;
 }
