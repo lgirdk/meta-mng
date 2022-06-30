@@ -169,6 +169,35 @@ static int skta_get_mac_address_via_snmp (char *macstring)
 
 #if defined (FEATURE_GPON)
 
+static int skta_get_model_name_via_dmcli (char *buf, size_t len)
+{
+    FILE *fp;
+    char *cmd = "dmcli eRT retv Device.DeviceInfo.ModelName";
+    int result = -1;
+
+    fp = popen (cmd, "r");
+
+    if (fp == NULL)
+        return -1;
+
+    if (fgets (buf, len, fp) != NULL) {
+        len = strlen(buf);
+        if (len > 0) {
+            if (buf[len - 1] == '\n') {
+                buf[len - 1] = 0;
+                len--;
+            }
+            if (len > 0) {
+                result = 0;
+            }
+        }
+    }
+
+    pclose (fp);
+
+    return result;
+}
+
 static int skta_get_serial_number_via_dmcli (char *buf, size_t len)
 {
     FILE *fp;
@@ -305,6 +334,7 @@ int main (int argc, char* argv[])
     char sysdesc[200];
     char property[64];
 #if defined (FEATURE_GPON)
+    char modelname[64];
     char serialnumber[64];
 #endif
     unsigned long long counters[4];     /* tx_packets, rx_packets, tx_bytes and rx_bytes */
@@ -357,6 +387,11 @@ int main (int argc, char* argv[])
 
 
 #if defined (FEATURE_GPON)
+    if (skta_get_model_name_via_dmcli (modelname, sizeof(modelname)) != 0) {
+        fprintf (stderr, "Error reading Model Name\n");
+        return 1;
+    }
+
     if (skta_get_serial_number_via_dmcli (serialnumber, sizeof(serialnumber)) != 0) {
         fprintf (stderr, "Error reading Serial Number\n");
         return 1;
@@ -391,7 +426,8 @@ int main (int argc, char* argv[])
     }
 
 #if defined (FEATURE_GPON)
-    printf ("Serial Number: %s\n"
+    printf ("Model Name: %s\n"
+            "Serial Number: %s\n"
             "WAN MAC Address: %s\n"
             "WAN Packet Up Count: %llu\n"
             "WAN Packet Down Count: %llu\n"
@@ -399,6 +435,7 @@ int main (int argc, char* argv[])
             "WAN Byte Down Count: %llu\n"
             "SysDesc: %s\n"
             "Property: %s\n",
+            modelname,
             serialnumber,
             macstring,
             counters[0], counters[1], counters[2], counters[3],
