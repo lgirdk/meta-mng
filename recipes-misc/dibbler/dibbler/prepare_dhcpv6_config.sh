@@ -88,11 +88,21 @@ if [ "$EROUTER_DHCP_OPTION_EMTA_ENABLED" = "true" ] && [ "$ethWanMode" = "true" 
     echo -n "0027000107" >> $OPTION_FILE
 fi
 
+log_level=`syscfg get dibbler_log_level`
+
+if [ -z "$log_level" ] || [ $log_level -lt 1 ]; then
+    log_level=1
+elif [ $log_level -gt 8 ]; then
+    log_level=4
+fi
+
 if [ -f "$DHCP_CONFIG_FILE_TMP" ]; then
     rm -rf $DHCP_CONFIG_FILE_TMP
 fi
 
-sed '$d' $DHCP_CONFIG_FILE_RFS > $DHCP_CONFIG_FILE_TMP
+echo "log-level $log_level" > $DHCP_CONFIG_FILE_TMP
+
+sed '$d' $DHCP_CONFIG_FILE_RFS >> $DHCP_CONFIG_FILE_TMP
 cat $OPTION_FILE >> $DHCP_CONFIG_FILE_TMP
 echo >> $DHCP_CONFIG_FILE_TMP
 echo "}" >> $DHCP_CONFIG_FILE_TMP
