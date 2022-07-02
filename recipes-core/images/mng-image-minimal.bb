@@ -23,7 +23,7 @@ inherit image
 
 # ----------------------------------------------------------------------------
 
-PROJECT_BRANCH ?= "${MNG_VERSIONS}"
+PROJECT_BRANCH ?= "ofw-2206.1"
 
 python create_version_file() {
     version_file = os.path.join(d.getVar("IMAGE_ROOTFS", True), 'version.txt')
