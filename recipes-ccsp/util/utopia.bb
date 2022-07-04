@@ -36,6 +36,7 @@ LEGACY_PLATFORM ?= "0"
 
 EXTRA_OECONF += "${CCSP_CONFIG_PLATFORM}"
 EXTRA_OECONF += "${@bb.utils.contains('DISTRO_FEATURES', 'multilan', 'MULTILAN_FEATURE=yes', '', d)}"
+EXTRA_OECONF += "--enable-ddns_binary_client_support"
 
 CFLAGS += " \
     -DCONFIG_BUILD_TRIGGER \
