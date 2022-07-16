@@ -6,10 +6,10 @@ inherit packagegroup
 PACKAGES = "packagegroup-ssam-build-deps packagegroup-ssam"
 
 # Build dependencies
+# Note: libnl is not included here as SSAM provide their own version.
 
 RDEPENDS_packagegroup-ssam-build-deps = " \
     libcrypto \
-    libnl \
     libssl \
     ipset \
 "
