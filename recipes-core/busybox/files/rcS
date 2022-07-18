@@ -12,6 +12,23 @@ then
 	mount -t mqueue none /dev/mqueue
 fi
 
+# ----------------------------------------------------------------------------
+
+read TIMESTAMP < /etc/timestamp
+
+[ -z "$TIMESTAMP" ] && TIMESTAMP="20220705100000"
+
+# format the timestamp as date expects it (2m2d2H2M4Y.2S)
+TS_YR=${TIMESTAMP%??????????}
+TS_SEC=${TIMESTAMP#????????????}
+TS_FIRST12=${TIMESTAMP%??}
+TS_MIDDLE8=${TS_FIRST12#????}
+date -u ${TS_MIDDLE8}${TS_YR}.${TS_SEC}
+
+unset TIMESTAMP TS_YR TS_SEC TS_FIRST12 TS_MIDDLE8
+
+# ----------------------------------------------------------------------------
+
 # Start all init scripts in /etc/rcS.d and /etc/rc5.d
 # executing them in numerical order.
 
