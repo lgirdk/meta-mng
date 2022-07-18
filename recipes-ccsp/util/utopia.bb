@@ -252,6 +252,9 @@ FILES_${PN} += "/rdklogs"
 
 RDEPENDS_${PN} += "mcproxy"
 
+# source/scripts/init/service.d/service_ntpd.sh contains calls to ntpq (which is not provided by busybox)
+RDEPENDS_${PN} += "ntp ntpq"
+
 RDEPENDS_${PN} += "customer-configs"
 
 # source/firewall/nfq_handler.c contains calls to ipset
