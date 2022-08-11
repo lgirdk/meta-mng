@@ -35,6 +35,16 @@ updateOptInfo()
   return
 }
 
+updateDUIDInfo()
+{
+  EnpNum=3561
+  ProdClass=`dmcli eRT retv Device.DeviceInfo.ProductClass`
+  MfrOUI=`dmcli eRT retv Device.DeviceInfo.ManufacturerOUI`
+  SrNum=`dmcli eRT retv Device.DeviceInfo.X_LGI-COM_SerialNumber`
+  Idntfr=`echo $MfrOUI-$ProdClass-$SrNum | hexdump -e '13/1 "%02x"'`
+  echo "duid-type duid-en $EnpNum 0x$Idntfr"
+}
+
 if [ "$DSLite_Enabled" = "1" ];then
 	echo  "        option aftr" >> $OPTION_FILE
 fi
@@ -102,6 +112,7 @@ fi
 
 echo "log-level $log_level" > $DHCP_CONFIG_FILE_TMP
 
+updateDUIDInfo >> $DHCP_CONFIG_FILE_TMP
 sed '$d' $DHCP_CONFIG_FILE_RFS >> $DHCP_CONFIG_FILE_TMP
 cat $OPTION_FILE >> $DHCP_CONFIG_FILE_TMP
 echo >> $DHCP_CONFIG_FILE_TMP
