@@ -1,4 +1,4 @@
-From 28b245b885efe99f0142cac5dc4ab938dd80af6a Mon Sep 17 00:00:00 2001
+From 1324c5855b2367adb63926d3977e394481b7e01c Mon Sep 17 00:00:00 2001
 From: Cibil <cpankiras.contractor@libertyglobal.com>
 Date: Fri, 29 Oct 2021 18:20:41 +0200
 Subject: [PATCH] DAD mechanism behavior before replying with DHCP ACK (
@@ -323,7 +323,7 @@ index 2503ce4..713fcf2 100644
 +}
 \ No newline at end of file
 diff --git a/src/dnsmasq.c b/src/dnsmasq.c
-index dbb9d59..8c1adb1 100644
+index 9dbeb7e..9d1ed20 100644
 --- a/src/dnsmasq.c
 +++ b/src/dnsmasq.c
 @@ -53,7 +53,8 @@ int main (int argc, char **argv)
@@ -337,10 +337,10 @@ index dbb9d59..8c1adb1 100644
    char *bound_device = NULL;
    int did_bind = 0;
 diff --git a/src/dnsmasq.h b/src/dnsmasq.h
-index e8271b2..3a6bcc0 100644
+index 431c6ae..c2b7c50 100644
 --- a/src/dnsmasq.h
 +++ b/src/dnsmasq.h
-@@ -1673,6 +1673,7 @@ int check_source(struct dns_header *header, size_t plen, unsigned char *pseudohe
+@@ -1686,6 +1686,7 @@ int check_source(struct dns_header *header, size_t plen, unsigned char *pseudohe
  /* arp.c */
  int find_mac(union mysockaddr *addr, unsigned char *mac, int lazy, time_t now);
  int do_arp_script_run(void);

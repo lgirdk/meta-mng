@@ -1,4 +1,4 @@
-From 7bf7f7dcf70f0c3100e8d7ef81c7de34a7103725 Mon Sep 17 00:00:00 2001
+From bd06c980d30ca98572694d3946bb016fa1bcbf4a Mon Sep 17 00:00:00 2001
 From: Cibil <cpankiras.contractor@libertyglobal.com>
 Date: Fri, 26 Nov 2021 17:01:12 +0100
 Subject: [PATCH] DAD mechanism before replying with DHCP Offer ( OFW-1147 )
@@ -70,10 +70,10 @@ index 97324f2..87dd3da 100644
  			    return 1;
  			  }
 diff --git a/src/dnsmasq.h b/src/dnsmasq.h
-index 3a6bcc0..dcba422 100644
+index c2b7c50..5bcfd51 100644
 --- a/src/dnsmasq.h
 +++ b/src/dnsmasq.h
-@@ -1172,6 +1172,11 @@ extern struct daemon {
+@@ -1186,6 +1186,11 @@ extern struct daemon {
  #endif
  } *daemon;
  
@@ -85,7 +85,7 @@ index 3a6bcc0..dcba422 100644
  /* cache.c */
  void cache_init(void);
  void next_uid(struct crec *crecp);
-@@ -1404,7 +1409,7 @@ struct ping_result *do_icmp_ping(time_t now, struct in_addr addr,
+@@ -1417,7 +1422,7 @@ struct ping_result *do_icmp_ping(time_t now, struct in_addr addr,
  				 unsigned int hash, int loopback);
  int address_allocate(struct dhcp_context *context,
  		     struct in_addr *addrp, unsigned char *hwaddr, int hw_len,

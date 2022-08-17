@@ -1,4 +1,4 @@
-From 8bec8c3d84f03bbc328f0772e196bcdc39e8c9d5 Mon Sep 17 00:00:00 2001
+From 71a00306c7d9f4a339a6e9edaa1436f013956ab2 Mon Sep 17 00:00:00 2001
 From: Cibil <cpankiras.contractor@libertyglobal.com>
 Date: Mon, 28 Mar 2022 13:58:13 +0200
 Subject: [PATCH] dnsmasq fails to send dhcp offer when DAD is enabled (

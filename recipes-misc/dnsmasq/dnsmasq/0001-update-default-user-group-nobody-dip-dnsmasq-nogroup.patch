@@ -1,4 +1,4 @@
-From 56b74e452979f26e79a531a60b1d8055c6ef7bad Mon Sep 17 00:00:00 2001
+From 0f3c7f4e79fac74f4f933536bd19ee7bf7e2a8f4 Mon Sep 17 00:00:00 2001
 From: Andre McCurdy <armccurdy@gmail.com>
 Date: Mon, 16 Nov 2020 15:52:22 -0800
 Subject: [PATCH] update default user/group ( nobody/dip -> dnsmasq/nogroup )
@@ -18,10 +18,10 @@ Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
  2 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/src/config.h b/src/config.h
-index 9f69ce3..f9e3269 100644
+index 8c41943..fde2068 100644
 --- a/src/config.h
 +++ b/src/config.h
-@@ -45,8 +45,8 @@
+@@ -44,8 +44,8 @@
  #define ETHERSFILE "/etc/ethers"
  #define DEFLEASE 3600 /* default DHCPv4 lease time, one hour */
  #define DEFLEASE6 (3600*24) /* default lease time for DHCPv6. One day. */
@@ -33,10 +33,10 @@ index 9f69ce3..f9e3269 100644
  #define LOG_MAX 5 /* log-queue length */
  #define RANDFILE "/dev/urandom"
 diff --git a/src/dnsmasq.c b/src/dnsmasq.c
-index a2e1796..dbb9d59 100644
+index 256d2bc..9dbeb7e 100644
 --- a/src/dnsmasq.c
 +++ b/src/dnsmasq.c
-@@ -463,7 +463,7 @@ int main (int argc, char **argv)
+@@ -478,7 +478,7 @@ int main (int argc, char **argv)
    if (baduser)
      die(_("unknown user or group: %s"), baduser, EC_BADCONF);
  

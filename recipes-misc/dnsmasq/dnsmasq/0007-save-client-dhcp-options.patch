@@ -1,4 +1,4 @@
-From 62e58744065892947a12146a2da44f2904c23733 Mon Sep 17 00:00:00 2001
+From 7b879af84fcce6382eb4db8bb927a161049a1ed2 Mon Sep 17 00:00:00 2001
 From: Tarun Saha <tsaha@libertyglobal.com>
 Date: Tue, 7 Dec 2021 06:28:13 -0800
 Subject: [PATCH] save client dhcp options
@@ -12,10 +12,10 @@ Subject: [PATCH] save client dhcp options
  5 files changed, 145 insertions(+)
 
 diff --git a/src/config.h b/src/config.h
-index f9e3269..f1a2ba3 100644
+index fde2068..71815ce 100644
 --- a/src/config.h
 +++ b/src/config.h
-@@ -232,6 +232,10 @@ RESOLVFILE
+@@ -231,6 +231,10 @@ RESOLVFILE
  #    endif
  #endif
  
@@ -27,10 +27,10 @@ index f9e3269..f1a2ba3 100644
  
  HAVE_LINUX_NETWORK
 diff --git a/src/dnsmasq.c b/src/dnsmasq.c
-index 8c1adb1..81914e8 100644
+index 9d1ed20..8d507dd 100644
 --- a/src/dnsmasq.c
 +++ b/src/dnsmasq.c
-@@ -1549,6 +1549,9 @@ static void async_event(int pipe, time_t now)
+@@ -1564,6 +1564,9 @@ static void async_event(int pipe, time_t now)
  	if (daemon->lease_stream)
  	  fclose(daemon->lease_stream);
  
@@ -41,10 +41,10 @@ index 8c1adb1..81914e8 100644
  	/* update timestamp file on TERM if time is considered valid */
  	if (daemon->back_to_the_future)
 diff --git a/src/dnsmasq.h b/src/dnsmasq.h
-index dcba422..13a4d60 100644
+index 5bcfd51..c379966 100644
 --- a/src/dnsmasq.h
 +++ b/src/dnsmasq.h
-@@ -736,6 +736,11 @@ struct dhcp_lease {
+@@ -748,6 +748,11 @@ struct dhcp_lease {
    int last_interface;
    int new_interface;     /* save possible originated interface */
    int new_prefixlen;     /* and its prefix length */
@@ -56,7 +56,7 @@ index dcba422..13a4d60 100644
  #ifdef HAVE_DHCP6
    struct in6_addr addr6;
    unsigned int iaid;
-@@ -1139,6 +1144,7 @@ extern struct daemon {
+@@ -1153,6 +1158,7 @@ extern struct daemon {
    char *dhcp_buff, *dhcp_buff2, *dhcp_buff3;
    struct ping_result *ping_results;
    FILE *lease_stream;
@@ -64,7 +64,7 @@ index dcba422..13a4d60 100644
    struct dhcp_bridge *bridges;
    struct shared_network *shared_networks;
  #ifdef HAVE_DHCP6
-@@ -1441,6 +1447,10 @@ void lease_set_hwaddr(struct dhcp_lease *lease, const unsigned char *hwaddr,
+@@ -1454,6 +1460,10 @@ void lease_set_hwaddr(struct dhcp_lease *lease, const unsigned char *hwaddr,
  void lease_set_hostname(struct dhcp_lease *lease, const char *name, int auth, char *domain, char *config_domain);
  void lease_set_expires(struct dhcp_lease *lease, unsigned int len, time_t now);
  void lease_set_interface(struct dhcp_lease *lease, int interface, time_t now);
@@ -76,7 +76,7 @@ index dcba422..13a4d60 100644
  					unsigned char *clid, int clid_len);
  struct dhcp_lease *lease_find_by_addr(struct in_addr addr);
 diff --git a/src/lease.c b/src/lease.c
-index a83ab6d..8544a6b 100644
+index 1344818..67db60d 100644
 --- a/src/lease.c
 +++ b/src/lease.c
 @@ -175,6 +175,7 @@ void lease_init(time_t now)

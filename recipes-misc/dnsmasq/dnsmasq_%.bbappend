@@ -1,14 +1,15 @@
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}:"
 
-SRC_URI += "file://0003-add-ACS-discovery-and-client-DB-WIP.patch"
-SRC_URI += "file://0004-include-fingerprint-information-in-dhcp-server-lease.patch"
-SRC_URI += "file://0005-add-support-DNS-failover-for-not-implement-error-cod.patch"
-SRC_URI += "file://0006-DAD-mechanism-behavior-before-replying-with-DHCP-ACK.patch"
-SRC_URI += "file://0007-DAD-mechanism-before-replying-with-DHCP-Offer-OFW-11.patch"
-SRC_URI += "file://0008-save-client-dhcp-options.patch"
-SRC_URI += "file://0009-read-all-arp-replies-that-arrive-within-250-ms.patch"
-SRC_URI += "file://0010-dnsmasq-fails-to-send-dhcp-offer-when-DAD-is-enabled.patch"
+SRC_URI += "file://0001-update-default-user-group-nobody-dip-dnsmasq-nogroup.patch"
+SRC_URI += "file://0002-add-ACS-discovery-and-client-DB-WIP.patch"
+SRC_URI += "file://0003-include-fingerprint-information-in-dhcp-server-lease.patch"
+SRC_URI += "file://0004-add-support-DNS-failover-for-not-implement-error-cod.patch"
+SRC_URI += "file://0005-DAD-mechanism-behavior-before-replying-with-DHCP-ACK.patch"
+SRC_URI += "file://0006-DAD-mechanism-before-replying-with-DHCP-Offer-OFW-11.patch"
+SRC_URI += "file://0007-save-client-dhcp-options.patch"
+SRC_URI += "file://0008-read-all-arp-replies-that-arrive-within-250-ms.patch"
+SRC_URI += "file://0009-dnsmasq-fails-to-send-dhcp-offer-when-DAD-is-enabled.patch"
 
 # ----------------------------------------------------------------------------
 

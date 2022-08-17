@@ -16,8 +16,6 @@ SRC_URI = "http://www.thekelleys.org.uk/dnsmasq/${@['archive/', ''][float(d.getV
            file://dnsmasq.resolvconf \
            file://dnsmasq-resolvconf-helper \
            file://99_dnsmasq \
-           file://0001-Fix-problem-with-DNS-retries-in-2.83-2.84.patch \
-           file://0002-update-default-user-group-nobody-dip-dnsmasq-nogroup.patch \
 "
 
 inherit pkgconfig update-rc.d systemd useradd

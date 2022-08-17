@@ -1,4 +1,4 @@
-From b1424a61493ac72703e63014c45cfa0a422a558f Mon Sep 17 00:00:00 2001
+From 911fe10195383dda28bea91bdcf2f944cab94c2d Mon Sep 17 00:00:00 2001
 From: Andre McCurdy <armccurdy@gmail.com>
 Date: Mon, 7 Dec 2020 23:12:01 -0800
 Subject: [PATCH] include fingerprint information in dhcp server leases file
@@ -11,10 +11,10 @@ Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
  3 files changed, 77 insertions(+), 3 deletions(-)
 
 diff --git a/src/dnsmasq.h b/src/dnsmasq.h
-index e770454..e8271b2 100644
+index 1e21005..431c6ae 100644
 --- a/src/dnsmasq.h
 +++ b/src/dnsmasq.h
-@@ -722,6 +722,7 @@ struct dhcp_lease {
+@@ -734,6 +734,7 @@ struct dhcp_lease {
    unsigned char *clid;   /* clientid */
    char *hostname, *fqdn; /* name from client-hostname option or config */
    char *old_hostname;    /* hostname before it moved to another lease */
@@ -22,7 +22,7 @@ index e770454..e8271b2 100644
    int flags;
    time_t expires;        /* lease expiry */
  #ifdef HAVE_BROKEN_RTC
-@@ -1448,6 +1449,7 @@ void lease_find_interfaces(time_t now);
+@@ -1461,6 +1462,7 @@ void lease_find_interfaces(time_t now);
  void lease_add_extradata(struct dhcp_lease *lease, unsigned char *data, 
  			 unsigned int len, int delim);
  #endif
@@ -31,7 +31,7 @@ index e770454..e8271b2 100644
  
  /* rfc2131.c */
 diff --git a/src/lease.c b/src/lease.c
-index ecfe7c3..a83ab6d 100644
+index 7c5599c..1344818 100644
 --- a/src/lease.c
 +++ b/src/lease.c
 @@ -29,6 +29,7 @@ static int read_leases(time_t now, FILE *leasestream)
