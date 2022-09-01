@@ -41,7 +41,7 @@ updateDUIDInfo()
   ProdClass=`dmcli eRT retv Device.DeviceInfo.ProductClass`
   MfrOUI=`dmcli eRT retv Device.DeviceInfo.ManufacturerOUI`
   SrNum=`dmcli eRT retv Device.DeviceInfo.X_LGI-COM_SerialNumber`
-  Idntfr=`echo $MfrOUI-$ProdClass-$SrNum | hexdump -e '13/1 "%02x"'`
+  Idntfr=`echo -n $MfrOUI-$ProdClass-$SrNum | hexdump -e '13/1 "%02x"'`
   echo "duid-type duid-en $EnpNum 0x$Idntfr"
 }
 
