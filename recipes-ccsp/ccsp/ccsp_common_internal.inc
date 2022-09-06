@@ -47,6 +47,7 @@ CFLAGS += " \
     -DUSE_NOTIFY_COMPONENT \
     -DUTC_ENABLE \
     -U_COSA_SIM_ \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'autowan', '-DAUTOWAN_ENABLE', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'bci', '-D_COSA_FOR_BCI_', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'bci', '', '-DFEATURE_SUPPORT_ONBOARD_LOGGING', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'ddns_broadband', '-DDDNS_BROADBANDFORUM -DDDNS_SERVICE_BIN', '', d)} \
