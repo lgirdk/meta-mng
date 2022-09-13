@@ -72,7 +72,6 @@ do_install_append () {
 	install -m 755 ${S}/scripts/cosa_start_rem.sh ${D}/usr/ccsp/cosa_start_rem.sh
 	install -m 755 ${S}/scripts/mesh_agent_start.sh ${D}/usr/ccsp/
 	install -m 755 ${S}/scripts/rbusFlagSync.sh ${D}/usr/ccsp/
-	install -m 755 ${S}/scripts/rbus_status_logger.sh ${D}/usr/ccsp/
 
 	install -m 644 ${S}/source/ccsp/components/CCSP_AliasMgr/custom_mapper.xml ${D}/usr/ccsp/
 
@@ -89,7 +88,6 @@ do_install_append () {
 	install -m 644 ${S}/config/ccsp_msg.cfg ${D}/usr/ccsp/tr069pa/
 
 	install -d ${D}/lib/rdk
-	install -m 755 ${S}/scripts/rbus_rfc_handler.sh ${D}/lib/rdk/rbus_rfc_handler.sh
 	install -m 755 ${S}/scripts/rbus_termination_handler.sh ${D}/lib/rdk/rbus_termination_handler.sh
 }
 
