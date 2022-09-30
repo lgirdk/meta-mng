@@ -1,10 +1,10 @@
 SUMMARY = "CCSP Test and Diagnostic Utilities"
 LICENSE = "Apache-2.0"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=175792518e4ac015ab6696d16c4f607e"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=9c4d64ad248641f8dd76f69edff1c27a"
 
 require recipes-ccsp/ccsp/ccsp_common.inc
 
-DEPENDS += "utopia hal-mta hal-platform"
+DEPENDS += "utopia hal-mta hal-platform rbus libev"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
