@@ -20,14 +20,9 @@ inherit autotools pkgconfig
 EXTRA_OECONF += "${@bb.utils.contains('DISTRO_FEATURES','systemd','--enable-notify','',d)}"
 
 CFLAGS += " \
-    -I${STAGING_INCDIR}/cimplog \
-    -I${STAGING_INCDIR}/cjson \
-    -I${STAGING_INCDIR}/libparodus \
     -I${STAGING_INCDIR}/msgpackc \
     -I${STAGING_INCDIR}/nanomsg \
-    -I${STAGING_INCDIR}/syscfg \
     -I${STAGING_INCDIR}/trower-base64 \
-    -I${STAGING_INCDIR}/ulog \
     -I${STAGING_INCDIR}/utapi \
     -I${STAGING_INCDIR}/utctx \
     -I${STAGING_INCDIR}/wrp-c \

@@ -20,8 +20,6 @@ inherit autotools pkgconfig
 EXTRA_OECONF += "${@bb.utils.contains('DISTRO_FEATURES','systemd','--enable-notify','',d)}"
 
 CFLAGS += " \
-    -I${STAGING_INCDIR}/syscfg \
-    -I${STAGING_INCDIR}/ulog \
     -I${STAGING_INCDIR}/utapi \
     -I${STAGING_INCDIR}/utctx \
     -I${STAGING_INCDIR}/libxml2 \

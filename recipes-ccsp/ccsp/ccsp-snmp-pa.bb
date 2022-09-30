@@ -17,7 +17,6 @@ S = "${WORKDIR}/git"
 inherit autotools pkgconfig
 
 CFLAGS += " \
-    -I${STAGING_INCDIR}/syscfg \
     ${@bb.utils.contains('DISTRO_FEATURES','snmppa','-DSNMP_PA_ENABLE','',d)} \
 "
 

@@ -21,9 +21,6 @@ PACKAGECONFIG ?= "dropearly"
 PACKAGECONFIG[dropearly] = "--enable-dropearly,--disable-dropearly"
 
 CFLAGS += " \
-    -I${STAGING_INCDIR}/cimplog \
-    -I${STAGING_INCDIR}/syscfg \
-    -I${STAGING_INCDIR}/ulog \
     -I${STAGING_INCDIR}/utapi \
     -I${STAGING_INCDIR}/utctx \
 "

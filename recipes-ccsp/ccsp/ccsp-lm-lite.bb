@@ -18,8 +18,6 @@ S = "${WORKDIR}/git"
 inherit autotools pkgconfig
 
 CFLAGS += " \
-    -I${STAGING_INCDIR}/cimplog \
-    -I${STAGING_INCDIR}/libparodus \
     -I${STAGING_INCDIR}/libxml2 \
     -I${STAGING_INCDIR}/trower-base64 \
 "

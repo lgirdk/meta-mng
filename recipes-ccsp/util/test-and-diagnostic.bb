@@ -21,8 +21,6 @@ EXTRA_OECONF += "--enable-mta"
 CFLAGS += " \
     -I${STAGING_INCDIR}/utapi \
     -I${STAGING_INCDIR}/utctx \
-    -I${STAGING_INCDIR}/ulog \
-    -I${STAGING_INCDIR}/syscfg \
 "
 
 DATAMODEL_XML = "config/TestAndDiagnostic_arm.XML"
