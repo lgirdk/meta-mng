@@ -1,0 +1,245 @@
+From 9c3899794f38a8f6dc758a2ceee8626f9b864955 Mon Sep 17 00:00:00 2001
+From: Tarun Saha <tsaha@libertyglobal.com>
+Date: Thu, 29 Sep 2022 18:08:36 -0700
+Subject: [PATCH 1/1] OFW-3365: Fix IPv6 Address/Prefix Release messages
+
+Implemented operator facing Ipv6 address release behavior as per
+CM-SP-eRouter-I21-220209.
+---
+ ClntMessages/ClntMsg.cpp        | 72 +++++++++++++++++++++++++++++++++
+ ClntMessages/ClntMsg.h          |  3 ++
+ ClntMessages/ClntMsgRebind.cpp  | 12 ++++++
+ ClntMessages/ClntMsgRelease.cpp |  2 +-
+ ClntMessages/ClntMsgRenew.cpp   | 13 ++++++
+ ClntOptions/ClntOptIA_NA.cpp    | 48 ++++++++++++++++++++++
+ ClntOptions/ClntOptIA_NA.h      |  1 +
+ 7 files changed, 150 insertions(+), 1 deletion(-)
+
+diff --git a/ClntMessages/ClntMsg.cpp b/ClntMessages/ClntMsg.cpp
+index f0062e19..f2bafc81 100644
+--- a/ClntMessages/ClntMsg.cpp
++++ b/ClntMessages/ClntMsg.cpp
+@@ -1407,3 +1407,75 @@ SPtr<TOptStatusCode> TClntMsg::getStatusCode() const {
+     }
+     return SPtr_cast<TOptStatusCode>(status);
+ }
++
++bool TClntMsg::isPrefixChanged(SPtr<TClntMsg> Reply) {
++    bool bSendRelease = false;
++    SPtr<TOpt> opt;
++    SPtr<TClntOptIA_PD> reqOptPD = SPtr_cast<TClntOptIA_PD>(this->getOption(OPTION_IA_PD));
++
++    if (reqOptPD) {
++        bSendRelease = true;
++        SPtr<TOptIAPrefix> reqPrefix = SPtr_cast<TOptIAPrefix>(reqOptPD->getOption(OPTION_IAPREFIX));
++        SPtr<TClntOptIA_PD> pd = SPtr_cast<TClntOptIA_PD>(Reply->getOption(OPTION_IA_PD));
++
++        if (pd) {
++            pd->firstOption();
++            while ( opt = pd->getOption() ) {
++                if (opt->getOptType() == OPTION_IAPREFIX) {
++                    SPtr<TOptIAPrefix> prefix = SPtr_cast<TOptIAPrefix>(opt);
++                    if (*(prefix->getPrefix()) == *(reqPrefix->getPrefix()) && prefix->getValid() > 0) {
++                        bSendRelease = false;
++                        break;
++                    }
++                }
++            }
++        }
++    }
++    return bSendRelease;
++}
++
++bool TClntMsg::isAddrChanged(SPtr<TClntMsg> Reply) {
++    bool bSendRelease = false;
++    SPtr<TOpt> opt;
++    SPtr<TClntOptIA_NA> reqOptIA = SPtr_cast<TClntOptIA_NA>(this->getOption(OPTION_IA_NA));
++
++    if (reqOptIA) {
++        bSendRelease = true;
++        SPtr<TOptIAAddress> reqAddr = SPtr_cast<TOptIAAddress>(reqOptIA->getOption(OPTION_IAADDR));
++        SPtr<TClntOptIA_NA> ia = SPtr_cast<TClntOptIA_NA>(Reply->getOption(OPTION_IA_NA));
++
++        if (ia) {
++            ia->firstOption();
++            while ( opt = ia->getOption() ) {
++                if (opt->getOptType() == OPTION_IAADDR) {
++                    SPtr<TOptIAAddress> addr = SPtr_cast<TOptIAAddress>(opt);
++                    if (*(addr->getAddr()) == *(reqAddr->getAddr()) && addr->getValid() > 0) {
++                        bSendRelease = false;
++                        break;
++                    }
++                }
++            }
++        }
++    }
++    return bSendRelease;
++}
++
++void TClntMsg::prepareAndSendRelease() {
++    List(TAddrIA) releasedIAs;
++    List(TAddrIA) releasedPDs;
++
++    SPtr<TAddrIA> ptrIA;
++    SPtr<TAddrIA> ptrPD;
++
++    ClntAddrMgr().firstIA();
++    while (ptrIA = ClntAddrMgr().getIA()) {
++        releasedIAs.append(ptrIA);
++    }
++
++    ClntAddrMgr().firstPD();
++    while (ptrPD = ClntAddrMgr().getPD()) {
++        releasedPDs.append(ptrPD);
++    }
++
++    ClntTransMgr().sendRelease(releasedIAs, SPtr<TAddrIA>(), releasedPDs);
++}
+diff --git a/ClntMessages/ClntMsg.h b/ClntMessages/ClntMsg.h
+index 5f480080..643c3c6b 100644
+--- a/ClntMessages/ClntMsg.h
++++ b/ClntMessages/ClntMsg.h
+@@ -60,6 +60,9 @@ public:
+  protected:
+     bool check(bool clntIDmandatory, bool srvIDmandatory);
+     bool appendClientID();
++    bool isAddrChanged(SPtr<TClntMsg> Reply);
++    bool isPrefixChanged(SPtr<TClntMsg> Reply);
++    void prepareAndSendRelease();
+ 
+     long IRT;           // Initial Retransmission Time
+     long MRT;           // Maximum Retransmission Time
+diff --git a/ClntMessages/ClntMsgRebind.cpp b/ClntMessages/ClntMsgRebind.cpp
+index fe5f82f4..7f80b5e0 100644
+--- a/ClntMessages/ClntMsgRebind.cpp
++++ b/ClntMessages/ClntMsgRebind.cpp
+@@ -72,6 +72,18 @@ TClntMsgRebind::TClntMsgRebind(TOptList ptrOpts, int iface)
+ 
+ void TClntMsgRebind::answer(SPtr<TClntMsg> Reply)
+ {
++    if (isAddrChanged(Reply) || isPrefixChanged(Reply)) {
++        SPtr<TClntOptIA_NA> reqOptNA = SPtr_cast<TClntOptIA_NA>(this->getOption(OPTION_IA_NA));
++        SPtr<TClntOptIA_PD> reqOptPD = SPtr_cast<TClntOptIA_PD>(this->getOption(OPTION_IA_PD));
++
++        prepareAndSendRelease();
++        reqOptNA->delAddresses();
++        reqOptPD->delPrefixes();
++
++        IsDone = true;
++        return;
++    }
++
+     TClntMsg::answer(Reply);
+     return;
+ 
+diff --git a/ClntMessages/ClntMsgRelease.cpp b/ClntMessages/ClntMsgRelease.cpp
+index 6a7052ed..127d3bab 100644
+--- a/ClntMessages/ClntMsgRelease.cpp
++++ b/ClntMessages/ClntMsgRelease.cpp
+@@ -48,7 +48,7 @@ TClntMsgRelease::TClntMsgRelease(int iface, SPtr<TIPv6Addr> addr,
+ 
+     IRT=REL_TIMEOUT;
+     MRT=0;
+-    MRC=REL_MAX_RC;
++    MRC=1;   /*Send just one release message. As per CM-SP-eRouter-I21-220209, eRouter MUST NOT wait for confirmation of receipt of the release.*/
+     MRD=0;
+     RT=0;
+ 
+diff --git a/ClntMessages/ClntMsgRenew.cpp b/ClntMessages/ClntMsgRenew.cpp
+index d23836df..51533b7e 100644
+--- a/ClntMessages/ClntMsgRenew.cpp
++++ b/ClntMessages/ClntMsgRenew.cpp
+@@ -104,6 +104,19 @@ void TClntMsgRenew::answer(SPtr<TClntMsg> Reply)
+ 
+     SPtr<TOptDUID> srvDUID = getServerID();
+ 
++    if (isAddrChanged(Reply) || isPrefixChanged(Reply)) {
++        SPtr<TClntOptIA_NA> reqOptNA = SPtr_cast<TClntOptIA_NA>(this->getOption(OPTION_IA_NA));
++        SPtr<TClntOptIA_PD> reqOptPD = SPtr_cast<TClntOptIA_PD>(this->getOption(OPTION_IA_PD));
++
++        prepareAndSendRelease();
++        reqOptNA->delAddresses();
++        reqOptPD->delPrefixes();
++
++        IsDone = true;
++
++        return;
++    }
++
+     Reply->firstOption();
+     // for each option in message... (there should be only one IA option, as we send
+     // separate RENEW for each IA, but we check all options anyway)
+diff --git a/ClntOptions/ClntOptIA_NA.cpp b/ClntOptions/ClntOptIA_NA.cpp
+index 2134b3b8..91c7560b 100644
+--- a/ClntOptions/ClntOptIA_NA.cpp
++++ b/ClntOptions/ClntOptIA_NA.cpp
+@@ -181,6 +181,54 @@ TClntOptIA_NA::~TClntOptIA_NA() {
+ 
+ }
+ 
++void TClntOptIA_NA::delAddresses() {
++    SPtr<TAddrIA> ptrIA=ClntAddrMgr().getIA(this->getIAID());
++    if (!ptrIA) {
++        // unlikely, addrMgr should have this IAID which is to be renewed/rebind
++        Log(Warning) << "unknown IA (IAID=" << this->getIAID() << ")." << LogEnd;
++        return;
++    }
++
++    SPtr<TIfaceIface> ptrIface = ClntIfaceMgr().getIfaceByID(Iface_);
++
++    if (!ptrIface)
++    {
++        Log(Error) << "Interface with ifindex=" << Iface_ << " not found." << LogEnd;
++        return;
++    }
++
++    SPtr<TAddrAddr> ptrAddrAddr;
++    SPtr<TOptIAAddress> ptrOptAddr;
++
++    this->firstAddr();
++    while (ptrOptAddr = this->getAddr()) {
++        ptrAddrAddr = ptrIA->getAddr(ptrOptAddr->getAddr());
++        if (ptrAddrAddr) {
++            //delete Address from addrDB
++            ptrIA->delAddr(ptrOptAddr->getAddr());
++
++            //delete Address from IfaceMgr
++            ptrIface->delAddr(ptrOptAddr->getAddr(), ptrIface->getPrefixLength());
++        }
++    }
++
++    SPtr<TClntCfgIface> cfgIface = ClntCfgMgr().getIface(Iface_);
++    if (!cfgIface) {
++        Log(Error) << "Unable to set IA state for iaid=" << getIAID() << " received on interface "
++                   << "ifindex=" << Iface_ << ": No such interface in CfgMgr found." << LogEnd;
++        return;
++    }
++
++    SPtr<TClntCfgIA> cfgIA = cfgIface->getIA(getIAID());
++    if (!cfgIA) {
++        Log(Error) << "Unable to find IA with iaid=" << getIAID() << " on the "
++                   << cfgIface->getFullName() << " interface (CfgMgr)." << LogEnd;
++        return;
++    }
++    cfgIA->setState(STATE_NOTCONFIGURED);
++    ptrIA->setState(STATE_NOTCONFIGURED);
++}
++
+ bool TClntOptIA_NA::doDuties() {
+ 
+     // find this IA in addrMgr...
+diff --git a/ClntOptions/ClntOptIA_NA.h b/ClntOptions/ClntOptIA_NA.h
+index 65b79ed8..e8691489 100644
+--- a/ClntOptions/ClntOptIA_NA.h
++++ b/ClntOptions/ClntOptIA_NA.h
+@@ -37,6 +37,7 @@ class TClntOptIA_NA : public TOptIA_NA
+     void firstAddr();
+     int countAddr();
+     bool isValid() const;
++    void delAddresses();
+ 
+  private:
+     void releaseAddr(long IAID, SPtr<TIPv6Addr> addr );
+-- 
+2.17.1
+
