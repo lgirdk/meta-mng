@@ -91,7 +91,6 @@ do_install_append () {
 	install -d ${D}/usr/ccsp/pam
 	install -m 644 ${S}/config-arm/CcspDmLib.cfg ${D}/usr/ccsp/pam/
 	install -m 644 ${S}/config-arm/CcspPam.cfg ${D}/usr/ccsp/pam/
-	install -m 755 ${S}/scripts/email_notification_monitor.sh ${D}/usr/ccsp/pam/
 	install -m 755 ${S}/scripts/launch_tr69.sh ${D}/usr/ccsp/pam/
 	install -m 755 ${S}/scripts/unique_telemetry_id.sh ${D}/usr/ccsp/pam/
 
