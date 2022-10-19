@@ -5,6 +5,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=9c4d64ad248641f8dd76f69edff1c27a"
 require recipes-ccsp/ccsp/ccsp_common.inc
 
 DEPENDS += "utopia hal-mta hal-platform rbus libev libpcap"
+DEPENDS += "${@bb.utils.contains('DISTRO_FEATURES','core-net-lib','core-net-lib','',d)}"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
@@ -17,6 +18,7 @@ S = "${WORKDIR}/git"
 inherit autotools pkgconfig
 
 EXTRA_OECONF += "--enable-mta"
+EXTRA_OECONF += "--enable-core_net_lib_feature_support=${@bb.utils.contains('DISTRO_FEATURES', 'core-net-lib', 'yes', 'no', d)}"
 
 CFLAGS += " \
     -I${STAGING_INCDIR}/utapi \
