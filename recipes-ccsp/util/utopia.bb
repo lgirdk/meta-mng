@@ -5,6 +5,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=baa21dec03307f641a150889224a157f"
 require recipes-ccsp/ccsp/ccsp_common.inc
 
 DEPENDS += "hal-ethsw hal-platform telemetry cjson nanomsg libevent libnetfilter-queue libsyswrapper libupnp"
+DEPENDS += "${@bb.utils.contains('DISTRO_FEATURES','core-net-lib','core-net-lib','',d)}"
 
 # Utopia needs an RPC library in order to support IPC between the ARM and Atom
 # CPUs in an Intel Puma 6 or Puma 7 (ie it's not thought to be required for
@@ -36,6 +37,7 @@ LEGACY_PLATFORM ?= "0"
 
 EXTRA_OECONF += "${CCSP_CONFIG_PLATFORM}"
 EXTRA_OECONF += "${@bb.utils.contains('DISTRO_FEATURES', 'multilan', 'MULTILAN_FEATURE=yes', '', d)}"
+EXTRA_OECONF += "--enable-core_net_lib_feature_support=${@bb.utils.contains('DISTRO_FEATURES', 'core-net-lib', 'yes', 'no', d)}"
 EXTRA_OECONF += "--enable-ddns_binary_client_support"
 
 CFLAGS += " \
