@@ -462,6 +462,14 @@ SYSEVENT_SET_CMD+=(ipv6_prefix=$PREFIX1/$PREFIX1LEN)
 
 sysevent batchset "${SYSEVENT_SET_CMD[@]}"
 
+# The below logic is added to fix a timing issue seen in Puma6 devices.
+# Sometimes the script set_resolv_conf.sh is called before the sysevent "ipv6_nameserver" is updated,
+# so call the set_resolv_conf.sh script again, to make sure the ipv6 DNS IP addresses are updated.
+if [ -f "/tmp/resolv_conf_update_needed" ]; then
+    rm -rf /tmp/resolv_conf_update_needed
+    /etc/utopia/service.d/set_resolv_conf.sh
+fi
+
 if [ -n "$PREV_ADDR" ]; then
     ip -6 rule del from $PREV_ADDR lookup erouter
 fi
