@@ -8,6 +8,10 @@ SRC_URI = "https://github.com/radcli/radcli/releases/download/${PV}/${BP}.tar.gz
 SRC_URI[md5sum] = "385d9c801c808abdd59880f8a9de0d18"
 SRC_URI[sha256sum] = "20ddc8429d5912dfa2e71fafc93881844ce98e898c041b1dd7f757b9ddc8fcfd"
 
+SRC_URI += " \
+	file://rfc-congestive-back-off.patch \
+"
+
 inherit autotools pkgconfig
 
 PACKAGECONFIG ?= ""

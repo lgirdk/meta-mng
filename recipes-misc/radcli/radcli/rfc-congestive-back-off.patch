@@ -1,0 +1,80 @@
+diff -Naur a/lib/config.c b/lib/config.c
+--- a/lib/config.c	2020-09-11 07:19:31.000000000 +0000
++++ b/lib/config.c	2022-10-26 10:07:33.276041972 +0000
+@@ -799,9 +799,9 @@
+ 		return -1;
+ 	}
+ 
+-	if (rc_conf_int(rh, "radius_timeout") <= 0)
++	if (rc_conf_int(rh, "radius_timeout") < 0)
+ 	{
+-		rc_log(LOG_ERR,"%s: radius_timeout <= 0 is illegal", filename);
++		rc_log(LOG_ERR,"%s: radius_timeout < 0 is illegal", filename);
+ 		return -1;
+ 	}
+ 	if (rc_conf_int(rh, "radius_retries") <= 0)
+diff -Naur a/lib/sendserver.c b/lib/sendserver.c
+--- a/lib/sendserver.c	2020-03-19 20:20:27.000000000 +0000
++++ b/lib/sendserver.c	2022-10-26 10:53:19.011493290 +0000
+@@ -429,6 +429,16 @@
+ 	return total_length;
+ }
+ 
++#define RFC_DEF_IRT 2
++#define RFC_DEF_MRT 16
++#define RFC_DEF_MRD 30
++
++/* return random between -0.1 and +0.1 */
++static double get_rand_factor()
++{
++	return (((double)random()) * 0.2L) / RAND_MAX - 0.1L;
++}
++
+ /** Sends a request to a RADIUS server and waits for the reply
+  *
+  * @param rh a handle to parsed configuration
+@@ -467,6 +477,7 @@
+ 	VALUE_PAIR *vp;
+ 	struct pollfd pfd;
+ 	double start_time, timeout;
++	double init_time, rt, rtnext;
+ 	struct sockaddr_storage *ss_set = NULL;
+ 	char *server_type = "auth";
+ 	char *ns = NULL;
+@@ -693,6 +704,12 @@
+ 		      data->svc_port);
+ 	}
+ 
++	/* if config timeout is zero, it means congestive back-off */
++	if (data->timeout == 0) {
++		init_time = rc_getmtime();
++		rtnext = (get_rand_factor() + 1.0L) * RFC_DEF_IRT;
++	}
++
+ 	for (;;) {
+ 		do {
+ 			result =
+@@ -712,7 +729,22 @@
+ 		pfd.events = POLLIN;
+ 		pfd.revents = 0;
+ 		start_time = rc_getmtime();
+-		for (timeout = data->timeout; timeout > 0;
++		if (data->timeout == 0) {
++			rt = rtnext;
++			timeout = rt;
++			rtnext = (get_rand_factor() + 2.0L) * rt;
++			if (rtnext > RFC_DEF_MRT)
++				rtnext = (get_rand_factor() + 1.0L) * RFC_DEF_MRT;
++			if ((start_time + timeout) > (init_time + RFC_DEF_MRD)) {
++				timeout = init_time + RFC_DEF_MRD - start_time;
++				/* no more retries */
++				retries = retry_max;
++			}
++		} else {
++			timeout = data->timeout;
++		}
++		result = 0;
++		for (; timeout > 0;
+ 		     timeout -= rc_getmtime() - start_time) {
+ 			result = poll(&pfd, 1, timeout * 1000);
+ 			if (result != -1 || errno != EINTR)
