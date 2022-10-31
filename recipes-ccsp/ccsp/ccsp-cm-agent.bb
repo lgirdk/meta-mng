@@ -5,6 +5,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=175792518e4ac015ab6696d16c4f607e"
 require ccsp_common.inc
 
 DEPENDS += "utopia hal-cm hal-platform libsyswrapper libunpriv"
+DEPENDS += "${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_wan_manager', 'hal-gwprovappabs', '', d)}"
 DEPENDS += "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', ' systemd', '', d)}"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
@@ -17,6 +18,7 @@ S = "${WORKDIR}/git"
 
 inherit autotools pkgconfig
 
+EXTRA_OECONF += "${@bb.utils.contains('DISTRO_FEATURES','rdkb_wan_manager','--enable-wanmgr','',d)}"
 EXTRA_OECONF += "${@bb.utils.contains('DISTRO_FEATURES','systemd','--enable-notify','',d)}"
 
 DATAMODEL_XML = "config-arm/TR181-CM.XML"
