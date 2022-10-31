@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# Stop dibbler client, so dhcpv6 release is sent before reboot
+
+[ -x /usr/sbin/dibbler-client ] && /usr/sbin/dibbler-client stop
+
 # Stop all init scripts in /etc/rc6.d
 # executing them in numerical order.
 
