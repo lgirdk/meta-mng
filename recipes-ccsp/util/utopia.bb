@@ -183,6 +183,10 @@ do_install_append () {
 
     mv -f ${D}${sysconfdir}/utopia/service.d/service_multinet/handle_gre_lg.sh                  ${D}${sysconfdir}/utopia/service.d/service_multinet/handle_gre.sh
 
+    # Remove service_gre.sh ( Intel specific - see INTEL_GRE_HOTSPOT )
+
+    rm ${D}${sysconfdir}/utopia/service.d/service_multinet/service_gre.sh
+
     ln -sf /usr/bin/service_multinet_exec                                                       ${D}${sysconfdir}/utopia/service.d/service_multinet_exec
 
     install -d ${D}${sbindir}
