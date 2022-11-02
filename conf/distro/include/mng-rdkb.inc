@@ -10,6 +10,7 @@ DISTROOVERRIDES .= ":broadband"
 
 # ----------------------------------------------------------------------
 
+DISTRO_FEATURES_append = " core-net-lib"
 DISTRO_FEATURES_append = " ddns_broadband"
 DISTRO_FEATURES_append = " dslite"
 DISTRO_FEATURES_append = " fcgi"
