@@ -75,7 +75,6 @@ do_install() {
 	rm ${D}${base_libdir}/rdk/iptables_container.sh
 	rm ${D}${base_libdir}/rdk/shortsDownload.sh
 	rm ${D}${base_libdir}/rdk/startStunnel.sh
-	rm ${D}${base_libdir}/rdk/startTunnel.sh
 
 	# --------------------------------------------------------------------
 
