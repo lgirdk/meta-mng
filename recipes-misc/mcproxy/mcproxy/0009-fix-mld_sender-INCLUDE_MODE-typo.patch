@@ -1,0 +1,26 @@
+From 6b17f6c5aa8fd41f015575b7e9f32a8ed2fe423d Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Sun, 20 Nov 2022 15:30:08 -0800
+Subject: [PATCH] fix mld_sender INCLUDE_MODE typo
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ mcproxy/src/proxy/mld_sender.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mcproxy/src/proxy/mld_sender.cpp b/mcproxy/src/proxy/mld_sender.cpp
+index a8d44bc..4b82dce 100644
+--- a/mcproxy/src/proxy/mld_sender.cpp
++++ b/mcproxy/src/proxy/mld_sender.cpp
+@@ -55,7 +55,7 @@ bool mld_sender::send_record(unsigned int if_index, mc_filter filter_mode, const
+     if (filter_mode == INCLUDE_MODE && slist.empty() ) {
+         m_sock.leave_group(gaddr, if_index);
+         return true;
+-    } else if (filter_mode == EXCLUDE_MODE || filter_mode == EXCLUDE_MODE) {
++    } else if (filter_mode == INCLUDE_MODE || filter_mode == EXCLUDE_MODE) {
+         m_sock.join_group(gaddr, if_index);
+         std::list<addr_storage> src_list;
+         for (auto & e : slist) {
+-- 
+2.24.0
+
