@@ -9,7 +9,8 @@ Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
  mcproxy/src/proxy/querier.cpp                 | 12 +++++++
  mcproxy/src/proxy/simple_mc_proxy_routing.cpp | 35 +++++++++++++++++++
  mcproxy/src/utils/mc_socket.cpp               | 21 +++++++++++
- 4 files changed, 71 insertions(+)
+ mcproxy/src/utils/throttle.cpp                |  3 ++
+ 5 files changed, 74 insertions(+)
 
 diff --git a/mcproxy/src/main.cpp b/mcproxy/src/main.cpp
 index 627778a..f9814ab 100644
@@ -161,6 +162,27 @@ index 8925deb..8e366eb 100644
      rc = setsourcefilter(m_sock, if_index, &gaddr.get_sockaddr(), gaddr.get_addr_len(), filter_mode, src_list.size(), slist.get());
      if (rc == -1) {
          HC_LOG_ERROR("failed to set source filter! Error: " << strerror(errno) << " errno: " << errno);
+diff --git a/mcproxy/src/utils/throttle.cpp b/mcproxy/src/utils/throttle.cpp
+index 24ebd37..c58d7a2 100644
+--- a/mcproxy/src/utils/throttle.cpp
++++ b/mcproxy/src/utils/throttle.cpp
+@@ -2,6 +2,8 @@
+ #include "include/utils/throttle.hpp"
+ #include "include/utils/timestamp.hpp"
+ 
++#include <syslog.h>
++
+ bool Throttle::get()
+ {
+     if (m_pps == 0 || m_hold_duration == 0)
+@@ -29,6 +31,7 @@ bool Throttle::get()
+         return false;
+     } else {
+         m_hold_expire = now + m_hold_duration;
++        syslog(LOG_DEBUG, "throttling hit");
+         return true;
+     }
+ }
 -- 
 2.24.0
 
