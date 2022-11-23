@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=175792518e4ac015ab6696d16c4f607e"
 
 require ccsp_common.inc
 
-DEPENDS += "utopia hal-cm hal-dhcpv4c hal-ethsw hal-mso_mgmt hal-platform ccsp-hotspot ccsp-lm-lite telemetry ccsp-hotspot ccsp-misc cimplog cjson curl libparodus libsyswrapper libunpriv msgpack-c openssl nanomsg trower-base64 wrp-c"
+DEPENDS += "utopia hal-cm hal-dhcpv4c hal-ethsw hal-mso_mgmt hal-platform ccsp-hotspot ccsp-lm-lite telemetry ccsp-hotspot ccsp-misc cjson curl libparodus libsyswrapper libunpriv msgpack-c openssl nanomsg trower-base64 wrp-c"
 DEPENDS += "${@bb.utils.contains('DISTRO_FEATURES','systemd','systemd','',d)}"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
