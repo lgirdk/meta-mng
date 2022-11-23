@@ -1,0 +1,26 @@
+diff --git a/tmp/dropbear_org/cli-session.c b/cli-session.c
+index 988b2cd8..80016fdb 100644
+--- a/tmp/dropbear_org/cli-session.c
++++ b/cli-session.c
+@@ -445,7 +445,7 @@ void cli_dropbear_exit(int exitcode, const char* format, va_list param) {
+ 	/* Avoid printing onwards from terminal cruft */
+ 	fprintf(stderr, "\n");
+ 
+-	dropbear_log(LOG_INFO, "%s", fullmsg);
++	dropbear_log(LOG_NOTICE, "%s", fullmsg);
+ 
+ 	exit(exitcode);
+ }
+diff --git a/tmp/dropbear_org/svr-session.c b/svr-session.c
+index 6c3147f0..9fecb431 100644
+--- a/tmp/dropbear_org/svr-session.c
++++ b/svr-session.c
+@@ -246,7 +246,7 @@ void svr_dropbear_exit(int exitcode, const char* format, va_list param) {
+ 		snprintf(fullmsg, sizeof(fullmsg), "Exit before auth%s: %s", fromaddr, exitmsg);
+ 	}
+ 
+-	dropbear_log(LOG_INFO, "%s", fullmsg);
++	dropbear_log(LOG_NOTICE, "%s", fullmsg);
+ 
+ #if DROPBEAR_VFORK
+ 	/* For uclinux only the main server process should cleanup - we don't want
