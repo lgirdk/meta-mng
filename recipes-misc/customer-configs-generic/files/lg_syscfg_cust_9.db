@@ -18,7 +18,6 @@ nat_tcp_timeout=120
 nat_udp_timeout=30
 upnp_igd_enabled=0
 portscan_enabled=0
-ssam_updaterenable=1
 user_bridge_mode_allowed=true
 v4_PortScanProtect=0
 v6_PortScanProtect=0
