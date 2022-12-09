@@ -24,3 +24,5 @@ CFLAGS += " \
 "
 
 DATAMODEL_XML = "config/RdkWanManager.xml"
+
+RDEPENDS_${PN} += "ndisc6-rdisc6"
