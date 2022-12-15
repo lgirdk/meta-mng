@@ -319,29 +319,32 @@ case "$1" in
 		if [ "$BOX_TYPE" = "XB3" ] ; then
 			prev_ip=$(sysevent get ipv4_${interface}_ipaddr)
 			echo "removing ip rule based on prev_ip:$prev_ip and adding ip:$ip"
-			if [ -n "$prev_ip" ] && [ "$prev_ip" != "0.0.0.0" ]; then
+			if [ -n "$prev_ip" ] && [ "$prev_ip" != "0.0.0.0" ] && [ "$prev_ip" != "$ip" ] ; then
 				ip -4 rule del from $prev_ip lookup erouter
 				ip -4 rule del from $prev_ip lookup all_lans
 			fi
-			ip -4 rule add from $ip lookup erouter prio 10
-			ip -4 rule add from $ip lookup all_lans
+			[ -z "$(ip -4 rule show from $ip lookup erouter prio 10 2> /dev/null)" ] && ip -4 rule add from $ip lookup erouter prio 10
+			[ -z "$(ip -4 rule show from $ip lookup all_lans 2> /dev/null)" ] && ip -4 rule add from $ip lookup all_lans
 		fi
 
 		if [ "$BOX_TYPE" = "MV1" ] ; then
 			# if the gateway router has changed then we need to flush routing cache
 			echo "Add route table - erouter"
 			if [ -n "$router" ] ; then
-
-				# Warning: by the time this code runs default_router has already
-				# been changed from within save_dhcp_offer(), so we can't get the
-				# old value anymore. As a temporary workarounf, disable the check
-				# (and therefore always set up the erouter routing table, even if
-				# it hasn't changed). This needs more review and eventually
-				# probably a bigger change / rewrite to better integrate setting
-				# up of the erouter routing table with save_dhcp_offer().
-
-#				OLD_DEFAULT_ROUTER=`sysevent get default_router`
-#				if [ "$router" != "$OLD_DEFAULT_ROUTER" ] ; then
+				apply_default_route=0
+				for i in $router ; do
+					if [ -z "$(ip -4 route show table erouter default dev $interface via $i 2> /dev/null)" ] ; then
+						apply_default_route=1
+						break
+					fi
+				done
+				if [ "$apply_default_route" = "0" ] ; then
+					OLD_DEFAULT_ROUTER=$(sysevent get default_router)
+					if [ "$router" != "$OLD_DEFAULT_ROUTER" ] ; then
+						apply_default_route=1
+					fi
+				fi
+				if [ "$apply_default_route" = "1" ] ; then
 					while ip -4 route del table erouter default ; do
 						:
 					done
@@ -350,7 +353,7 @@ case "$1" in
 #						sysevent set default_router $i
 					done
 					ip -4 route flush cache
-#				fi
+				fi
 			fi
 		fi
 
