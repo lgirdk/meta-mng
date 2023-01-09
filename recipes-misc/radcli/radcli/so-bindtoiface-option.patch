@@ -1,0 +1,220 @@
+diff -Naur a/include/includes.h b/include/includes.h
+--- a/include/includes.h	2023-01-04 15:47:50.586436013 +0000
++++ b/include/includes.h	2022-11-17 12:15:18.680385377 +0000
+@@ -175,7 +175,7 @@
+ typedef struct rc_sockets_override {
+ 	void *ptr;
+ 	const char *static_secret;
+-	int (*get_fd)(void *ptr, struct sockaddr* our_sockaddr);
++	int (*get_fd)(void *ptr, struct sockaddr* our_sockaddr, const char *iface);
+ 	void (*close_fd)(int fd);
+ 	ssize_t (*sendto)(void *ptr, int sockfd, const void *buf, size_t len, int flags,
+ 	                  const struct sockaddr *dest_addr, socklen_t addrlen);
+diff -Naur a/include/radcli/radcli.h b/include/radcli/radcli.h
+--- a/include/radcli/radcli.h	2020-11-11 20:36:50.000000000 +0000
++++ b/include/radcli/radcli.h	2023-01-04 15:29:08.579699398 +0000
+@@ -649,7 +649,7 @@
+ unsigned short rc_getport(int type);
+ int rc_own_hostname(char *hostname, int len);
+ struct sockaddr;
+-int rc_get_srcaddr(struct sockaddr *lia, const struct sockaddr *ria);
++int rc_get_srcaddr(struct sockaddr *lia, const struct sockaddr *ria, const char *iface);
+ 
+ /* log.c */
+ 
+diff -Naur a/lib/config.c b/lib/config.c
+--- a/lib/config.c	2023-01-04 15:47:50.586436013 +0000
++++ b/lib/config.c	2023-01-04 15:27:39.287749726 +0000
+@@ -26,6 +26,8 @@
+ #include "util.h"
+ #include "tls.h"
+ 
++#include <net/if.h>
++
+ #ifndef TRUE
+ #define TRUE  1
+ #define FALSE 0
+@@ -418,9 +420,10 @@
+ 	close(fd);
+ }
+ 
+-static int plain_get_fd(void *ptr, struct sockaddr *our_sockaddr)
++static int plain_get_fd(void *ptr, struct sockaddr *our_sockaddr, const char *iface)
+ {
+ 	int sockfd;
++	struct ifreq ifr;
+ 
+ 	sockfd = socket(our_sockaddr->sa_family, SOCK_DGRAM, 0);
+ 	if (sockfd < 0) {
+@@ -432,16 +435,27 @@
+ 	else
+ 		((struct sockaddr_in6 *)our_sockaddr)->sin6_port = 0;
+ 
++	if (iface) {
++		memset(&ifr, 0, sizeof(ifr));
++		strncpy(ifr.ifr_name, iface, IFNAMSIZ);
++		if (setsockopt(sockfd, SOL_SOCKET, SO_BINDTODEVICE, &ifr, sizeof(ifr))) {
++			close(sockfd);
++			return -1;
++		}
++	}
++
+ 	if (bind(sockfd, SA(our_sockaddr), SA_LEN(our_sockaddr)) < 0) {
+ 		close(sockfd);
+ 		return -1;
+ 	}
++
+ 	return sockfd;
+ }
+ 
+-static int plain_tcp_get_fd(void *ptr, struct sockaddr *our_sockaddr)
++static int plain_tcp_get_fd(void *ptr, struct sockaddr *our_sockaddr, const char *iface)
+ {
+ 	int sockfd;
++	struct ifreq ifr;
+ 
+ 	sockfd = socket(our_sockaddr->sa_family, SOCK_STREAM, 0);
+ 	if (sockfd < 0) {
+@@ -453,10 +467,20 @@
+ 	else
+ 		((struct sockaddr_in6 *)our_sockaddr)->sin6_port = 0;
+ 
++	if (iface) {
++		memset(&ifr, 0, sizeof(ifr));
++		strncpy(ifr.ifr_name, iface, IFNAMSIZ);
++		if (setsockopt(sockfd, SOL_SOCKET, SO_BINDTODEVICE, &ifr, sizeof(ifr))) {
++			close(sockfd);
++			return -1;
++		}
++	}
++
+ 	if (bind(sockfd, SA(our_sockaddr), SA_LEN(our_sockaddr)) < 0) {
+ 		close(sockfd);
+ 		return -1;
+ 	}
++
+ 	return sockfd;
+ }
+ 
+diff -Naur a/lib/ip_util.c b/lib/ip_util.c
+--- a/lib/ip_util.c	2023-01-04 15:59:03.365489739 +0000
++++ b/lib/ip_util.c	2023-01-04 15:57:49.945594810 +0000
+@@ -17,6 +17,8 @@
+ #include <radcli/radcli.h>
+ #include "util.h"
+ 
++#include <net/if.h>
++
+ #define HOSTBUF_SIZE 1024
+ 
+ /*- Returns a struct addrinfo from a host name or address in textual notation.
+@@ -121,10 +123,11 @@
+  *         no route to destination). ERROR_RC for all other failures.
+  *         Address is filled into the first argument.
+  */
+-int rc_get_srcaddr(struct sockaddr *lia, const struct sockaddr *ria)
++int rc_get_srcaddr(struct sockaddr *lia, const struct sockaddr *ria, const char *iface)
+ {
+ 	int temp_sock;
+ 	socklen_t namelen;
++	struct ifreq ifr;
+ 
+ 	temp_sock = socket(ria->sa_family, SOCK_DGRAM, 0);
+ 	if (temp_sock == -1) {
+@@ -132,6 +135,15 @@
+ 		return ERROR_RC;
+ 	}
+ 
++	if (iface) {
++		memset(&ifr, 0, sizeof(ifr));
++		strncpy(ifr.ifr_name, iface, IFNAMSIZ);
++		if (setsockopt(temp_sock, SOL_SOCKET, SO_BINDTODEVICE, &ifr, sizeof(ifr))) {
++			rc_log(LOG_ERR, "rc_get_srcaddr: setsockopt(SO_BINDTODEVICE): %s", strerror(errno));
++			return ERROR_RC;
++		}
++	}
++
+ 	if (connect(temp_sock, ria, SA_LEN(ria)) != 0) {
+ 		int rc = errno == ENETUNREACH ? NETUNREACH_RC : ERROR_RC;
+ 		rc_log(LOG_ERR, "rc_get_srcaddr: connect: %s",
+diff -Naur a/lib/options.h b/lib/options.h
+--- a/lib/options.h	2023-01-04 15:47:50.586436013 +0000
++++ b/lib/options.h	2023-01-04 15:10:37.524511824 +0000
+@@ -49,6 +49,7 @@
+ {"radius_retries",	OT_INT,	ST_UNDEF, NULL},
+ {"radius_deadtime",	OT_INT, ST_UNDEF, NULL},
+ {"bindaddr",		OT_STR, ST_UNDEF, NULL},
++{"bindiface",		OT_STR, ST_UNDEF, NULL},
+ {"clientdebug",		OT_INT, ST_UNDEF, NULL},
+ /* Deprecated options */
+ {"login_radius",	OT_STR, ST_UNDEF, NULL},
+diff -Naur a/lib/sendserver.c b/lib/sendserver.c
+--- a/lib/sendserver.c	2023-01-04 15:47:50.586436013 +0000
++++ b/lib/sendserver.c	2023-01-04 15:38:10.279183276 +0000
+@@ -482,6 +482,7 @@
+ 	char *server_type = "auth";
+ 	char *ns = NULL;
+ 	int ns_def_hdl = 0;
++	const char *bindiface;
+ 
+ 	server_name = data->server;
+ 	if (server_name == NULL || server_name[0] == '\0')
+@@ -550,8 +551,11 @@
+ 
+ 	DEBUG(LOG_ERR, "DEBUG: rc_send_server: creating socket to: %s",
+ 	      server_name);
++
++	bindiface = rc_conf_str(rh, "bindiface");
++
+ 	if (discover_local_ip) {
+-		result = rc_get_srcaddr(SA(&our_sockaddr), auth_addr->ai_addr);
++		result = rc_get_srcaddr(SA(&our_sockaddr), auth_addr->ai_addr, bindiface);
+ 		if (result != OK_RC) {
+ 			memset(secret, '\0', sizeof(secret));
+ 			rc_log(LOG_ERR,
+@@ -561,7 +565,7 @@
+ 	}
+ 
+ 	if (sfuncs->get_fd) {
+-		sockfd = sfuncs->get_fd(sfuncs->ptr, SA(&our_sockaddr));
++		sockfd = sfuncs->get_fd(sfuncs->ptr, SA(&our_sockaddr), bindiface);
+ 		if (sockfd < 0) {
+ 			memset(secret, '\0', sizeof(secret));
+ 			rc_log(LOG_ERR, "rc_send_server: socket: %s",
+diff -Naur a/lib/tls.c b/lib/tls.c
+--- a/lib/tls.c	2023-01-04 15:47:50.586436013 +0000
++++ b/lib/tls.c	2023-01-04 15:26:56.687768540 +0000
+@@ -76,7 +76,7 @@
+ 
+ static void restart_session(rc_handle *rh, tls_st *st);
+ 
+-static int tls_get_fd(void *ptr, struct sockaddr *our_sockaddr)
++static int tls_get_fd(void *ptr, struct sockaddr *our_sockaddr, const char *iface)
+ {
+ 	tls_st *st = ptr;
+ 	return st->ctx.sockfd;
+@@ -238,6 +238,7 @@
+ 	unsigned flags = 0;
+ 	unsigned cred_set = 0;
+ 	tls_st *st = rh->so.ptr;
++	const char *iface = rc_conf_str(rh, "bindiface");
+ 
+ 	ses->sockfd = -1;
+ 	ses->init = 1;
+@@ -258,6 +259,16 @@
+ 
+ 	ses->sockfd = sockfd;
+ 
++	if (iface) {
++		struct ifreq ifr;
++		memset(&ifr, 0, sizeof(ifr));
++		strncpy(ifr.ifr_name, iface, IFNAMSIZ);
++		if (setsockopt(sockfd, SOL_SOCKET, SO_BINDTODEVICE, &ifr, sizeof(ifr))) {
++			ret = -1;
++			goto cleanup;
++		}
++	}
++
+ 	/* Initialize DTLS */
+ 
+ 	flags = GNUTLS_CLIENT;

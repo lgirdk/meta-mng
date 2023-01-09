@@ -10,6 +10,7 @@ SRC_URI[sha256sum] = "20ddc8429d5912dfa2e71fafc93881844ce98e898c041b1dd7f757b9dd
 
 SRC_URI += " \
 	file://rfc-congestive-back-off.patch \
+	file://so-bindtoiface-option.patch \
 "
 
 inherit autotools pkgconfig
