@@ -118,7 +118,7 @@ do_compile_prepend () {
 			sed "2i <?define $f=True?>" -i ${S}/${DATAMODEL_XML}
 		done
 
-		/usr/bin/python ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/${DATAMODEL_XML} $dmpath/dm_pack_datamodel.c
+		python3 ${STAGING_BINDIR_NATIVE}/dm_pack_code_gen.py ${S}/${DATAMODEL_XML} $dmpath/dm_pack_datamodel.c
 	fi
 }
 
