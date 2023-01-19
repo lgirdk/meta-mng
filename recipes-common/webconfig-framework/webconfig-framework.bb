@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=bc21fa26f9718980827123b8b80c0ded"
 
 require recipes-ccsp/ccsp/ccsp_common.inc
 
-DEPENDS += "rbus rbus-core"
+DEPENDS += "rbus"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
