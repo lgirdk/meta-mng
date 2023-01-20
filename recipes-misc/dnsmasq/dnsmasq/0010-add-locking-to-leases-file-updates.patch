@@ -1,0 +1,83 @@
+From 3f6ab9eea9f26a1e0babf873ffa45b5707cb0d3f Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Wed, 25 Jan 2023 16:32:59 -0800
+Subject: [PATCH] add locking to leases file updates
+
+Lock the lease file in dnsmasq whenever it's updated, and use the
+same lock when reading the file from mesh-agent.
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ src/lease.c | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
+
+diff --git a/src/lease.c b/src/lease.c
+index 67db60d..c9e94ea 100644
+--- a/src/lease.c
++++ b/src/lease.c
+@@ -16,11 +16,16 @@
+ 
+ #include "dnsmasq.h"
+ 
++#include <sys/file.h>
++
+ #ifdef HAVE_DHCP
+ 
+ static struct dhcp_lease *leases = NULL, *old_leases = NULL;
+ static int dns_dirty, file_dirty, leases_left;
+ 
++static int lock_fd;
++#define LEASE_FILE_LOCK "/tmp/.dnsmasq_leases_lock"
++
+ static int read_leases(time_t now, FILE *leasestream)
+ {
+   unsigned long ei;
+@@ -253,6 +258,27 @@ static void ourprintf(int *errp, char *format, ...)
+   va_end(ap);
+ }
+ 
++void lock_lease_file(void) {
++  lock_fd = open(LEASE_FILE_LOCK, O_RDONLY | O_CREAT, 0666);
++  if (lock_fd < 0) {
++    my_syslog(MS_DHCP | LOG_WARNING, _("Can't open/create file '%s'"), LEASE_FILE_LOCK);
++    return;
++  }
++
++  if (flock(lock_fd, LOCK_EX) < 0) {
++    if (close(lock_fd) < 0)
++      my_syslog(MS_DHCP | LOG_WARNING, _("Error %d closing file '%s'"), errno, LEASE_FILE_LOCK);
++    return;
++  }
++}
++
++void unlock_lease_file(void) {
++  if (flock(lock_fd, LOCK_UN) < 0)
++    my_syslog(MS_DHCP | LOG_WARNING, _("Error %d unlocking file '%s'"),  errno, LEASE_FILE_LOCK);
++  if (close(lock_fd) < 0)
++    my_syslog(MS_DHCP | LOG_WARNING, _("Error %d closing file '%s'"),  errno, LEASE_FILE_LOCK);
++}
++
+ void lease_update_file(time_t now)
+ {
+   struct dhcp_lease *lease;
+@@ -261,6 +287,8 @@ void lease_update_file(time_t now)
+ 
+   if (file_dirty != 0 && daemon->lease_stream)
+     {
++      lock_lease_file();
++
+       errno = 0;
+       rewind(daemon->lease_stream);
+       if (errno != 0 || ftruncate(fileno(daemon->lease_stream), 0) != 0)
+@@ -388,6 +416,8 @@ void lease_update_file(time_t now)
+ 
+       if (!err)
+ 	file_dirty = 0;
++
++      unlock_lease_file();
+     }
+   
+   /* Set alarm for when the first lease expires. */
+-- 
+2.24.0
+
