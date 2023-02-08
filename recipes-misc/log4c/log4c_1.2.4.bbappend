@@ -3,6 +3,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}:"
 
 SRC_URI_append = " file://disable-log4crc-version-check.patch"
 SRC_URI_append = " file://2001_log4c_log_rotation.patch"
+SRC_URI_append = " file://0001-Fix-junk-characters-in-log-file-OFW-4062.patch"
 
 # Force use of log4c's builtin yacc/lex code for parsing the log4crc config
 # file instead of linking with Expat. This is a temporary workaround for issues

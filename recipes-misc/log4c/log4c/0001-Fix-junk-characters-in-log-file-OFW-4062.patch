@@ -1,0 +1,59 @@
+From 265d0f99dfda9a4a38a3359239422c2e9b7174e1 Mon Sep 17 00:00:00 2001
+From: anil shetty <adshetty@libertyglobal.com>
+Date: Mon, 6 Feb 2023 02:00:59 -0800
+Subject: [PATCH] Fix junk characters in log file (OFW-4062)
+
+---
+ src/log4c/appender_type_rollingfile.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/src/log4c/appender_type_rollingfile.c b/src/log4c/appender_type_rollingfile.c
+index f88c0c5..3eda230 100644
+--- a/src/log4c/appender_type_rollingfile.c
++++ b/src/log4c/appender_type_rollingfile.c
+@@ -44,6 +44,7 @@ struct __rollingfile_udata {
+   pthread_mutex_t rfu_mutex;
+ };
+ 
++static int rollingfile_get_system_filesize(FILE *fp);
+ static int rollingfile_open_zero_file(char *filename, long *fsp, FILE **fpp);
+ static char *rollingfile_make_base_name(const char *log_dir, const char* prefix);
+ 
+@@ -206,6 +207,13 @@ static int rollingfile_append(log4c_appender_t* this,
+      
+   /* only attempt the write if the policy implem says I can */
+   if ( rc <= ROLLINGPOLICY_ROLLOVER_ERR_CAN_LOG ) {	           
++
++   if (0 == rollingfile_get_system_filesize(rfup->rfu_current_fp))
++   {
++      fseek(rfup->rfu_current_fp, 0, SEEK_SET);
++      rfup->rfu_current_file_size=0;
++   }
++
+    rc = fprintf(rfup->rfu_current_fp, "%s", a_event->evt_rendered_msg);
+    rfup->rfu_current_file_size += strlen(a_event->evt_rendered_msg);
+ 
+@@ -330,9 +338,8 @@ LOG4C_API long  rollingfile_get_current_file_size( rollingfile_udata_t* rfup){
+ /*****************************************************************************
+                            Private functions
+ *****************************************************************************/
+-#if 0
+-/* this function currently unused but would be handy for sanity
+- * checking what we think is the file size against the actual size
++
++/* This function returns actual size of the file
+  */  
+ static int rollingfile_get_system_filesize(FILE *fp){
+   struct stat	info;
+@@ -343,7 +350,7 @@ static int rollingfile_get_system_filesize(FILE *fp){
+   }
+   return info.st_size;
+ }
+-#endif
++
+ /*******************************************************************************/
+ 
+ static int rollingfile_open_zero_file(char *filename, long *fsp, FILE **fpp ){
+-- 
+2.7.4
+
