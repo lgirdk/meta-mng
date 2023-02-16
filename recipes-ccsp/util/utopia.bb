@@ -25,7 +25,6 @@ SRC_URI = "${LGI_RDKB_GIT}/${BPN}${LGI_RDKB_GIT_SUFFIX};protocol=${LGI_RDKB_GIT_
 
 SRC_URI += "file://udhcpc.script"
 SRC_URI += "file://udhcpc.vendor_specific"
-SRC_URI += "file://dhcpswitch.sh"
 
 SRCREV ?= "${AUTOREV}"
 
@@ -81,7 +80,6 @@ do_install_append () {
     install -d ${D}${sysconfdir}/utopia
     install -m 644 ${WORKDIR}/udhcpc.vendor_specific ${D}${sysconfdir}/
     install -m 755 ${WORKDIR}/udhcpc.script ${D}${sysconfdir}/
-    install -m 755 ${WORKDIR}/dhcpswitch.sh ${D}${sysconfdir}/
 
     install -d ${D}${sysconfdir}/cron/cron.everyminute
     install -d ${D}${sysconfdir}/cron/cron.every5minute
