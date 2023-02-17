@@ -15,8 +15,7 @@ IMAGE_INSTALL += " \
     kernel-modules \
 "
 
-# Debug tools etc. Include tcpdump in non-systemd builds only (where image size
-# is less of a concern).
+# Debug tools etc.
 
 IMAGE_INSTALL += " \
     dropbear \
@@ -24,9 +23,10 @@ IMAGE_INSTALL += " \
     openssl-bin \
     procps \
     tinymembench \
-    ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', '', 'strace', d)} \
-    ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', '', 'tcpdump', d)} \
 "
+
+# IMAGE_INSTALL += "strace"
+# IMAGE_INSTALL += "tcpdump"
 
 # IMAGE_INSTALL += "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'systemd-analyze', '', d)}"
 # IMAGE_INSTALL += "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'systemd-bootchart', '', d)}"
