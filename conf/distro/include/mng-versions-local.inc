@@ -72,6 +72,7 @@ DL_DIR_pn-hal-dhcpv4c-generic           = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SY
 DL_DIR_pn-hal-epon-generic              = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
 DL_DIR_pn-hal-ethsw-generic             = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
 DL_DIR_pn-hal-fwupgrade-generic         = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
+DL_DIR_pn-hal-gwprovappabs-generic      = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
 DL_DIR_pn-hal-moca-generic              = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
 DL_DIR_pn-hal-mso-mgmt-generic          = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
 DL_DIR_pn-hal-mta-generic               = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
