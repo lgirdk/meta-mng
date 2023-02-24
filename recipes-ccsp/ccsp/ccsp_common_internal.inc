@@ -59,7 +59,9 @@ CFLAGS += " \
     ${@bb.utils.contains('DISTRO_FEATURES', 'moca', '-DCONFIG_SYSTEM_MOCA -DMOCA_HOME_ISOLATION', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'multilan', '-DMULTILAN_FEATURE', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_telcovoice_manager', '-DFEATURE_RDKB_TELCOVOICE_MANAGER', '', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_auto_port_switch', '-DFEATURE_RDKB_AUTO_PORT_SWITCH', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_wan_manager', '-DFEATURE_RDKB_WAN_MANAGER -D_WAN_MANAGER_ENABLED_', '', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_wan_upstream', '-DFEATURE_RDKB_WAN_UPSTREAM', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'core-net-lib', '-DCORE_NET_LIB', '', d)} \
 "
 
