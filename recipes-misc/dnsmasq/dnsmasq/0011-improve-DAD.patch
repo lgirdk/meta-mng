@@ -1,0 +1,80 @@
+From cb20d74845024c0d7fd2990ef0489fb018e58678 Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Tue, 7 Mar 2023 13:03:29 -0800
+Subject: [PATCH] improve DAD
+
+Fix unable to login into GUI after power loss with 40+ client devices connected ( OFW-4255 )
+
+[Issue]
+dnsmasq sends an ARP request and waits 250ms for a response (as part of DAD) for each DISCOVER/REQUEST sent by clients.
+When a big number of devices tries to acquire an IP at the same time, dnsmasq starts sending DHCP replies after a large delay (~30 seconds or more) because of the large backlog of incoming requests.
+In this case, clients stop accepting replies because the transaction ID is no longer valid on the client side.
+
+[Fix]
+1) Reduce the buffer size for the dhcp socket, so that requests get dropped after crossing a certain threshold of concurrent DHCP requests.
+   This significantly reduces the maximum latency to handle requests.
+   Clients whose requests have been dropped will retry later and receive an IP.
+
+2) Handle an issue with DAD that causes dnsmasq to send a NAK to a client if it sends a DISCOVER for an IP with the IP already assigned to its interface.
+
+[Testing performed]
+Connect 60 clients at the same time
+Verify that they all receive IP addresses.
+Try to connect other clients and verify that they also receive IP addresses.
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ src/arp.c     | 1 +
+ src/dhcp.c    | 5 +++++
+ src/rfc2131.c | 5 ++---
+ 3 files changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/src/arp.c b/src/arp.c
+index 80d0956..0a43d1f 100644
+--- a/src/arp.c
++++ b/src/arp.c
+@@ -460,6 +460,7 @@ static int read_arp(int fd, char *dest_mac, uint32_t arp_req_ip)
+        * continue waiting for remaining time */
+       if (dest_mac && memcmp(dest_mac, arp_res.sender_mac, 6) == 0)
+       {
++        my_syslog(LOG_INFO, "IP address already bound to client");
+         continue;
+       }
+ 
+diff --git a/src/dhcp.c b/src/dhcp.c
+index 87dd3da..c96554a 100644
+--- a/src/dhcp.c
++++ b/src/dhcp.c
+@@ -108,8 +108,13 @@ void dhcp_init(void)
+ #if defined(HAVE_BSD_NETWORK)
+   int oneopt = 1;
+ #endif
++  int recvbuf_size = 6000;
+ 
+   daemon->dhcpfd = make_fd(daemon->dhcp_server_port);
++
++  if (setsockopt(daemon->dhcpfd, SOL_SOCKET, SO_RCVBUF, &recvbuf_size, sizeof(recvbuf_size)) == -1)
++    my_syslog(MS_DHCP | LOG_WARNING, _("setsockopt SO_RCVBUF error for dhcp socket"));
++
+   if (daemon->enable_pxe)
+     daemon->pxefd = make_fd(PXE_PORT);
+   else
+diff --git a/src/rfc2131.c b/src/rfc2131.c
+index ba7346f..ac5d302 100644
+--- a/src/rfc2131.c
++++ b/src/rfc2131.c
+@@ -1265,9 +1265,8 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
+ 	unsigned char arp_reply_mac[6];
+ 	do
+ 	{
+-	  /* DISCOVER: Since it is the first message from the client,
+-	   * adding stub 0xFFFFFFFFFFFF as client's mac address, for do_arp() */
+-	  memset(arp_reply_mac, 0xFF, sizeof(arp_reply_mac));
++	  /* DISCOVER: copying the current client's mac addr to ignore, while reading arp replies */
++	  memcpy(arp_reply_mac, mess->chaddr, sizeof(arp_reply_mac));
+ 
+ 	  if (do_arp(iface_name, int_index, mess->yiaddr, arp_reply_mac) == 0)
+ 	  {
+-- 
+2.24.0
+
