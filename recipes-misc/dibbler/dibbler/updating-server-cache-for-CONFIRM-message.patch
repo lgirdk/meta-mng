@@ -1,0 +1,29 @@
+From ff7db6b1113df147060ed06a99e23011d9925680 Mon Sep 17 00:00:00 2001
+From: Tarun Saha <tsaha@libertyglobal.com>
+Date: Wed, 1 Mar 2023 20:12:31 -0800
+Subject: [PATCH 1/1] Updating server cache for CONFIRM message.
+
+If IA_NA address is valid in CONFIRM message, update the server cache
+with client duid.
+---
+ SrvMessages/SrvMsgReply.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/SrvMessages/SrvMsgReply.cpp b/SrvMessages/SrvMsgReply.cpp
+index 2093282a..847dbd7f 100644
+--- a/SrvMessages/SrvMsgReply.cpp
++++ b/SrvMessages/SrvMsgReply.cpp
+@@ -102,6 +102,10 @@ bool TSrvMsgReply::handleConfirmOptions(TOptList & options) {
+                     continue;
+                 }
+                 onLink = cfgIface->confirmAddress(IATYPE_IA, optAddr->getAddr());
++                if (onLink)
++                {
++                    SrvAddrMgr().addCachedEntry(ClientDUID, optAddr->getAddr(), IATYPE_IA);
++                }
+                 checkCnt++;
+             }
+             break;
+-- 
+2.17.1
+
