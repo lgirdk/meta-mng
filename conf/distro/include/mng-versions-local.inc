@@ -80,6 +80,7 @@ DL_DIR_pn-hal-platform-generic          = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SY
 DL_DIR_pn-hal-vlan-generic              = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
 DL_DIR_pn-hal-wifi-generic              = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
 DL_DIR_pn-halinterface                  = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
+DL_DIR_pn-ipoe-health-check             = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
 DL_DIR_pn-json-hal-lib                  = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
 DL_DIR_pn-libsyswrapper                 = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
 DL_DIR_pn-libunpriv                     = "${BASE_WORKDIR}/${MULTIMACH_TARGET_SYS}/${PN}/downloads"
