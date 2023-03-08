@@ -16,11 +16,16 @@ S = "${WORKDIR}/git"
 
 inherit autotools pkgconfig
 
+PACKAGECONFIG ?= ""
+
+PACKAGECONFIG[ipoe-health-check] = ",,,ipoe-health-check"
+
 # Fixme: It's not clear what FEATURE_802_1P_COS_MARKING is but the
 #        code doesn't build if this option is not enabled.
 
 CFLAGS += " \
     -DFEATURE_802_1P_COS_MARKING \
+    ${@bb.utils.contains('PACKAGECONFIG', 'ipoe-health-check', '-DFEATURE_IPOE_HEALTH_CHECK', '', d)} \
 "
 
 DATAMODEL_XML = "config/RdkWanManager.xml"
