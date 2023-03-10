@@ -22,6 +22,8 @@ CFLAGS += " \
     -I${STAGING_INCDIR}/trower-base64 \
 "
 
+DATAMODEL_XML = "config/TR181-MeshAgent.xml"
+
 do_install_append () {
 	install -d ${D}/usr/include/mesh
 	install -m 644 ${S}/source/include/*.h ${D}/usr/include/mesh/
@@ -32,7 +34,6 @@ do_install_append () {
 	install -d ${D}/usr/ccsp/mesh
 	install -m 644 ${S}/config/MeshAgent.cfg ${D}/usr/ccsp/mesh/
 	install -m 644 ${S}/config/MeshAgentDM.cfg ${D}/usr/ccsp/mesh/
-	install -m 644 ${S}/config/TR181-MeshAgent.xml ${D}/usr/ccsp/mesh/
 	install -m 755 ${S}/scripts/active_host_filter.sh ${D}/usr/ccsp/mesh/
 
 	ln -sf /usr/bin/meshAgent ${D}/usr/ccsp/mesh/meshAgent
