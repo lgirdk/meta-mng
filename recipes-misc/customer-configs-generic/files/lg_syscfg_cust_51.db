@@ -22,4 +22,3 @@ user_bridge_mode_allowed=false
 v4_PortScanProtect=0
 v6_PortScanProtect=0
 PPTPPassthrough=0
-prov_code_source=2
