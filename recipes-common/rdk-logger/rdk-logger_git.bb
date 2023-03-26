@@ -33,6 +33,10 @@ CFLAGS += "${@bb.utils.contains('PACKAGECONFIG', 'onboardlog', '-DFEATURE_SUPPOR
 do_use_rdkb_config_files() {
 	cp ${S}/rdkb_log4crc ${S}/log4crc
 	cp ${S}/rdkb_debug.ini ${S}/debug.ini
+
+	# log4c seems to have a memory leak related to handling comments in
+	# log4crc. Strip all comments as a workaround.
+	perl -0777 -pe 's/<!--.*?-->//gs' -i ${S}/log4crc
 }
 
 do_patch_append() {
