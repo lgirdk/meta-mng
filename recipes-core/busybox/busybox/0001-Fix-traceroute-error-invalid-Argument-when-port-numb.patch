@@ -1,0 +1,24 @@
+From 80b33c25528b07bc0026a40024e43ca15d60d16e Mon Sep 17 00:00:00 2001
+From: anil shetty <adshetty@libertyglobal.com>
+Date: Sun, 26 Mar 2023 21:11:49 -0700
+Subject: [PATCH] Fix traceroute error invalid Argument when port number
+ crosses 65535
+
+---
+ networking/traceroute.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/networking/traceroute.c b/networking/traceroute.c
+index b71c0b6..e44f0cd 100644
+--- a/networking/traceroute.c
++++ b/networking/traceroute.c
+@@ -1084,6 +1084,7 @@ common_traceroute_main(int op, char **argv)
+ 			if (probe != 0 && pausemsecs > 0)
+ 				usleep(pausemsecs * 1000);
+ 
++			if ((port + seq) == 65535) seq++;
+ 			send_probe(++seq, ttl);
+ 			t2 = t1 = monotonic_us();
+ 
+-- 
+2.7.4

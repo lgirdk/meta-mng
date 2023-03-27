@@ -45,6 +45,7 @@ SRC_URI = "https://busybox.net/downloads/busybox-${PV}.tar.bz2;name=tarball \
            file://0001-udhcp-add-parameters-4-7-54-100-122-to-DHCP_REQUEST-.patch \
            file://0001-libbb-sockaddr2str-ensure-only-printable-characters-.patch \
            file://0002-nslookup-sanitize-all-printed-strings-with-printable.patch \
+           file://0001-Fix-traceroute-error-invalid-Argument-when-port-numb.patch \
 "
 SRC_URI_append_libc-musl = " file://musl.cfg "
 
