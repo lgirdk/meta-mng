@@ -3,6 +3,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI += "file://dropbear_rsa_host_key \
             file://change-syslog-level-of-some-events.patch \
+            file://bind-to-device-support.patch \
 "
 
 INHIBIT_UPDATERCD_BBCLASS = "1"
