@@ -58,6 +58,7 @@ CFLAGS += " \
     ${@bb.utils.contains('DISTRO_FEATURES', 'meshwifi', '-DFEATURE_SUPPORT_MESH -DENABLE_FEATURE_MESHWIFI', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'moca', '-DCONFIG_SYSTEM_MOCA -DMOCA_HOME_ISOLATION', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'multilan', '-DMULTILAN_FEATURE', '', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'network_logs', '-DFEATURE_NETWORK_LOGS', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_telcovoice_manager', '-DFEATURE_RDKB_TELCOVOICE_MANAGER', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_auto_port_switch', '-DFEATURE_RDKB_AUTO_PORT_SWITCH', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_wan_manager', '-DFEATURE_RDKB_WAN_MANAGER -D_WAN_MANAGER_ENABLED_', '', d)} \
@@ -104,6 +105,7 @@ do_compile_prepend () {
 		    -e '/<?define DSLITE_FEATURE_SUPPORT=True?>/d' \
 		    -e '/<?define FEATURE_FWUPGRADE_MANAGER=True?>/d' \
 		    -e '/<?define FEATURE_SUPPORT_INTERWORKING=True?>/d' \
+		    -e '/<?define FEATURE_NETWORK_LOGS=True?>/d' \
 		    -e '/<?define FEATURE_RDKB_AUTO_PORT_SWITCH=True?>/d' \
 		    -e '/<?define FEATURE_RDKB_WAN_MANAGER=True?>/d' \
 		    -e '/<?define FEATURE_RDKB_WAN_UPSTREAM=True?>/d' \
@@ -114,6 +116,7 @@ do_compile_prepend () {
 			 ${@bb.utils.contains('DISTRO_FEATURES', 'dslite', 'DSLITE_FEATURE_SUPPORT', '', d)} \
 			 ${@bb.utils.contains('DISTRO_FEATURES', 'fwupgrade_manager', 'FEATURE_FWUPGRADE_MANAGER', '', d)} \
 			 ${@bb.utils.contains('DISTRO_FEATURES', 'interworking', 'FEATURE_SUPPORT_INTERWORKING', '', d)} \
+			 ${@bb.utils.contains('DISTRO_FEATURES', 'network_logs', 'FEATURE_NETWORK_LOGS', '', d)} \
 			 ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_auto_port_switch', 'FEATURE_RDKB_AUTO_PORT_SWITCH', '', d)} \
 			 ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_wan_manager', 'FEATURE_RDKB_WAN_MANAGER', '', d)} \
 			 ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_wan_upstream', 'FEATURE_RDKB_WAN_UPSTREAM', '', d)}
