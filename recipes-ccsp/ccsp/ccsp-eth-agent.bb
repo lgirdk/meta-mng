@@ -21,6 +21,7 @@ PACKAGECONFIG ?= "dropearly"
 PACKAGECONFIG[dropearly] = "--enable-dropearly,--disable-dropearly"
 
 CFLAGS += " \
+    -DETH_STATS_ENABLED \
     -I${STAGING_INCDIR}/utapi \
     -I${STAGING_INCDIR}/utctx \
 "
