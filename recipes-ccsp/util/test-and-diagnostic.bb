@@ -1,6 +1,6 @@
 SUMMARY = "CCSP Test and Diagnostic Utilities"
 LICENSE = "Apache-2.0"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=9c4d64ad248641f8dd76f69edff1c27a"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=06093b681f6d882a55e3bc222a02a988"
 
 require recipes-ccsp/ccsp/ccsp_common.inc
 
