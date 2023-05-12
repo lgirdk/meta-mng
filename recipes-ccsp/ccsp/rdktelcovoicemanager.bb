@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=175792518e4ac015ab6696d16c4f607e"
 
 require ccsp_common.inc
 
-DEPENDS += "utopia json-hal-lib libparodus wrp-c trower-base64 nanomsg libunpriv avro-c util-linux"
+DEPENDS += "utopia json-hal-lib libparodus wrp-c nanomsg libunpriv avro-c util-linux"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
