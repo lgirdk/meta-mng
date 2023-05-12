@@ -19,7 +19,6 @@ inherit autotools pkgconfig
 CFLAGS += " \
     -DENABLE_MESH_SOCKETS \
     -I${STAGING_INCDIR}/libparodus \
-    -I${STAGING_INCDIR}/trower-base64 \
 "
 
 DATAMODEL_XML = "config/TR181-MeshAgent.xml"
