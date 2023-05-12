@@ -19,10 +19,6 @@ inherit autotools pkgconfig systemd
 
 EXTRA_OECONF += "${@bb.utils.contains('DISTRO_FEATURES','systemd','--enable-notify','',d)}"
 
-CFLAGS += " \
-    -I${STAGING_INCDIR}/trower-base64 \
-"
-
 DATAMODEL_XML = "config-atom/TR181-WiFi-USGv2.XML"
 
 do_install_append () {
