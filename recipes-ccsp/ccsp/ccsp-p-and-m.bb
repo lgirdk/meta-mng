@@ -22,7 +22,6 @@ EXTRA_OECONF += "${@bb.utils.contains('DISTRO_FEATURES','systemd','--enable-noti
 CFLAGS += " \
     -I${STAGING_INCDIR}/msgpackc \
     -I${STAGING_INCDIR}/nanomsg \
-    -I${STAGING_INCDIR}/trower-base64 \
     -I${STAGING_INCDIR}/utapi \
     -I${STAGING_INCDIR}/utctx \
     -I${STAGING_INCDIR}/wrp-c \
