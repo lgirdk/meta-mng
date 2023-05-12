@@ -1,0 +1,29 @@
+From 7a9dff02588cd5e83ec892bb4c8645144fb3205b Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Thu, 11 May 2023 18:50:46 -0700
+Subject: [PATCH] create versioned shared library
+
+Fix recent regression.
+
+Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
+---
+ src/CMakeLists.txt | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 9c8e836..f3b5112 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -12,7 +12,8 @@ install (FILES
+          DESTINATION include/trower-base64)
+ 
+ set_target_properties(trower-base64 PROPERTIES
+-        OUTPUT_NAME trower-base64)
++        OUTPUT_NAME trower-base64
++        SOVERSION "1.0.0")
+ 
+ install(TARGETS trower-base64
+         RUNTIME DESTINATION bin
+-- 
+2.24.0
+
