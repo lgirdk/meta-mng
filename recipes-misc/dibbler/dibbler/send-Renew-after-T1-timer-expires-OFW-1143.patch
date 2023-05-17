@@ -1,4 +1,4 @@
-From 7c16fb3e412b5d4245bf0134f482f8441c9b9731 Mon Sep 17 00:00:00 2001
+From 2d86a7a504e7beef19a09d3faa98f1b609a2c092 Mon Sep 17 00:00:00 2001
 From: "qmai@libertyglobal.com" <qmai@libertyglobal.com>
 Date: Thu, 22 Apr 2021 20:37:44 +0000
 Subject: [PATCH] send Renew after T1 timer expires ( OFW 1143 )
@@ -13,7 +13,7 @@ v2
  2 files changed, 16 insertions(+), 2 deletions(-)
 
 diff --git a/ClntMessages/ClntMsgRequest.cpp b/ClntMessages/ClntMsgRequest.cpp
-index 9ae14132..18f4acb2 100644
+index db9ac40c..5d30e099 100644
 --- a/ClntMessages/ClntMsgRequest.cpp
 +++ b/ClntMessages/ClntMsgRequest.cpp
 @@ -62,8 +62,9 @@ TClntMsgRequest::TClntMsgRequest(TOptList opts, int iface)
@@ -28,7 +28,7 @@ index 9ae14132..18f4acb2 100644
  
      // copy whole list from SOLICIT ...
      Options = opts;
-@@ -205,6 +206,12 @@ void TClntMsgRequest::doDuties()
+@@ -209,6 +210,12 @@ void TClntMsgRequest::doDuties()
      // timeout is reached and we still don't have answer, retransmit
      if (RC>MRC) 
      {
@@ -42,10 +42,10 @@ index 9ae14132..18f4acb2 100644
  
          IsDone = true;
 diff --git a/ClntMessages/ClntMsgSolicit.cpp b/ClntMessages/ClntMsgSolicit.cpp
-index 06be83f0..67af02ff 100644
+index 6ace86e8..9f77f293 100644
 --- a/ClntMessages/ClntMsgSolicit.cpp
 +++ b/ClntMessages/ClntMsgSolicit.cpp
-@@ -109,6 +109,13 @@ TClntMsgSolicit::TClntMsgSolicit(int iface, SPtr<TIPv6Addr> addr,
+@@ -112,6 +112,13 @@ TClntMsgSolicit::TClntMsgSolicit(int iface, SPtr<TIPv6Addr> addr,
      appendAuthenticationOption();
      
      IsDone = false;

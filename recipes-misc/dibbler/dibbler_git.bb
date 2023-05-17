@@ -11,26 +11,25 @@ PV = "1.0.1+1.0.2RC1+git${SRCPV}"
 SRCREV = "a7c6cf58a88a510cb00841351e75030ce78d36bf"
 
 SRC_URI = "git://github.com/tomaszmrugalski/dibbler \
-           file://dibbler_fix_getSize_crash.patch \
-           file://dibbler_crash_fix.patch \
+           file://fix-getSize-crash-add-debug-etc.patch \
            file://avoid-crash-in-delete_radvd_conf.patch \
            file://fix-misguided-and-broken-usage-of-clock_gettime-CLOC.patch \
            file://add-client-support-for-SOL_MAX_RT-option.patch \
            file://client-notify-prefix-expiry-event.patch \
-           file://RFC-3315-Fix-unicast-request-and-client-IANA-options.patch \
-           file://incorrect-dynamic_cast-to-TOptVendorData.patch \
-           file://dhcpdeclinereply_add_global_statuscode.patch \
+           file://incorrect-dynamic_cast-from-TOptVendorSpecInfo-to-TO.patch \
+           file://rfc3315-fix-unicast-request-and-client-IANA-options.patch \
+           file://rfc3315-add-global-statuscode-to-dhcpdeclinereply.patch \
            file://rfc3315-validate-renew-rebind-addr-req.patch \
            file://rfc3315-verify-renew-rebind-full-addr.patch \
            file://fix-options-IA_NA-and-IA_PD-are-not-received-with-so.patch \
            file://send-Renew-after-T1-timer-expires-OFW-1143.patch \
            file://rfc8415-new-binding-in-renew-reply.patch \
-           file://requestSentInsteadOfRenew-OFW-1791.patch \
+           file://fix-request-sent-instead-of-renew-OFW-1791.patch \
            file://dibbler-add-ipv6-host-addr.patch \
            file://save-client-option-list-to-the-dB.patch \
            file://send-NotOnLink-when-client-sends-Request-with-invali.patch \
            file://fix-crash-in-add_radvd_conf.patch \
-           file://fix-IPv6-Address-Prefix-Release-messages.patch \
+           file://fix-IPv6-Address-Prefix-Release-messages-OFW-3365.patch \
            file://updating-server-cache-for-CONFIRM-message.patch \
 "
 

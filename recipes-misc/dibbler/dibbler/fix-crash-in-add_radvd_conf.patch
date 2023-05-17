@@ -1,10 +1,11 @@
-From 3a0895f790646a07080cdeed1efca92376a07b26 Mon Sep 17 00:00:00 2001
+From c13ac638b7704685c2e351b0775ca70f6342b9d6 Mon Sep 17 00:00:00 2001
 From: Cibil <cpankiras.contractor@libertyglobal.com>
 Date: Tue, 3 May 2022 11:56:37 +0200
-Subject: [PATCH] fix the crash in add_radvd_conf()
+Subject: [PATCH] fix crash in add_radvd_conf()
 
-If /etc/dibbler/radvd.conf is a symlink and if it is broken (error: Too many levels of symbolic links)
-then fopen() with "w" will fail and writing to this file will lead to a crash.
+If /etc/dibbler/radvd.conf is a symlink and if it is broken
+(error: Too many levels of symbolic links) then fopen() with "w"
+will fail and writing to this file will lead to a crash.
 
 As a fix, return from add_radvd_conf() if fopen() fails.
 
@@ -14,7 +15,7 @@ Signed-off-by: Cibil <cpankiras.contractor@libertyglobal.com>
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/Port-linux/lowlevel-options-linux.c b/Port-linux/lowlevel-options-linux.c
-index c1350ee..91ebd77 100644
+index c1350ee6..91ebd77d 100644
 --- a/Port-linux/lowlevel-options-linux.c
 +++ b/Port-linux/lowlevel-options-linux.c
 @@ -458,15 +458,15 @@ void add_radvd_conf(const char* ifname, const char* prefixPlain, int prefixLengt
@@ -38,5 +39,5 @@ index c1350ee..91ebd77 100644
  
      fprintf(f, "\n### %s start ###\n", ifname);
 -- 
-2.17.1
+2.24.0
 

@@ -1,5 +1,14 @@
+From 2b468a4fe9eff982fe65a56f33b2956a5aa80fa5 Mon Sep 17 00:00:00 2001
+From: BijeeshaVS <bvattakaithayilsudha.contractor@libertyglobal.com>
+Date: Wed, 12 May 2021 12:32:06 +0200
+Subject: [PATCH] rfc3315: add global statuscode to dhcpdeclinereply()
+
+---
+ SrvMessages/SrvMsgReply.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
 diff --git a/SrvMessages/SrvMsgReply.cpp b/SrvMessages/SrvMsgReply.cpp
-index d40dd32..1b3b261 100644
+index d40dd32e..1b3b261d 100644
 --- a/SrvMessages/SrvMsgReply.cpp
 +++ b/SrvMessages/SrvMsgReply.cpp
 @@ -208,6 +208,12 @@ TSrvMsgReply::TSrvMsgReply(SPtr<TSrvMsgDecline> decline)
@@ -15,3 +24,6 @@ index d40dd32..1b3b261 100644
      decline->firstOption();
      while (ptrOpt = decline->getOption() )
      {
+-- 
+2.24.0
+

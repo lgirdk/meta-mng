@@ -1,0 +1,64 @@
+From bcc345192e3886e0903ada5bb18ef24514980343 Mon Sep 17 00:00:00 2001
+From: Andre McCurdy <armccurdy@gmail.com>
+Date: Fri, 30 Aug 2019 15:10:52 -0700
+Subject: [PATCH] fix getSize() crash, add debug, etc
+
+---
+ ClntMessages/ClntMsgRequest.cpp |  8 ++++++--
+ Messages/Msg.cpp                | 10 +++++++++-
+ 2 files changed, 15 insertions(+), 3 deletions(-)
+
+diff --git a/ClntMessages/ClntMsgRequest.cpp b/ClntMessages/ClntMsgRequest.cpp
+index 9ae14132..db9ac40c 100644
+--- a/ClntMessages/ClntMsgRequest.cpp
++++ b/ClntMessages/ClntMsgRequest.cpp
+@@ -142,7 +142,9 @@ TClntMsgRequest::TClntMsgRequest(List(TAddrIA) IAs,
+     IsDone=false;
+     SPtr<TOpt> ptr;
+     ptr = new TOptDUID(OPTION_CLIENTID, ClntCfgMgr().getDUID(), this );
+-    Options.push_back( ptr );
++    if (ptr) {
++        Options.push_back( ptr );
++    }
+ 
+     if (!srvDUID) {
+ 	Log(Error) << "Unable to send REQUEST: ServerId not specified.\n" << LogEnd;
+@@ -153,7 +155,9 @@ TClntMsgRequest::TClntMsgRequest(List(TAddrIA) IAs,
+     ptr = new TOptDUID(OPTION_SERVERID, srvDUID,this);
+     // all IAs provided by checkSolicit
+     SPtr<TAddrIA> ClntAddrIA;
+-    Options.push_back( ptr );
++    if (ptr) {
++        Options.push_back( ptr );
++    }
+ 	
+     IAs.first();
+     while (ClntAddrIA = IAs.get()) 
+diff --git a/Messages/Msg.cpp b/Messages/Msg.cpp
+index 00f887a7..394d6f8b 100644
+--- a/Messages/Msg.cpp
++++ b/Messages/Msg.cpp
+@@ -68,11 +68,19 @@ void TMsg::setAttribs(int iface, SPtr<TIPv6Addr> addr, int msgType, long transID
+ int TMsg::getSize()
+ {
+     int pktsize=0;
++    int optionCount = 0;
+     TOptList::iterator opt;
+     for (opt = Options.begin(); opt!=Options.end(); ++opt)
+     {
+-	pktsize += (*opt)->getSize();
++        Log(Info) << "### CPE Debug - Option with index " << optionCount++ << LogEnd ;
++        if ((*opt) != NULL)
++        {
++            Log(Info) << "### CPE Debug - Option with type  " << (*opt)->getOptType() << LogEnd ;
++            pktsize += (*opt)->getSize();
++        }
+     }
++    Log(Info) << "### CPE Debug - Packet size of option (Add 4) " << pktsize << LogEnd ;
++
+     return pktsize + 4;
+ }
+ 
+-- 
+2.24.0
+

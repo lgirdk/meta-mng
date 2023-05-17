@@ -1,5 +1,15 @@
+From 03841a603bb13a62474ab9c159f20dcf23dc10aa Mon Sep 17 00:00:00 2001
+From: BijeeshaVS <bvattakaithayilsudha.contractor@libertyglobal.com>
+Date: Tue, 31 Aug 2021 20:48:17 +0200
+Subject: [PATCH] dibbler add ipv6 host addr
+
+---
+ SrvAddrMgr/SrvAddrMgr.cpp   | 24 ++++++++++++++++++++++++
+ SrvMessages/SrvMsgReply.cpp |  7 +++++++
+ 2 files changed, 31 insertions(+)
+
 diff --git a/SrvAddrMgr/SrvAddrMgr.cpp b/SrvAddrMgr/SrvAddrMgr.cpp
-index b2073e1..826d96b 100644
+index b2073e1d..826d96bd 100644
 --- a/SrvAddrMgr/SrvAddrMgr.cpp
 +++ b/SrvAddrMgr/SrvAddrMgr.cpp
 @@ -117,6 +117,30 @@ bool TSrvAddrMgr::addClntAddr(SPtr<TDUID> clntDuid , SPtr<TIPv6Addr> clntAddr,
@@ -34,7 +44,7 @@ index b2073e1..826d96b 100644
          Log(Debug) << "Adding " << ptrAddr->get()->getPlain()
                     << " to IA (IAID=" << IAID << ") to addrDB." << LogEnd;
 diff --git a/SrvMessages/SrvMsgReply.cpp b/SrvMessages/SrvMsgReply.cpp
-index 1b3b261..2093282 100644
+index 1b3b261d..2093282a 100644
 --- a/SrvMessages/SrvMsgReply.cpp
 +++ b/SrvMessages/SrvMsgReply.cpp
 @@ -45,6 +45,13 @@ TSrvMsgReply::TSrvMsgReply(SPtr<TSrvMsgConfirm> confirm)
@@ -51,3 +61,6 @@ index 1b3b261..2093282 100644
      if (!handleConfirmOptions( confirm->getOptLst() )) {
          IsDone = true;
          return;
+-- 
+2.24.0
+

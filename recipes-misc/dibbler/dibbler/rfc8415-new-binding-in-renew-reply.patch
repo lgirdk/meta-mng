@@ -1,10 +1,10 @@
-From 9558cda35b37351c311de6a5dc533ac573ebfc3a Mon Sep 17 00:00:00 2001
+From ee120483cdb569da90b3ed918695907a78310c64 Mon Sep 17 00:00:00 2001
 From: Tarun Saha <tsaha@libertyglobal.com>
 Date: Tue, 3 Aug 2021 06:38:20 -0700
-Subject: [PATCH 1/1] rfc8415-new-binding-in-renew-reply
+Subject: [PATCH] rfc8415: new binding in renew reply
 
 1. Fix for RFC-4815 scenario where server sends new binding in response
-to Renew message.
+   to Renew message.
 2. Fix added to execute RDK-B notifyScript with correct parameters.
 ---
  AddrMgr/AddrMgr.cpp   | 21 ++++++++++++++++++---
@@ -84,5 +84,5 @@ index 47266161..63f013b0 100644
                  }
                  params.addPrefix(prefix->getPrefix(),
 -- 
-2.17.1
+2.24.0
 

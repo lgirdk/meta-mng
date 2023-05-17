@@ -1,7 +1,7 @@
-From 26541f4b431c0c7a85b60bb0dc4e077ee93b0dde Mon Sep 17 00:00:00 2001
+From c8fb7d88411ddd827071dec851dae15a3c6bfc5f Mon Sep 17 00:00:00 2001
 From: Tarun Saha <tsaha@libertyglobal.com>
 Date: Wed, 3 Mar 2021 06:55:33 -0800
-Subject: [PATCH 1/1] Incorrect dynamic_cast from TOptVendorSpecInfo to
+Subject: [PATCH] incorrect dynamic_cast from TOptVendorSpecInfo to
  TOptVendorData
 
 ---
@@ -22,5 +22,5 @@ index 71fccd38..00d0339a 100644
              break;
          }
 -- 
-2.17.1
+2.24.0
 

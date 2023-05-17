@@ -1,4 +1,4 @@
-From 728d731a4479812b41f10f51fe0a062fa2447abd Mon Sep 17 00:00:00 2001
+From 780b9698ad4f8bb9f873e11241da73c40af2f58d Mon Sep 17 00:00:00 2001
 From: Andre McCurdy <armccurdy@gmail.com>
 Date: Wed, 2 Feb 2022 21:13:02 -0800
 Subject: [PATCH] send NotOnLink when client sends Request with invalid link
@@ -13,10 +13,10 @@ Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
  4 files changed, 111 insertions(+)
 
 diff --git a/SrvAddrMgr/SrvAddrMgr.cpp b/SrvAddrMgr/SrvAddrMgr.cpp
-index b2073e1d..ec67887d 100644
+index 0bd58374..8e95acbf 100644
 --- a/SrvAddrMgr/SrvAddrMgr.cpp
 +++ b/SrvAddrMgr/SrvAddrMgr.cpp
-@@ -193,6 +193,57 @@ bool TSrvAddrMgr::delClntAddr(SPtr<TDUID> clntDuid, unsigned long IAID,
+@@ -267,6 +267,57 @@ bool TSrvAddrMgr::delClntAddr(SPtr<TDUID> clntDuid, unsigned long IAID,
      return true;
  }
  
@@ -75,10 +75,10 @@ index b2073e1d..ec67887d 100644
   * @brief adds TA address to AddrMgr
   *
 diff --git a/SrvAddrMgr/SrvAddrMgr.h b/SrvAddrMgr/SrvAddrMgr.h
-index e86d9be4..6d9a871a 100644
+index 3e97960e..26aabccd 100644
 --- a/SrvAddrMgr/SrvAddrMgr.h
 +++ b/SrvAddrMgr/SrvAddrMgr.h
-@@ -50,6 +50,7 @@ class TSrvAddrMgr : public TAddrMgr
+@@ -54,6 +54,7 @@ class TSrvAddrMgr : public TAddrMgr
                       bool quiet);
      bool delClntAddr(SPtr<TDUID> duid,unsigned long IAID, SPtr<TIPv6Addr> addr,
                       bool quiet);
@@ -87,7 +87,7 @@ index e86d9be4..6d9a871a 100644
  
      // TA address management
 diff --git a/SrvOptions/SrvOptIA_NA.cpp b/SrvOptions/SrvOptIA_NA.cpp
-index b9d456f5..dc51abfb 100644
+index df81f0c4..c8102675 100644
 --- a/SrvOptions/SrvOptIA_NA.cpp
 +++ b/SrvOptions/SrvOptIA_NA.cpp
 @@ -119,6 +119,10 @@ TSrvOptIA_NA::TSrvOptIA_NA(SPtr<TSrvOptIA_NA> queryOpt, SPtr<TSrvMsg> queryMsg,
@@ -101,7 +101,7 @@ index b9d456f5..dc51abfb 100644
      // --- LEASE ASSIGN STEP 3: check if client already has binding
      if (renew(queryOpt, false)) {
        Log(Info) << "Previous binding for client " << ClntDuid->getPlain() << ", IA(iaid="
-@@ -312,6 +316,60 @@ bool TSrvOptIA_NA::assignFixedLease(SPtr<TSrvOptIA_NA> req, bool quiet) {
+@@ -317,6 +321,60 @@ bool TSrvOptIA_NA::assignFixedLease(SPtr<TSrvOptIA_NA> req, bool quiet) {
      return true;
  }
  
@@ -163,7 +163,7 @@ index b9d456f5..dc51abfb 100644
      SPtr<TOpt> opt;
      SPtr<TIPv6Addr> addr;
 diff --git a/SrvOptions/SrvOptIA_NA.h b/SrvOptions/SrvOptIA_NA.h
-index 4a765361..8a1ffe79 100644
+index 5b8fb50a..64f6f85e 100644
 --- a/SrvOptions/SrvOptIA_NA.h
 +++ b/SrvOptions/SrvOptIA_NA.h
 @@ -48,6 +48,7 @@ class TSrvOptIA_NA : public TOptIA_NA

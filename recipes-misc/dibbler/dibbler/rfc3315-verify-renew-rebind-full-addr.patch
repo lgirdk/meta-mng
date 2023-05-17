@@ -1,7 +1,7 @@
-From 3bb3181e4de7771565694b9552cb841e3f8cbc4f Mon Sep 17 00:00:00 2001
+From 849848ce15ee8ed084631e72fedf56659ff4966a Mon Sep 17 00:00:00 2001
 From: Suresh Putta <suputta@libertyglobal.com>
 Date: Tue, 25 May 2021 18:31:00 -0700
-Subject: [PATCH 2/2] rfc3315 verify renew,rebind full addr
+Subject: [PATCH] rfc3315: verify renew, rebind full addr
 
 ---
  SrvOptions/SrvOptIA_NA.cpp | 14 ++------------
@@ -54,5 +54,5 @@ index 9f8fa8ad..2a6499ea 100644
 \ No newline at end of file
 +}
 -- 
-2.17.1
+2.24.0
 

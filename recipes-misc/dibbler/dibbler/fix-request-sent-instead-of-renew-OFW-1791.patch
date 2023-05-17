@@ -1,5 +1,16 @@
+From a8e4cbdea57191f8e89b8889e7d7c9ba37e8d059 Mon Sep 17 00:00:00 2001
+From: mkamat <mkamat@libertyglobal.com>
+Date: Tue, 17 Aug 2021 15:41:06 -0700
+Subject: [PATCH] fix request sent instead of renew ( OFW-1791 )
+
+---
+ ClntMessages/ClntMsgRequest.cpp | 7 +++++--
+ ClntMessages/ClntMsgRequest.h   | 2 +-
+ ClntTransMgr/ClntTransMgr.cpp   | 7 +++++--
+ 3 files changed, 11 insertions(+), 5 deletions(-)
+
 diff --git a/ClntMessages/ClntMsgRequest.cpp b/ClntMessages/ClntMsgRequest.cpp
-index 91e72a03..ec994fad 100644
+index 5d30e099..a1d9059f 100644
 --- a/ClntMessages/ClntMsgRequest.cpp
 +++ b/ClntMessages/ClntMsgRequest.cpp
 @@ -31,7 +31,7 @@
@@ -11,7 +22,7 @@ index 91e72a03..ec994fad 100644
      :TClntMsg(iface, SPtr<TIPv6Addr>(), REQUEST_MSG) {
      IRT = REQ_TIMEOUT;
      MRT = REQ_MAX_RT;
-@@ -123,7 +123,10 @@ TClntMsgRequest::TClntMsgRequest(TOptList opts, int iface)
+@@ -127,7 +127,10 @@ TClntMsgRequest::TClntMsgRequest(TOptList opts, int iface)
      appendElapsedOption();
      appendAuthenticationOption();
      IsDone = false;
@@ -54,3 +65,6 @@ index 55180e9e..1783ac6c 100644
  }
  
  void TClntTransMgr::sendRenew()
+-- 
+2.24.0
+

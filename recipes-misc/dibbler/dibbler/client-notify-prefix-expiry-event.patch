@@ -1,7 +1,7 @@
-From c459b4f7a608cb9f1780091d9360da6c46a75075 Mon Sep 17 00:00:00 2001
+From 05bdc66922ea660848ffa79c27a828b8a392490b Mon Sep 17 00:00:00 2001
 From: Tarun Saha <tsaha@libertyglobal.com>
 Date: Wed, 20 Jan 2021 13:33:42 -0800
-Subject: [PATCH 1/1] client-notify-prefix-expiry-event
+Subject: [PATCH] client notify prefix expiry event
 
 ---
  ClntIfaceMgr/ClntIfaceMgr.cpp | 34 ++++++++++++++++++++++++++++++++--
@@ -75,5 +75,5 @@ index ea24751e..d278c002 100644
  
      static TClntIfaceMgr* Instance;
 -- 
-2.17.1
+2.24.0
 
