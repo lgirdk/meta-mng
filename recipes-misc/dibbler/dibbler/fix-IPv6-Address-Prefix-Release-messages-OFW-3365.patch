@@ -1,4 +1,4 @@
-From c59f3eebf2eeeb73431300b8ab488b57ae555907 Mon Sep 17 00:00:00 2001
+From 4b7a4c872b482e807157e4d49399773580b7c0cc Mon Sep 17 00:00:00 2001
 From: Tarun Saha <tsaha@libertyglobal.com>
 Date: Thu, 29 Sep 2022 18:08:36 -0700
 Subject: [PATCH] fix IPv6 Address/Prefix Release messages ( OFW-3365 )
@@ -110,10 +110,10 @@ index 5f480080..643c3c6b 100644
      long IRT;           // Initial Retransmission Time
      long MRT;           // Maximum Retransmission Time
 diff --git a/ClntMessages/ClntMsgRebind.cpp b/ClntMessages/ClntMsgRebind.cpp
-index fe5f82f4..7f80b5e0 100644
+index 53bd769b..12f84698 100644
 --- a/ClntMessages/ClntMsgRebind.cpp
 +++ b/ClntMessages/ClntMsgRebind.cpp
-@@ -72,6 +72,18 @@ TClntMsgRebind::TClntMsgRebind(TOptList ptrOpts, int iface)
+@@ -73,6 +73,18 @@ TClntMsgRebind::TClntMsgRebind(TOptList ptrOpts, int iface)
  
  void TClntMsgRebind::answer(SPtr<TClntMsg> Reply)
  {

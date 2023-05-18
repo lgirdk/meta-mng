@@ -1,4 +1,4 @@
-From a8e4cbdea57191f8e89b8889e7d7c9ba37e8d059 Mon Sep 17 00:00:00 2001
+From 71d244d19ae35764fcb56f74f66bfb4c39cc8189 Mon Sep 17 00:00:00 2001
 From: mkamat <mkamat@libertyglobal.com>
 Date: Tue, 17 Aug 2021 15:41:06 -0700
 Subject: [PATCH] fix request sent instead of renew ( OFW-1791 )
@@ -48,10 +48,10 @@ index 9bc973de..771bf10f 100644
                      SPtr<TDUID> srvDUID,
                      int iface);
 diff --git a/ClntTransMgr/ClntTransMgr.cpp b/ClntTransMgr/ClntTransMgr.cpp
-index 55180e9e..1783ac6c 100644
+index 6994b64f..a02db47e 100644
 --- a/ClntTransMgr/ClntTransMgr.cpp
 +++ b/ClntTransMgr/ClntTransMgr.cpp
-@@ -798,8 +798,11 @@ void TClntTransMgr::sendRequest(TOptList requestOptions, int iface)
+@@ -802,8 +802,11 @@ void TClntTransMgr::sendRequest(TOptList requestOptions, int iface)
  	    (*opt)->getOptType() == OPTION_AUTH)
              opt = requestOptions.erase(opt);
      }

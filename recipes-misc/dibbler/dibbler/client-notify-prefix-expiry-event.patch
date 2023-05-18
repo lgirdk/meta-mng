@@ -1,4 +1,4 @@
-From 05bdc66922ea660848ffa79c27a828b8a392490b Mon Sep 17 00:00:00 2001
+From aac75758d8f9925178c3f1d30ca6cb013b4014c1 Mon Sep 17 00:00:00 2001
 From: Tarun Saha <tsaha@libertyglobal.com>
 Date: Wed, 20 Jan 2021 13:33:42 -0800
 Subject: [PATCH] client notify prefix expiry event
@@ -9,7 +9,7 @@ Subject: [PATCH] client notify prefix expiry event
  2 files changed, 35 insertions(+), 2 deletions(-)
 
 diff --git a/ClntIfaceMgr/ClntIfaceMgr.cpp b/ClntIfaceMgr/ClntIfaceMgr.cpp
-index fb598c36..52105814 100644
+index c535c997..5f71ed2f 100644
 --- a/ClntIfaceMgr/ClntIfaceMgr.cpp
 +++ b/ClntIfaceMgr/ClntIfaceMgr.cpp
 @@ -453,6 +453,32 @@ int TClntIfaceMgr::numBits(int i) {
@@ -45,7 +45,7 @@ index fb598c36..52105814 100644
  bool TClntIfaceMgr::modifyPrefix(int iface, SPtr<TIPv6Addr> prefix, int prefixLen,
                                   unsigned int pref, unsigned int valid,
                                   PrefixModifyMode mode,
-@@ -621,8 +647,12 @@ bool TClntIfaceMgr::modifyPrefix(int iface, SPtr<TIPv6Addr> prefix, int prefixLe
+@@ -628,8 +654,12 @@ bool TClntIfaceMgr::modifyPrefix(int iface, SPtr<TIPv6Addr> prefix, int prefixLe
                                      subprefixLen, pref, valid);
              break;
          case PREFIX_MODIFY_DEL:

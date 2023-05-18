@@ -8,12 +8,11 @@ DEPENDS = "flex-native"
 
 PV = "1.0.1+1.0.2RC1+git${SRCPV}"
 
-SRCREV = "a7c6cf58a88a510cb00841351e75030ce78d36bf"
+SRCREV = "d533f29419c770f4c417f064ca9d2c091d397d66"
 
 SRC_URI = "git://github.com/tomaszmrugalski/dibbler \
            file://fix-getSize-crash-add-debug-etc.patch \
            file://avoid-crash-in-delete_radvd_conf.patch \
-           file://fix-misguided-and-broken-usage-of-clock_gettime-CLOC.patch \
            file://add-client-support-for-SOL_MAX_RT-option.patch \
            file://client-notify-prefix-expiry-event.patch \
            file://incorrect-dynamic_cast-from-TOptVendorSpecInfo-to-TO.patch \
