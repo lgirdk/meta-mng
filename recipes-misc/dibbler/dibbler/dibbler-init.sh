@@ -19,25 +19,26 @@ if [ -f /etc/device.properties ];then
 . /etc/device.properties
 fi
 
-
-## Function: removeIfNotLink
-removeIfNotLink()
-{
-   if [ ! -h $1 ] ; then
-        echo "Removing $1"
-        rm -rf $1
-   fi
-}
+fd=200
+lockFile="/var/lock/$(basename $0)"
+eval exec "$fd"'>"$lockFile"'
+flock "$fd"
+(
 
 echo "TLV_IP_MODE: IPv6 Mode..!"
-
-removeIfNotLink /var/lib/dibbler
 
 mkdir -p /var/lib/dibbler
 #/var/lib/dibbler is dibbler's default workdir
 #but service_dhcpv6_client.sh looks vor client.pid in /tmp/dibbler 
-ln -s  /var/lib/dibbler /tmp/dibbler 
-touch /var/lib/dibbler/client.sh-log
+
+if [ ! -h "/tmp/dibbler" ]; then
+    rm -rf /tmp/dibbler
+    ln -s  /var/lib/dibbler /tmp/dibbler
+fi
+
+if [ ! -f "/var/lib/dibbler/client.sh-log" ]; then
+    touch /var/lib/dibbler/client.sh-log
+fi
 #client-notify can be read-only -> "script /etc/dibbler/client-notify.sh" in client.conf
 #cp /etc/dibbler/client-notify.sh /var/lib/dibbler/
 
@@ -58,6 +59,6 @@ echo > /tmp/dibbler/radvd.conf.old
 if [ -f /lib/rdk/prepare_dhcpv6_config.sh ]; then
    /lib/rdk/prepare_dhcpv6_config.sh
 fi
-
+)
 exit 0
 
