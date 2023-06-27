@@ -104,6 +104,7 @@ do_compile_prepend () {
 		    -e '/<?define DDNS_BROADBANDFORUM=True?>/d' \
 		    -e '/<?define DSLITE_FEATURE_SUPPORT=True?>/d' \
 		    -e '/<?define FEATURE_FWUPGRADE_MANAGER=True?>/d' \
+		    -e '/<?define FEATURE_IPOE_HEALTH_CHECK=True?>/d' \
 		    -e '/<?define FEATURE_SUPPORT_INTERWORKING=True?>/d' \
 		    -e '/<?define FEATURE_NETWORK_LOGS=True?>/d' \
 		    -e '/<?define FEATURE_RDKB_AUTO_PORT_SWITCH=True?>/d' \
@@ -115,6 +116,7 @@ do_compile_prepend () {
 			 ${@bb.utils.contains('DISTRO_FEATURES', 'ddns_broadband', 'DDNS_BROADBANDFORUM', '', d)} \
 			 ${@bb.utils.contains('DISTRO_FEATURES', 'dslite', 'DSLITE_FEATURE_SUPPORT', '', d)} \
 			 ${@bb.utils.contains('DISTRO_FEATURES', 'fwupgrade_manager', 'FEATURE_FWUPGRADE_MANAGER', '', d)} \
+			 ${@bb.utils.contains('DISTRO_FEATURES', 'gpon', 'FEATURE_IPOE_HEALTH_CHECK', '', d)} \
 			 ${@bb.utils.contains('DISTRO_FEATURES', 'interworking', 'FEATURE_SUPPORT_INTERWORKING', '', d)} \
 			 ${@bb.utils.contains('DISTRO_FEATURES', 'network_logs', 'FEATURE_NETWORK_LOGS', '', d)} \
 			 ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_auto_port_switch', 'FEATURE_RDKB_AUTO_PORT_SWITCH', '', d)} \
