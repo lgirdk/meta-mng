@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=baa21dec03307f641a150889224a157f"
 
 require recipes-ccsp/ccsp/ccsp_common.inc
 
-DEPENDS += "hal-ethsw hal-platform telemetry cjson nanomsg libevent libnetfilter-queue libsyswrapper libupnp"
+DEPENDS += "hal-ethsw hal-platform telemetry nanomsg libevent libnetfilter-queue libsyswrapper libupnp"
 DEPENDS += "${@bb.utils.contains('DISTRO_FEATURES','core-net-lib','core-net-lib','',d)}"
 
 # Utopia needs an RPC library in order to support IPC between the ARM and Atom
