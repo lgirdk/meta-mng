@@ -19,6 +19,7 @@ echo "-----------" >> $LOGFILE
 
 PREV_PREFIX=`sysevent get wan6_prefix`
 PREV_PREFIXLEN=`sysevent get wan6_prefixlen`
+PREV_AFTR=`sysevent get dslite_dhcpv6_endpointname`
 
 # Handle prefix expire event
 if [ "$PREFIX1" != "" ]; then
@@ -387,10 +388,12 @@ if [ "$SRV_OPTION64" != "" ]; then
     SYSEVENT_SET_CMD+=(dslite_dhcpv6_endpointname=$SRV_OPTION64)
     SYSEVENT_SET_CMD+=(dslite_option64-status=received)
     echo "DHCP DS-Lite Option 64 received value: $SRV_OPTION64" >> $LOGFILE
-else
+elif [ "$SRV_OPTION64" == "" ] && [ "$PREV_AFTR=" == "" ]; then
     SYSEVENT_SET_CMD+=(dslite_dhcpv6_endpointname=)
     SYSEVENT_SET_CMD+=(dslite_option64-status="not received")
     echo "DHCP DS-Lite Option 64 not received" >> $LOGFILE
+else
+    echo "DHCP DSLite Option 64 not received" >> $LOGFILE
 fi
 
 # Option 56 suboption 1 is NTP server IPv6 address ( NTP_SUBOPTION_SRV_ADDR )
