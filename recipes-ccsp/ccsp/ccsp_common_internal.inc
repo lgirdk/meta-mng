@@ -63,6 +63,7 @@ CFLAGS += " \
     ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_wan_manager', '-DFEATURE_RDKB_WAN_MANAGER -D_WAN_MANAGER_ENABLED_', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_wan_upstream', '-DFEATURE_RDKB_WAN_UPSTREAM', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'core-net-lib', '-DCORE_NET_LIB', '', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'static_ipv4', '-DFEATURE_STATIC_IPV4', '', d)} \
 "
 
 CFLAGS += "-DSAFEC_DUMMY_API"
@@ -109,6 +110,7 @@ do_compile_prepend () {
 		    -e '/<?define FEATURE_RDKB_AUTO_PORT_SWITCH=True?>/d' \
 		    -e '/<?define FEATURE_RDKB_WAN_MANAGER=True?>/d' \
 		    -e '/<?define FEATURE_RDKB_WAN_UPSTREAM=True?>/d' \
+		    -e '/<?define FEATURE_STATIC_IPV4=True?>/d' \
 		    -i ${S}/${DATAMODEL_XML}
 
 		for f in ${@bb.utils.contains('DISTRO_FEATURES', 'autowan', 'AUTOWAN_ENABLE', '', d)} \
@@ -120,7 +122,8 @@ do_compile_prepend () {
 			 ${@bb.utils.contains('DISTRO_FEATURES', 'network_logs', 'FEATURE_NETWORK_LOGS', '', d)} \
 			 ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_auto_port_switch', 'FEATURE_RDKB_AUTO_PORT_SWITCH', '', d)} \
 			 ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_wan_manager', 'FEATURE_RDKB_WAN_MANAGER', '', d)} \
-			 ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_wan_upstream', 'FEATURE_RDKB_WAN_UPSTREAM', '', d)}
+			 ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_wan_upstream', 'FEATURE_RDKB_WAN_UPSTREAM', '', d)} \
+			 ${@bb.utils.contains('DISTRO_FEATURES', 'static_ipv4', 'FEATURE_STATIC_IPV4', '', d)} 
 		do
 			sed "2i <?define $f=True?>" -i ${S}/${DATAMODEL_XML}
 		done
