@@ -91,6 +91,9 @@ do_install() {
 
 	echo "WAN_TYPE=DOCSIS" >> ${D}${sysconfdir}/device.properties
 
+	# This value is related to the size of the /rdklogs tmpfs partition
+	echo "LOG_UPLOAD_THRESHOLD=28000" >> ${D}${sysconfdir}/device.properties
+
 	install -m 644 ${S}/logFiles.properties ${D}${sysconfdir}/
 	install -m 644 ${S}/etc/dcm.properties ${D}${sysconfdir}/
 	install -m 644 ${S}/etc/include.properties ${D}${sysconfdir}/

@@ -5,6 +5,6 @@ tmpfs           /run            tmpfs   mode=0755,nodev,nosuid,strictatime      
 tmpfs           /tmp            tmpfs   defaults                                0 0
 tmpfs           /var            tmpfs   defaults                                0 0
 
-tmpfs           /rdklogs        tmpfs   defaults,nodev,nosuid,noexec,size=10M   0 0
+tmpfs           /rdklogs        tmpfs   defaults,nodev,nosuid,noexec,size=30M   0 0
 tmpfs           /minidumps      tmpfs   defaults,nodev,nosuid,noexec,size=2M    0 0
 tmpfs           /telemetry      tmpfs   defaults,nodev,nosuid,noexec,size=2M    0 0
