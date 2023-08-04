@@ -17,4 +17,6 @@ done
 
 killall5 -TERM
 sleep 5
+exec 200> /var/lock/psm.lock
+flock 200
 killall5 -KILL
