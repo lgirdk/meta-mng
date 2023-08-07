@@ -419,6 +419,7 @@ if [ "$PREFIX1" != "" ]; then
     SYSEVENT_SET_CMD+=(wan6_prefix=$PREFIX1)
     SYSEVENT_SET_CMD+=(wan6_prefixlen=$PREFIX1LEN)
    # ip -6 addr add ${PREFIX1}1/${PREFIX1LEN} dev brlan0
+    SYSEVENT_SET_CMD+=(ipv6_prefix=$PREFIX1/$PREFIX1LEN)
 else
     echo "Prefix received as NULL" >> $LOGFILE
     PREFIX1="::"
@@ -460,8 +461,6 @@ fi
 echo "dibbler-client add ${ADDR1} 1 ${ADDR1T1} ${ADDR1T2} ${ADDR1PREF} ${ADDR1VALID} ${PREFIX1} ${PREFIX1LEN} 1 ${PREFIX1T1} ${PREFIX1T2} ${PREFIX1PREF} ${PREFIX1VALID} " >> /tmp/ccsp_common_fifo
 # service_ipv6 can directly parse prefix, lease time, etc info from this file
 echo "dibbler-client add ${ADDR1} 1 ${ADDR1T1} ${ADDR1T2} ${ADDR1PREF} ${ADDR1VALID} ${PREFIX1} ${PREFIX1LEN} 1 ${PREFIX1T1} ${PREFIX1T2} ${PREFIX1PREF} ${PREFIX1VALID} " > /tmp/ipv6_provisioned.config
-
-SYSEVENT_SET_CMD+=(ipv6_prefix=$PREFIX1/$PREFIX1LEN)
 
 sysevent batchset "${SYSEVENT_SET_CMD[@]}"
 
