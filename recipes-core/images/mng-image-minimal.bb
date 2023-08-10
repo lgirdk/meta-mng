@@ -30,7 +30,6 @@ python create_version_file() {
     image_name = d.getVar("IMAGE_NAME", True)
     branch = d.getVar("PROJECT_BRANCH", True)
     release_version = d.getVar("RELEASE_VERSION", True) or '0.0.0.0'
-    release_spin = d.getVar("RELEASE_SPIN", True) or '0'
     stamp = d.getVar("DATETIME", True)
     t = time.strptime(stamp, '%Y%m%d%H%M%S')
     build_time = time.strftime('"%Y-%m-%d %H:%M:%S"', t)
@@ -38,7 +37,6 @@ python create_version_file() {
         fw.write('imagename="{0}"\n'.format(image_name))
         fw.write('BRANCH="{0}"\n'.format(branch))
         fw.write('VERSION="{0}"\n'.format(release_version))
-        fw.write('SPIN="{0}"\n'.format(release_spin))
         fw.write('BUILD_TIME={0}\n'.format(build_time))
 }
 
