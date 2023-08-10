@@ -27,12 +27,15 @@ PACKAGECONFIG[systemd-syslog-helper] = "--enable-systemd-syslog-helper,,syslog-h
 # Note: ccsp_common.inc sets this for ccsp recipes, keep aligned.
 CFLAGS += "${@bb.utils.contains('PACKAGECONFIG', 'onboardlog', '-DFEATURE_SUPPORT_ONBOARD_LOGGING', '', d)}"
 
+LOG4CRC_FILE ?= "rdkb_log4crc"
+DEBUG_INI_FILE ?= "rdkb_debug.ini"
+
 # Note: Source file modifications should be done as part of do_patch (rather
 # than as part of do_configure) to avoid potential problems with sstate cache.
 
 do_use_rdkb_config_files() {
-	cp ${S}/rdkb_log4crc ${S}/log4crc
-	cp ${S}/rdkb_debug.ini ${S}/debug.ini
+	cp ${S}/${LOG4CRC_FILE} ${S}/log4crc
+	cp ${S}/${DEBUG_INI_FILE} ${S}/debug.ini
 
 	# log4c seems to have a memory leak related to handling comments in
 	# log4crc. Strip all comments as a workaround.
