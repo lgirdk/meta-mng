@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57"
 
 require ccsp_common.inc
 
-DEPENDS += "utopia hal-ethsw telemetry avro-c curl libparodus libsyswrapper libunpriv libxml2 msgpack-c nanomsg trower-base64 util-linux wrp-c"
+DEPENDS += "utopia hal-ethsw telemetry avro-c curl libparodus libsyswrapper libunpriv msgpack-c nanomsg trower-base64 util-linux wrp-c"
 DEPENDS += "${@bb.utils.contains('DISTRO_FEATURES', 'moca', 'hal-moca', '', d)}"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
@@ -16,10 +16,6 @@ SRCREV ?= "${AUTOREV}"
 S = "${WORKDIR}/git"
 
 inherit autotools pkgconfig
-
-CFLAGS += " \
-    -I${STAGING_INCDIR}/libxml2 \
-"
 
 CFLAGS += " \
     -DDEVICE_GATEWAY_ASSOCIATION_FEATURE \
