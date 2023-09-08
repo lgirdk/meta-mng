@@ -60,8 +60,7 @@ do_install() {
 
 	# --------------------------------------------------------------------
 
-	# Remove scripts which are Comcast specific or otherwise not applicable
-	# for the generic RDKB.
+	# Remove scripts which are Comcast specific or otherwise not applicable for OFW
 
 	rm ${D}/rdklogger/fileUploadRandom.sh
 	rm ${D}/rdklogger/sub_utils.sh
@@ -72,6 +71,7 @@ do_install() {
 	rm ${D}${base_libdir}/rdk/apply_partner_customization.sh
 	rm ${D}${base_libdir}/rdk/getip_file.sh
 	rm ${D}${base_libdir}/rdk/getipv6_container.sh
+	rm ${D}${base_libdir}/rdk/getpartnerid.sh
 	rm ${D}${base_libdir}/rdk/iptables_container.sh
 	rm ${D}${base_libdir}/rdk/shortsDownload.sh
 	rm ${D}${base_libdir}/rdk/startStunnel.sh
