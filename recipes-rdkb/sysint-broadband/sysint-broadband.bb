@@ -72,6 +72,7 @@ do_install() {
 	rm ${D}${base_libdir}/rdk/getip_file.sh
 	rm ${D}${base_libdir}/rdk/getipv6_container.sh
 	rm ${D}${base_libdir}/rdk/getpartnerid.sh
+	rm ${D}${base_libdir}/rdk/init-zram.sh
 	rm ${D}${base_libdir}/rdk/iptables_container.sh
 	rm ${D}${base_libdir}/rdk/shortsDownload.sh
 	rm ${D}${base_libdir}/rdk/startStunnel.sh
