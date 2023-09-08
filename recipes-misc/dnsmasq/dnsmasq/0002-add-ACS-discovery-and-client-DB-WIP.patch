@@ -1,4 +1,4 @@
-From d1be3629a09097e6dd632e9c4f3612dfbe5f08b1 Mon Sep 17 00:00:00 2001
+From 725721c1a38a8be363d7898f5e785718fb43cb7f Mon Sep 17 00:00:00 2001
 From: Andre McCurdy <armccurdy@gmail.com>
 Date: Fri, 11 Sep 2020 14:58:41 -0700
 Subject: [PATCH] add ACS discovery and client DB ( * WIP * )
@@ -8,11 +8,11 @@ etc. More cleanup and review still required.
 
 Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
 ---
- src/rfc2131.c | 166 +++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 163 insertions(+), 3 deletions(-)
+ src/rfc2131.c | 167 +++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 164 insertions(+), 3 deletions(-)
 
 diff --git a/src/rfc2131.c b/src/rfc2131.c
-index 3f50755..e092135 100644
+index c902eb7..7890d40 100644
 --- a/src/rfc2131.c
 +++ b/src/rfc2131.c
 @@ -25,6 +25,24 @@
@@ -175,10 +175,10 @@ index 3f50755..e092135 100644
        if ((opt = option_find(mess, sz, OPTION_AGENT_ID, 1)))
  	{
  	  /* Any agent-id needs to be copied back out, verbatim, as the last option
-@@ -2787,6 +2907,46 @@ static void apply_delay(u32 xid, time_t recvtime, struct dhcp_netid *netid)
+@@ -2807,4 +2927,45 @@ static void apply_delay(u32 xid, time_t recvtime, struct dhcp_netid *netid)
+     }
+ }
  
- #endif
-   
 +static void add_client (char *mac, char *oui, char *serial_num, char *prod_class)
 +{
 +    char buffer[VENDOR_MAX_BUFFER_SIZE] = {0};
@@ -219,9 +219,8 @@ index 3f50755..e092135 100644
 +    	rename(VENDOR_CLIENT_TEMP_FILE, VENDOR_CLIENT_FILE);
 +    }
 +}
- 
-   
-   
++
+ #endif /* HAVE_DHCP */
 -- 
 2.24.0
 

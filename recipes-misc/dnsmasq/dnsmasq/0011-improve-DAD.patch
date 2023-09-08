@@ -1,4 +1,4 @@
-From cb20d74845024c0d7fd2990ef0489fb018e58678 Mon Sep 17 00:00:00 2001
+From 0bc273e3dbd75bfdf2dbeb243e6a0bc7fbf92c31 Mon Sep 17 00:00:00 2001
 From: Andre McCurdy <armccurdy@gmail.com>
 Date: Tue, 7 Mar 2023 13:03:29 -0800
 Subject: [PATCH] improve DAD
@@ -30,7 +30,7 @@ Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
  3 files changed, 8 insertions(+), 3 deletions(-)
 
 diff --git a/src/arp.c b/src/arp.c
-index 80d0956..0a43d1f 100644
+index 9a6b9c3..e42c0af 100644
 --- a/src/arp.c
 +++ b/src/arp.c
 @@ -460,6 +460,7 @@ static int read_arp(int fd, char *dest_mac, uint32_t arp_req_ip)
@@ -42,7 +42,7 @@ index 80d0956..0a43d1f 100644
        }
  
 diff --git a/src/dhcp.c b/src/dhcp.c
-index 87dd3da..c96554a 100644
+index d8863d9..c634dfc 100644
 --- a/src/dhcp.c
 +++ b/src/dhcp.c
 @@ -108,8 +108,13 @@ void dhcp_init(void)
@@ -60,10 +60,10 @@ index 87dd3da..c96554a 100644
      daemon->pxefd = make_fd(PXE_PORT);
    else
 diff --git a/src/rfc2131.c b/src/rfc2131.c
-index ba7346f..ac5d302 100644
+index ee8dc70..5c2eadb 100644
 --- a/src/rfc2131.c
 +++ b/src/rfc2131.c
-@@ -1265,9 +1265,8 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
+@@ -1285,9 +1285,8 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
  	unsigned char arp_reply_mac[6];
  	do
  	{

@@ -1,4 +1,4 @@
-From 3f6ab9eea9f26a1e0babf873ffa45b5707cb0d3f Mon Sep 17 00:00:00 2001
+From 5d24d7e4804ed808d423eceea58205ef46c4f480 Mon Sep 17 00:00:00 2001
 From: Andre McCurdy <armccurdy@gmail.com>
 Date: Wed, 25 Jan 2023 16:32:59 -0800
 Subject: [PATCH] add locking to leases file updates
@@ -12,7 +12,7 @@ Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
  1 file changed, 30 insertions(+)
 
 diff --git a/src/lease.c b/src/lease.c
-index 67db60d..c9e94ea 100644
+index b4a7390..cf3ab87 100644
 --- a/src/lease.c
 +++ b/src/lease.c
 @@ -16,11 +16,16 @@

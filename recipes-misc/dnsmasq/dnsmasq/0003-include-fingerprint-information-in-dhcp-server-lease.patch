@@ -1,4 +1,4 @@
-From 911fe10195383dda28bea91bdcf2f944cab94c2d Mon Sep 17 00:00:00 2001
+From 1c75187252fb206f692bf04cbfb91acf8ef04a71 Mon Sep 17 00:00:00 2001
 From: Andre McCurdy <armccurdy@gmail.com>
 Date: Mon, 7 Dec 2020 23:12:01 -0800
 Subject: [PATCH] include fingerprint information in dhcp server leases file
@@ -11,10 +11,10 @@ Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
  3 files changed, 77 insertions(+), 3 deletions(-)
 
 diff --git a/src/dnsmasq.h b/src/dnsmasq.h
-index 1e21005..431c6ae 100644
+index 8674823..2b768f6 100644
 --- a/src/dnsmasq.h
 +++ b/src/dnsmasq.h
-@@ -734,6 +734,7 @@ struct dhcp_lease {
+@@ -787,6 +787,7 @@ struct dhcp_lease {
    unsigned char *clid;   /* clientid */
    char *hostname, *fqdn; /* name from client-hostname option or config */
    char *old_hostname;    /* hostname before it moved to another lease */
@@ -22,7 +22,7 @@ index 1e21005..431c6ae 100644
    int flags;
    time_t expires;        /* lease expiry */
  #ifdef HAVE_BROKEN_RTC
-@@ -1461,6 +1462,7 @@ void lease_find_interfaces(time_t now);
+@@ -1515,6 +1516,7 @@ void lease_find_interfaces(time_t now);
  void lease_add_extradata(struct dhcp_lease *lease, unsigned char *data, 
  			 unsigned int len, int delim);
  #endif
@@ -31,7 +31,7 @@ index 1e21005..431c6ae 100644
  
  /* rfc2131.c */
 diff --git a/src/lease.c b/src/lease.c
-index 7c5599c..1344818 100644
+index 1a9f1c6..730620d 100644
 --- a/src/lease.c
 +++ b/src/lease.c
 @@ -29,6 +29,7 @@ static int read_leases(time_t now, FILE *leasestream)
@@ -93,7 +93,7 @@ index 7c5599c..1344818 100644
  	  daemon->metrics[lease->addr.s_addr ? METRIC_LEASES_PRUNED_4 : METRIC_LEASES_PRUNED_6]++;
  
   	  *up = lease->next; /* unlink */
-@@ -1201,6 +1212,57 @@ void lease_add_extradata(struct dhcp_lease *lease, unsigned char *data, unsigned
+@@ -1202,4 +1213,55 @@ void lease_add_extradata(struct dhcp_lease *lease, unsigned char *data, unsigned
  }
  #endif
  
@@ -148,14 +148,12 @@ index 7c5599c..1344818 100644
 +    }
 +}
 +
- #endif
- 	  
- 
+ #endif /* HAVE_DHCP */
 diff --git a/src/rfc2131.c b/src/rfc2131.c
-index e092135..224f21e 100644
+index 7890d40..d7d5c7e 100644
 --- a/src/rfc2131.c
 +++ b/src/rfc2131.c
-@@ -1447,6 +1447,16 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
+@@ -1468,6 +1468,16 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
  	    }
  	}
  

@@ -1,14 +1,14 @@
-From b997a12309cd22e589c8de8b5f5367f3d26a3245 Mon Sep 17 00:00:00 2001
+From 87bb6a575d87e7874af5a3130b98521debb7eabb Mon Sep 17 00:00:00 2001
 From: mkamat <mkamat@libertyglobal.com>
 Date: Tue, 12 Sep 2023 12:08:02 -0700
 Subject: [PATCH] call delete_client on DHCP_RELEASE
 
 ---
- src/rfc2131.c | 77 +++++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 75 insertions(+), 2 deletions(-)
+ src/rfc2131.c | 78 +++++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 76 insertions(+), 2 deletions(-)
 
 diff --git a/src/rfc2131.c b/src/rfc2131.c
-index ac5d302..fe13af6 100644
+index 5c2eadb..0d4dff0 100644
 --- a/src/rfc2131.c
 +++ b/src/rfc2131.c
 @@ -16,6 +16,8 @@
@@ -89,7 +89,7 @@ index ac5d302..fe13af6 100644
  		      }
  		    }
  		  break;
-@@ -3003,6 +3041,8 @@ static void add_client (char *mac, char *oui, char *serial_num, char *prod_class
+@@ -3023,6 +3061,8 @@ static void add_client (char *mac, char *oui, char *serial_num, char *prod_class
      int foundClient = 0;
      FILE *fp, *fp_tmp;
  
@@ -98,14 +98,14 @@ index ac5d302..fe13af6 100644
      fp_tmp = fopen(VENDOR_CLIENT_TEMP_FILE,"w");
  
      if (fp_tmp)
-@@ -3036,8 +3076,41 @@ static void add_client (char *mac, char *oui, char *serial_num, char *prod_class
+@@ -3056,6 +3096,40 @@ static void add_client (char *mac, char *oui, char *serial_num, char *prod_class
      	fclose(fp_tmp);
      	rename(VENDOR_CLIENT_TEMP_FILE, VENDOR_CLIENT_FILE);
      }
 +
 +    unlock_clients_file();
- }
- 
++}
++
 +static void delete_client (char *mac)
 +{
 +    char buffer[VENDOR_MAX_BUFFER_SIZE] = {0};
@@ -136,10 +136,9 @@ index ac5d302..fe13af6 100644
 +    }
 +
 +    unlock_clients_file();
-+}
-   
-   
+ }
  
+ #endif /* HAVE_DHCP */
 -- 
 2.24.0
 

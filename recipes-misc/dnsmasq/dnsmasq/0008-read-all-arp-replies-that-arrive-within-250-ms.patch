@@ -1,4 +1,4 @@
-From fd5cad4c0440af1c0b0310f5d9ce585a8652ab56 Mon Sep 17 00:00:00 2001
+From e8f785b24137322f9559e4383cebdaebecf041fb Mon Sep 17 00:00:00 2001
 From: Tarun Saha <tsaha@libertyglobal.com>
 Date: Thu, 24 Feb 2022 15:01:21 -0800
 Subject: [PATCH] read all arp replies that arrive within 250 ms
@@ -9,7 +9,7 @@ Subject: [PATCH] read all arp replies that arrive within 250 ms
  2 files changed, 71 insertions(+), 35 deletions(-)
 
 diff --git a/src/arp.c b/src/arp.c
-index 713fcf2..18332ba 100644
+index e53213a..d040ec7 100644
 --- a/src/arp.c
 +++ b/src/arp.c
 @@ -325,7 +325,6 @@ static int bind_arp(int ifindex, int *fd)
@@ -138,10 +138,10 @@ index 713fcf2..18332ba 100644
    return ret;
  }
 diff --git a/src/rfc2131.c b/src/rfc2131.c
-index 5a99a12..ba7346f 100644
+index 468b6d0..ee8dc70 100644
 --- a/src/rfc2131.c
 +++ b/src/rfc2131.c
-@@ -1265,6 +1265,10 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
+@@ -1285,6 +1285,10 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
  	unsigned char arp_reply_mac[6];
  	do
  	{
@@ -152,7 +152,7 @@ index 5a99a12..ba7346f 100644
  	  if (do_arp(iface_name, int_index, mess->yiaddr, arp_reply_mac) == 0)
  	  {
              my_syslog(MS_DHCP | LOG_WARNING, "DAD: Found a duplicate address. IP: %s, HW: %02X:%02X:%02X:%02X:%02X:%02X", inet_ntoa(mess->yiaddr),
-@@ -1484,6 +1488,9 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
+@@ -1505,6 +1509,9 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
  		message = _("address in use");
  	    }
        unsigned char arp_reply_mac[6];

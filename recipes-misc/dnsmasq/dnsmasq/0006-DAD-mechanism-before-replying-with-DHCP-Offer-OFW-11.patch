@@ -1,4 +1,4 @@
-From bd06c980d30ca98572694d3946bb016fa1bcbf4a Mon Sep 17 00:00:00 2001
+From 5230a0468427604b3745661419537e8cf40bc243 Mon Sep 17 00:00:00 2001
 From: Cibil <cpankiras.contractor@libertyglobal.com>
 Date: Fri, 26 Nov 2021 17:01:12 +0100
 Subject: [PATCH] DAD mechanism before replying with DHCP Offer ( OFW-1147 )
@@ -33,10 +33,10 @@ Signed-off-by: Cibil <cpankiras.contractor@libertyglobal.com>
  3 files changed, 79 insertions(+), 5 deletions(-)
 
 diff --git a/src/dhcp.c b/src/dhcp.c
-index 97324f2..87dd3da 100644
+index e500bc2..d8863d9 100644
 --- a/src/dhcp.c
 +++ b/src/dhcp.c
-@@ -760,7 +760,7 @@ struct ping_result *do_icmp_ping(time_t now, struct in_addr addr, unsigned int h
+@@ -764,7 +764,7 @@ struct ping_result *do_icmp_ping(time_t now, struct in_addr addr, unsigned int h
  
  int address_allocate(struct dhcp_context *context,
  		     struct in_addr *addrp, unsigned char *hwaddr, int hw_len, 
@@ -45,7 +45,7 @@ index 97324f2..87dd3da 100644
  {
    /* Find a free address: exclude anything in use and anything allocated to
       a particular hwaddr/clientid/hostname in our configuration.
-@@ -832,6 +832,23 @@ int address_allocate(struct dhcp_context *context,
+@@ -836,6 +836,23 @@ int address_allocate(struct dhcp_context *context,
  			   (different hash) recently, don't offer it to this one. */
  			if (!option_bool(OPT_CONSEC_ADDR) || r->hash == j)
  			  {
@@ -70,10 +70,10 @@ index 97324f2..87dd3da 100644
  			    return 1;
  			  }
 diff --git a/src/dnsmasq.h b/src/dnsmasq.h
-index c2b7c50..5bcfd51 100644
+index a5f9350..a9d70d0 100644
 --- a/src/dnsmasq.h
 +++ b/src/dnsmasq.h
-@@ -1186,6 +1186,11 @@ extern struct daemon {
+@@ -1243,6 +1243,11 @@ extern struct daemon {
  #endif
  } *daemon;
  
@@ -85,7 +85,7 @@ index c2b7c50..5bcfd51 100644
  /* cache.c */
  void cache_init(void);
  void next_uid(struct crec *crecp);
-@@ -1417,7 +1422,7 @@ struct ping_result *do_icmp_ping(time_t now, struct in_addr addr,
+@@ -1471,7 +1476,7 @@ struct ping_result *do_icmp_ping(time_t now, struct in_addr addr,
  				 unsigned int hash, int loopback);
  int address_allocate(struct dhcp_context *context,
  		     struct in_addr *addrp, unsigned char *hwaddr, int hw_len,
@@ -95,7 +95,7 @@ index c2b7c50..5bcfd51 100644
  struct dhcp_config *config_find_by_address(struct dhcp_config *configs, struct in_addr addr);
  char *host_from_dns(struct in_addr addr);
 diff --git a/src/rfc2131.c b/src/rfc2131.c
-index 254e9a5..4ea9eaf 100644
+index 3886d9a..34efc7d 100644
 --- a/src/rfc2131.c
 +++ b/src/rfc2131.c
 @@ -119,6 +119,7 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
@@ -106,7 +106,7 @@ index 254e9a5..4ea9eaf 100644
  
    subnet_addr.s_addr = override.s_addr = 0;
  
-@@ -724,7 +725,7 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
+@@ -743,7 +744,7 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
  		       lease_prune(lease, now);
  		       lease = NULL;
  		     }
@@ -115,7 +115,7 @@ index 254e9a5..4ea9eaf 100644
  		     message = _("no address available");
  		}
  	      else
-@@ -1237,7 +1238,7 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
+@@ -1257,7 +1258,7 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
  	    mess->yiaddr = addr;
  	  else if (emac_len == 0)
  	    message = _("no unique-id");
@@ -124,7 +124,7 @@ index 254e9a5..4ea9eaf 100644
  	    message = _("no address available");      
  	}
        
-@@ -1261,7 +1262,58 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
+@@ -1281,7 +1282,58 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
  	  rapid_commit = 1;
  	  goto rapid_commit;
  	}
