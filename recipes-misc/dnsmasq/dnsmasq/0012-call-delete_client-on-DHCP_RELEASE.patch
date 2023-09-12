@@ -1,0 +1,145 @@
+From b997a12309cd22e589c8de8b5f5367f3d26a3245 Mon Sep 17 00:00:00 2001
+From: mkamat <mkamat@libertyglobal.com>
+Date: Tue, 12 Sep 2023 12:08:02 -0700
+Subject: [PATCH] call delete_client on DHCP_RELEASE
+
+---
+ src/rfc2131.c | 77 +++++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 75 insertions(+), 2 deletions(-)
+
+diff --git a/src/rfc2131.c b/src/rfc2131.c
+index ac5d302..fe13af6 100644
+--- a/src/rfc2131.c
++++ b/src/rfc2131.c
+@@ -16,6 +16,8 @@
+ 
+ #include "dnsmasq.h"
+ 
++#include <sys/file.h>
++
+ #ifdef HAVE_DHCP
+ 
+ #define option_len(opt) ((int)(((unsigned char *)(opt))[1]))
+@@ -41,7 +43,12 @@ static void add_extradata_opt(struct dhcp_lease *lease, unsigned char *opt);
+ #define VENDOR_OUI_LEN         6
+ #define VENDOR_SERIAL_LEN      64
+ 
++#define DHCP_VENDOR_CLEINTS_LOCK "/tmp/.dhcp_vendor_clients_lock"
++
++static int lock_fd;
++
+ static void add_client (char *mac, char *oui, char *serial_num, char *prod_class);
++static void delete_client (char *mac);
+ 
+ static int sanitise(unsigned char *opt, char *buf);
+ static struct in_addr server_id(struct dhcp_context *context, struct in_addr override, struct in_addr fallback);
+@@ -86,6 +93,29 @@ static int pxe_uefi_workaround(int pxe_arch, struct dhcp_netid *netid, struct dh
+ static void apply_delay(u32 xid, time_t recvtime, struct dhcp_netid *netid);
+ static int is_pxe_client(struct dhcp_packet *mess, size_t sz, const char **pxe_vendor);
+ 
++static void lock_clients_file(void)
++{
++  lock_fd = open(DHCP_VENDOR_CLEINTS_LOCK, O_RDONLY | O_CREAT, 0666);
++  if (lock_fd < 0) {
++    my_syslog(MS_DHCP | LOG_WARNING, _("Can't open/create file '%s'"), DHCP_VENDOR_CLEINTS_LOCK);
++    return;
++  }
++
++  if (flock(lock_fd, LOCK_EX) < 0) {
++    if (close(lock_fd) < 0)
++      my_syslog(MS_DHCP | LOG_WARNING, _("Error %d closing file '%s'"), errno, DHCP_VENDOR_CLEINTS_LOCK);
++    return;
++  }
++}
++
++static void unlock_clients_file(void)
++{
++  if (flock(lock_fd, LOCK_UN) < 0)
++    my_syslog(MS_DHCP | LOG_WARNING, _("Error %d unlocking file '%s'"),  errno, DHCP_VENDOR_CLEINTS_LOCK);
++  if (close(lock_fd) < 0)
++    my_syslog(MS_DHCP | LOG_WARNING, _("Error %d closing file '%s'"),  errno, DHCP_VENDOR_CLEINTS_LOCK);
++}
++
+ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
+ 		  size_t sz, time_t now, int unicast_dest, int loopback,
+ 		  int *is_inform, int pxe, struct in_addr fallback, time_t recvtime)
+@@ -210,7 +240,7 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
+ 		      vendor_serial[0] = 0;
+ 		      vendor_class[0] = 0;
+ 
+-		      while (x < elen && mess_type == DHCPREQUEST) // Allow all feasible Manageable Devices to be added into the dhcp_vendor_client file
++		      while (x < elen && (mess_type == DHCPREQUEST || mess_type == DHCPRELEASE)) // Allow all feasible Manageable Devices to be added into the dhcp_vendor_client file
+ 		      {
+ 		          if (oui[x] == VENDOR_OPT_OUI_TYPE)
+ 		          {
+@@ -278,7 +308,15 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
+ 
+ 		          vmac = extended_hwaddr(mess->htype, mess->hlen, mess->chaddr, clid_len, clid, &vmac_len);
+ 		          print_mac(vendor_mac, vmac, vmac_len);
+-		          add_client(vendor_mac, vendor_oui, vendor_serial, class ? vendor_class : "");
++
++		          if(mess_type == DHCPREQUEST)
++		          {
++		              add_client(vendor_mac, vendor_oui, vendor_serial, class ? vendor_class : "");
++		          }
++		          else
++		          {
++		              delete_client(vendor_mac);
++		          }
+ 		      }
+ 		    }
+ 		  break;
+@@ -3003,6 +3041,8 @@ static void add_client (char *mac, char *oui, char *serial_num, char *prod_class
+     int foundClient = 0;
+     FILE *fp, *fp_tmp;
+ 
++    lock_clients_file();
++
+     fp_tmp = fopen(VENDOR_CLIENT_TEMP_FILE,"w");
+ 
+     if (fp_tmp)
+@@ -3036,8 +3076,41 @@ static void add_client (char *mac, char *oui, char *serial_num, char *prod_class
+     	fclose(fp_tmp);
+     	rename(VENDOR_CLIENT_TEMP_FILE, VENDOR_CLIENT_FILE);
+     }
++
++    unlock_clients_file();
+ }
+ 
++static void delete_client (char *mac)
++{
++    char buffer[VENDOR_MAX_BUFFER_SIZE] = {0};
++    FILE *fp, *fp_tmp;
++
++    lock_clients_file();
++
++    fp_tmp = fopen(VENDOR_CLIENT_TEMP_FILE,"w");
++    if (fp_tmp)
++    {
++        fp = fopen(VENDOR_CLIENT_FILE,"r");
++
++        if (fp)
++        {
++            while( fscanf(fp, "%s", buffer) != EOF )
++            {
++                if (strstr(buffer, mac) == 0)
++                {
++                    fprintf(fp_tmp,"%s\n", buffer);// Update all lines except for above mac
++                }
++                memset(buffer, 0, VENDOR_MAX_BUFFER_SIZE);
++            }
++            fclose(fp);
++            unlink(VENDOR_CLIENT_FILE);
++        }
++        fclose(fp_tmp);
++        rename(VENDOR_CLIENT_TEMP_FILE, VENDOR_CLIENT_FILE);
++    }
++
++    unlock_clients_file();
++}
+   
+   
+ 
+-- 
+2.24.0
+
