@@ -1,4 +1,4 @@
-From 7906011a7ceb4f15ac75a06b03e7d8b41ec7f92f Mon Sep 17 00:00:00 2001
+From 58e876d1eae679597074307deb26af2d95d2d406 Mon Sep 17 00:00:00 2001
 From: Andre McCurdy <armccurdy@gmail.com>
 Date: Mon, 16 Nov 2020 15:52:22 -0800
 Subject: [PATCH] update default user/group ( nobody/dip -> dnsmasq/nogroup )
@@ -18,7 +18,7 @@ Signed-off-by: Andre McCurdy <armccurdy@gmail.com>
  2 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/src/config.h b/src/config.h
-index 30e23d8..ce48afd 100644
+index cd37900..b97d7e8 100644
 --- a/src/config.h
 +++ b/src/config.h
 @@ -44,8 +44,8 @@
@@ -33,10 +33,10 @@ index 30e23d8..ce48afd 100644
  #define LOG_MAX 5 /* log-queue length */
  #define RANDFILE "/dev/urandom"
 diff --git a/src/dnsmasq.c b/src/dnsmasq.c
-index 602daed..ef68283 100644
+index 858c731..345bb01 100644
 --- a/src/dnsmasq.c
 +++ b/src/dnsmasq.c
-@@ -488,7 +488,7 @@ int main (int argc, char **argv)
+@@ -487,7 +487,7 @@ int main (int argc, char **argv)
    if (baduser)
      die(_("unknown user or group: %s"), baduser, EC_BADCONF);
  

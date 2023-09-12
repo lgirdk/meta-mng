@@ -1,4 +1,4 @@
-From e8f785b24137322f9559e4383cebdaebecf041fb Mon Sep 17 00:00:00 2001
+From ec1a5e4fecfb93a19bb82f16bb3df4c186320e0b Mon Sep 17 00:00:00 2001
 From: Tarun Saha <tsaha@libertyglobal.com>
 Date: Thu, 24 Feb 2022 15:01:21 -0800
 Subject: [PATCH] read all arp replies that arrive within 250 ms
@@ -9,7 +9,7 @@ Subject: [PATCH] read all arp replies that arrive within 250 ms
  2 files changed, 71 insertions(+), 35 deletions(-)
 
 diff --git a/src/arp.c b/src/arp.c
-index e53213a..d040ec7 100644
+index ca20920..1bd1c36 100644
 --- a/src/arp.c
 +++ b/src/arp.c
 @@ -325,7 +325,6 @@ static int bind_arp(int ifindex, int *fd)
@@ -138,7 +138,7 @@ index e53213a..d040ec7 100644
    return ret;
  }
 diff --git a/src/rfc2131.c b/src/rfc2131.c
-index 468b6d0..ee8dc70 100644
+index 199d1ca..b5e4b4d 100644
 --- a/src/rfc2131.c
 +++ b/src/rfc2131.c
 @@ -1285,6 +1285,10 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,

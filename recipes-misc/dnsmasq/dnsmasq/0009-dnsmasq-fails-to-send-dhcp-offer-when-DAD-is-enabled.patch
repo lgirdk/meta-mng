@@ -1,4 +1,4 @@
-From 830e8c7c89ed80447b2cc06e5a4b71d6270dc7a9 Mon Sep 17 00:00:00 2001
+From baee55e3e86a7d099238c5a4cbcffffde4b77dc1 Mon Sep 17 00:00:00 2001
 From: Cibil <cpankiras.contractor@libertyglobal.com>
 Date: Mon, 28 Mar 2022 13:58:13 +0200
 Subject: [PATCH] dnsmasq fails to send dhcp offer when DAD is enabled (
@@ -20,7 +20,7 @@ Signed-off-by: Cibil <cpankiras.contractor@libertyglobal.com>
  1 file changed, 19 insertions(+), 2 deletions(-)
 
 diff --git a/src/arp.c b/src/arp.c
-index d040ec7..9a6b9c3 100644
+index 1bd1c36..f7ad4bb 100644
 --- a/src/arp.c
 +++ b/src/arp.c
 @@ -417,7 +417,7 @@ out:

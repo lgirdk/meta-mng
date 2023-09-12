@@ -1,4 +1,4 @@
-From 8bc5d93096e7a8b35a371f358ef1253f638829c8 Mon Sep 17 00:00:00 2001
+From 87985e9021be91d83d655db284d89f1b5e1220d2 Mon Sep 17 00:00:00 2001
 From: Cibil <cpankiras.contractor@libertyglobal.com>
 Date: Fri, 29 Oct 2021 18:20:41 +0200
 Subject: [PATCH] DAD mechanism behavior before replying with DHCP ACK (
@@ -23,7 +23,7 @@ Signed-off-by: Cibil <cpankiras.contractor@libertyglobal.com>
  4 files changed, 292 insertions(+), 1 deletion(-)
 
 diff --git a/src/arp.c b/src/arp.c
-index 1e4aad2..e53213a 100644
+index eda165f..ca20920 100644
 --- a/src/arp.c
 +++ b/src/arp.c
 @@ -16,6 +16,14 @@
@@ -324,10 +324,10 @@ index 1e4aad2..e53213a 100644
 +}
 +
 diff --git a/src/dnsmasq.c b/src/dnsmasq.c
-index ef68283..2e41b66 100644
+index 345bb01..3edec31 100644
 --- a/src/dnsmasq.c
 +++ b/src/dnsmasq.c
-@@ -53,7 +53,8 @@ int main (int argc, char **argv)
+@@ -57,7 +57,8 @@ int main (int argc, char **argv)
    cap_user_header_t hdr = NULL;
    cap_user_data_t data = NULL;
    int need_cap_net_admin = 0;
@@ -338,10 +338,10 @@ index ef68283..2e41b66 100644
    char *bound_device = NULL;
    int did_bind = 0;
 diff --git a/src/dnsmasq.h b/src/dnsmasq.h
-index 2b768f6..a5f9350 100644
+index c284e28..4fc6450 100644
 --- a/src/dnsmasq.h
 +++ b/src/dnsmasq.h
-@@ -1751,6 +1751,7 @@ int check_source(struct dns_header *header, size_t plen, unsigned char *pseudohe
+@@ -1801,6 +1801,7 @@ int check_source(struct dns_header *header, size_t plen, unsigned char *pseudohe
  /* arp.c */
  int find_mac(union mysockaddr *addr, unsigned char *mac, int lazy, time_t now);
  int do_arp_script_run(void);
@@ -350,7 +350,7 @@ index 2b768f6..a5f9350 100644
  /* dump.c */
  #ifdef HAVE_DUMPFILE
 diff --git a/src/rfc2131.c b/src/rfc2131.c
-index d7d5c7e..3886d9a 100644
+index 5472a62..743ea53 100644
 --- a/src/rfc2131.c
 +++ b/src/rfc2131.c
 @@ -1452,6 +1452,16 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,

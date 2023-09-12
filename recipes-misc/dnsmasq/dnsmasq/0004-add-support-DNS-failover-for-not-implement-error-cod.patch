@@ -1,4 +1,4 @@
-From 0ebe3f582a4266f0045c978e5b863bea912141e1 Mon Sep 17 00:00:00 2001
+From 688ad8e9a4bb1fb606d30353388638be25ae9688 Mon Sep 17 00:00:00 2001
 From: Andre McCurdy <armccurdy@gmail.com>
 Date: Thu, 27 May 2021 14:20:50 -0700
 Subject: [PATCH] add support DNS failover for "not implement" error code
@@ -8,10 +8,10 @@ Subject: [PATCH] add support DNS failover for "not implement" error code
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/src/forward.c b/src/forward.c
-index 3d638e4..ccf744e 100644
+index fa80251..d8789b1 100644
 --- a/src/forward.c
 +++ b/src/forward.c
-@@ -992,7 +992,7 @@ void reply_query(int fd, time_t now)
+@@ -1069,7 +1069,7 @@ void reply_query(int fd, time_t now)
  
    /* Note: if we send extra options in the EDNS0 header, we can't recreate
       the query from the reply. */
