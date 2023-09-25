@@ -27,6 +27,6 @@ CFLAGS += " \
     -DFEATURE_802_1P_COS_MARKING \
 "
 
-DATAMODEL_XML = "config/RdkWanManager.xml"
+DATAMODEL_XML = "config/RdkWanManager_v2.xml"
 
 RDEPENDS_${PN} += "ndisc6-rdisc6"
