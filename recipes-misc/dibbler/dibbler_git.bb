@@ -30,6 +30,7 @@ SRC_URI = "git://github.com/tomaszmrugalski/dibbler \
            file://fix-crash-in-add_radvd_conf.patch \
            file://fix-IPv6-Address-Prefix-Release-messages-OFW-3365.patch \
            file://updating-server-cache-for-CONFIRM-message.patch \
+           file://ofw-5162-return-zero-lifetimes-for-incorrect-address-from-client.patch \
 "
 
 S = "${WORKDIR}/git"

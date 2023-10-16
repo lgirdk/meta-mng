@@ -1,0 +1,26 @@
+From ff5b9ff03f9192484ea2b01d57db3519fb195be5 Mon Sep 17 00:00:00 2001
+From: mkamat <mkamat@libertyglobal.com>
+Date: Mon, 16 Oct 2023 15:24:16 -0700
+Subject: [PATCH] OFW-5162 server should return address with lifetime as 0 if
+ client requested address in not appopriate for the link
+
+---
+ SrvOptions/SrvOptIA_NA.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/SrvOptions/SrvOptIA_NA.cpp b/SrvOptions/SrvOptIA_NA.cpp
+index c8102675..294b1abe 100644
+--- a/SrvOptions/SrvOptIA_NA.cpp
++++ b/SrvOptions/SrvOptIA_NA.cpp
+@@ -827,7 +827,7 @@ bool TSrvOptIA_NA::isValidAddr(SPtr<TSrvOptIA_NA> optIA, SPtr <TAddrIA> ptrIA)
+      * RFC3315 sections 18.2.3 and 18.2.4 have identical language:
+      *
+      */
+-    if (onLink == ADDRSTATUS_NO){
++    if (onLink == ADDRSTATUS_NO || onLink == ADDRSTATUS_UNKNOWN ){
+         /* 
+          * If the server finds that any of the addresses are not
+          * appropriate for the link to which the client is attached,
+-- 
+2.17.1
+
