@@ -60,7 +60,7 @@ CFLAGS += " \
     ${@bb.utils.contains('DISTRO_FEATURES', 'network_logs', '-DFEATURE_NETWORK_LOGS', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_telcovoice_manager', '-DFEATURE_RDKB_TELCOVOICE_MANAGER', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_auto_port_switch', '-DFEATURE_RDKB_AUTO_PORT_SWITCH', '', d)} \
-    ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_wan_manager', '-DFEATURE_RDKB_WAN_MANAGER -D_WAN_MANAGER_ENABLED_ -DWAN_MANAGER_UNIFICATION_ENABLED', '', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_wan_manager', '-DFEATURE_RDKB_WAN_MANAGER -D_WAN_MANAGER_ENABLED_ -DWAN_MANAGER_UNIFICATION_ENABLED -DFEATURE_RDKB_CONFIGURABLE_WAN_INTERFACE', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'rdkb_wan_upstream', '-DFEATURE_RDKB_WAN_UPSTREAM', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'core-net-lib', '-DCORE_NET_LIB', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'static_ipv4', '-DFEATURE_STATIC_IPV4', '', d)} \
