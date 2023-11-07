@@ -1,0 +1,37 @@
+From b3fc49b50073847317cf64b50bef2ff3b389e262 Mon Sep 17 00:00:00 2001
+From: mkamat <mkamat@libertyglobal.com>
+Date: Tue, 7 Nov 2023 14:49:47 -0800
+Subject: [PATCH] OFW-5266 [Mv2+] When a IPv6 client sends a DHCPv6 Confirm
+ with unknown IAID the server doesn't respond with status code of 4 NotOnLink
+
+---
+ SrvMessages/SrvMsgReply.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/SrvMessages/SrvMsgReply.cpp b/SrvMessages/SrvMsgReply.cpp
+index 847dbd7f..ef0f0592 100644
+--- a/SrvMessages/SrvMsgReply.cpp
++++ b/SrvMessages/SrvMsgReply.cpp
+@@ -166,7 +166,9 @@ bool TSrvMsgReply::handleConfirmOptions(TOptList & options) {
+         return true;
+     }
+ 
+-    case ADDRSTATUS_NO: {
++    case ADDRSTATUS_UNKNOWN:
++    case ADDRSTATUS_NO:
++    {
+         SPtr <TOpt> ptrCode(new TOptStatusCode(STATUSCODE_NOTONLINK,
+                             "Sorry, those addresses are not valid for this link.", this));
+         Options.push_back(ptrCode);
+@@ -174,7 +176,7 @@ bool TSrvMsgReply::handleConfirmOptions(TOptList & options) {
+     }
+ 
+     default:
+-    case ADDRSTATUS_UNKNOWN: {
++    {
+         Log(Info) << "Address/prefix being confirmed is outside of defined class,"
+                   << " but there is no subnet defined, so can't answer authoritatively."
+                   << " Will not send answer." << LogEnd;
+-- 
+2.17.1
+
