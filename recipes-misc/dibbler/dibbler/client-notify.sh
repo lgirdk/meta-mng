@@ -461,15 +461,13 @@ then
 # Send notification to CCSP PAM
 # RDK-B has not defined HAL for Ipv6 yet so this is a means to notify
 echo "dibbler-client add $IFACE ${ADDR1} 1 ${ADDR1T1} ${ADDR1T2} ${ADDR1PREF} ${ADDR1VALID} ${PREFIX1} ${PREFIX1LEN} 1 ${PREFIX1T1} ${PREFIX1T2} ${PREFIX1PREF} ${PREFIX1VALID} " >> /tmp/ccsp_common_fifo
-# service_ipv6 can directly parse prefix, lease time, etc info from this file
-echo "dibbler-client add $IFACE ${ADDR1} 1 ${ADDR1T1} ${ADDR1T2} ${ADDR1PREF} ${ADDR1VALID} ${PREFIX1} ${PREFIX1LEN} 1 ${PREFIX1T1} ${PREFIX1T2} ${PREFIX1PREF} ${PREFIX1VALID} " > /tmp/ipv6_provisioned.config
 else
 # Send notification to CCSP PAM
 # RDK-B has not defined HAL for Ipv6 yet so this is a means to notify
 echo "dibbler-client add ${ADDR1} 1 ${ADDR1T1} ${ADDR1T2} ${ADDR1PREF} ${ADDR1VALID} ${PREFIX1} ${PREFIX1LEN} 1 ${PREFIX1T1} ${PREFIX1T2} ${PREFIX1PREF} ${PREFIX1VALID} " >> /tmp/ccsp_common_fifo
+fi
 # service_ipv6 can directly parse prefix, lease time, etc info from this file
 echo "dibbler-client add ${ADDR1} 1 ${ADDR1T1} ${ADDR1T2} ${ADDR1PREF} ${ADDR1VALID} ${PREFIX1} ${PREFIX1LEN} 1 ${PREFIX1T1} ${PREFIX1T2} ${PREFIX1PREF} ${PREFIX1VALID} " > /tmp/ipv6_provisioned.config
-fi
 
 sysevent batchset "${SYSEVENT_SET_CMD[@]}"
 
