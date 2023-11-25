@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=175792518e4ac015ab6696d16c4f607e"
 
 require ccsp_common.inc
 
-DEPENDS += "ccsp-misc utopia hal-cm hal-dhcpv4c libunpriv nanomsg"
+DEPENDS += "ccsp-misc utopia telemetry hal-cm hal-dhcpv4c libunpriv nanomsg"
 
 PV = "${RDK_RELEASE}+git${SRCPV}"
 
@@ -25,6 +25,7 @@ PACKAGECONFIG[ipoe-health-check] = "--enable-ipoehc,--disable-ipoehc,,ipoe-healt
 
 CFLAGS += " \
     -DFEATURE_802_1P_COS_MARKING \
+    -DENABLE_FEATURE_TELEMETRY2_0 \
 "
 
 DATAMODEL_XML = "config/RdkWanManager_v2.xml"
