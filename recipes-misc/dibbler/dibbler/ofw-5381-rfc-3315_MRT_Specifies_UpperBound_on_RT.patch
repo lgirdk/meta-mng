@@ -1,0 +1,34 @@
+From 78499f5960bdecc8ac7bb2eff482a9ba0a3da40e Mon Sep 17 00:00:00 2001
+From: mkamat <mkamat@libertyglobal.com>
+Date: Tue, 12 Dec 2023 13:04:34 -0800
+Subject: [PATCH] Calculation of RT in TClntMsg::send() has been modified to
+ ensure RT<MRT
+
+---
+ ClntMessages/ClntMsg.cpp | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/ClntMessages/ClntMsg.cpp b/ClntMessages/ClntMsg.cpp
+index f2bafc81..6a9f0416 100644
+--- a/ClntMessages/ClntMsg.cpp
++++ b/ClntMessages/ClntMsg.cpp
+@@ -360,9 +360,13 @@ void TClntMsg::send()
+     else
+ 	RT =(int)(0.5+2.0*RT+RT*(0.2*(double)rand()/(double)RAND_MAX-0.1));
+ 
+-    if (MRT != 0 && RT>MRT)
+-	RT = (int)(0.5+MRT + MRT*(0.2*(double)rand()/(double)RAND_MAX-0.1));
+-
++   //MRT specifies an upper bound on the value of RT 
++    int retry = 0;
++    while (MRT != 0 && RT>MRT && retry<5)
++    {
++        RT = (int)(0.5+MRT + MRT*(0.2*(double)rand()/(double)RAND_MAX-0.1));
++        retry++;
++    }
+     if ((MRD != 0) && (RT>MRD))
+ 	RT = MRD;
+     if (MRD) 
+-- 
+2.17.1
+
