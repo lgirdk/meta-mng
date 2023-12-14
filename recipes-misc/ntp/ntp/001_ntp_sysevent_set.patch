@@ -1,0 +1,24 @@
+diff -ur OLD/ntpd/ntp_loopfilter.c NEW/ntpd/ntp_loopfilter.c
+--- OLD/ntpd/ntp_loopfilter.c	2022-11-14 14:27:36.475867286 +0000
++++ NEW/ntpd/ntp_loopfilter.c	2022-11-18 12:06:18.537070730 +0000
+@@ -432,6 +432,12 @@
+ }
+ #endif
+ 
++static void set_sysevent_status (void)
++{
++	system("sysevent set sync_ntp_status 1");
++	return;
++}
++
+ /*
+  * local_clock - the NTP logical clock loop filter.
+  *
+@@ -640,6 +646,7 @@
+ 			tc_counter = 0;
+ 			clock_jitter = LOGTOD(sys_precision);
+ 			rval = 2;
++			set_sysevent_status();
+ 			if (state == EVNT_NSET) {
+ 				rstclock(EVNT_FREQ, 0);
+ 				return (rval);
