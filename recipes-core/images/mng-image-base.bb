@@ -22,8 +22,9 @@ IMAGE_INSTALL += " \
     lrzsz \
     openssl-bin \
     procps \
-    tinymembench \
 "
+
+# IMAGE_INSTALL += "tinymembench"
 
 # IMAGE_INSTALL += "strace"
 # IMAGE_INSTALL += "tcpdump"
