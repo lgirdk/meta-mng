@@ -32,6 +32,7 @@ do_install_append () {
 	install -m 755 ${S}/scripts/lfp.sh ${D}/usr/ccsp/wifi/
 	install -m 755 ${S}/scripts/process_monitor_atom.sh ${D}/usr/ccsp/wifi/
 	install -m 755 ${S}/scripts/wifivAPPercentage.sh ${D}/usr/ccsp/wifi/
+	install -m 755 ${S}/scripts/synclease.sh ${D}/usr/ccsp/wifi/
 
 	if ${@bb.utils.contains('DISTRO_FEATURES','meshwifi','true','false',d)}; then
 		install -m 755 ${S}/scripts/handle_mesh ${D}/usr/ccsp/wifi/
