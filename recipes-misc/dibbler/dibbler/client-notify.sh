@@ -17,6 +17,13 @@ SYSEVENT_SET_CMD=()
 mta_dhcp_option_received=0
 echo "-----------" >> $LOGFILE
 
+if [ -e /usr/bin/wanmanager ]
+then
+    WANMANAGER_FLAG=1
+else
+    WANMANAGER_FLAG=0
+fi
+
 PREV_PREFIX=`sysevent get wan6_prefix`
 PREV_PREFIXLEN=`sysevent get wan6_prefixlen`
 PREV_AFTR=`sysevent get dslite_dhcpv6_endpointname`
@@ -374,7 +381,13 @@ if [ "$SRV_OPTION23" != "" ] && [ "$SRV_OPTION23" != ":: " ]; then
        ip -6 rule add to $i lookup erouter
    done
 
-     SYSEVENT_SET_CMD+=(wan6_ns=$SRV_OPTION23)
+   if [ "$WANMANAGER_FLAG" = "1" ]
+   then
+       sysevent set wan6_ns $SRV_OPTION23
+   else
+       SYSEVENT_SET_CMD+=(wan6_ns=$SRV_OPTION23)
+   fi
+
      SYSEVENT_SET_CMD+=(ipv6_nameserver=$SRV_OPTION23)
      dns=$SRV_OPTION23
 fi
@@ -456,7 +469,7 @@ fi
 #    /usr/ccsp/updateResolvConf.sh
 #fi
 
-if [ -e /usr/bin/wanmanager ]
+if [ "$WANMANAGER_FLAG" = "1" ]
 then
 # Send notification to CCSP PAM
 # RDK-B has not defined HAL for Ipv6 yet so this is a means to notify
