@@ -53,7 +53,6 @@ do_install_append () {
 
 	install -d ${D}${sysconfdir}
 	install -m 644 ${S}/arch/intel_usg/boards/arm_shared/scripts/partners_defaults.json ${D}${sysconfdir}/
-	install -m 644 ${S}/arch/intel_usg/boards/arm_shared/scripts/rfcDefaults.json ${D}${sysconfdir}/
 	# Fixme: these scripts don't belong in /etc
 	install -m 755 ${S}/arch/intel_usg/boards/arm_shared/scripts/AutoReboot.sh ${D}${sysconfdir}/
 	install -m 755 ${S}/arch/intel_usg/boards/arm_shared/scripts/RebootCondition.sh ${D}${sysconfdir}/
