@@ -33,6 +33,7 @@ SRC_URI = "git://github.com/tomaszmrugalski/dibbler \
            file://ofw-5162-return-zero-lifetimes-for-incorrect-address-from-client.patch \
            file://ofw-5266-NotOnLink-response-for_Confirm_with_unknown_IAID.patch \
            file://ofw-5381-rfc-3315_MRT_Specifies_UpperBound_on_RT.patch \
+           file://ofw-5439-fix-dibbler-incorrect-db-parsing.patch \
 "
 
 S = "${WORKDIR}/git"

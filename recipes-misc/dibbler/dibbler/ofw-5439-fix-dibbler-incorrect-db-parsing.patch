@@ -1,0 +1,57 @@
+From 8570ee898bd2c23ceb56b83650e4a7ead83aed7b Mon Sep 17 00:00:00 2001
+From: Andy Carvalho <acarvalho.contractor@libertyglobal.com>
+Date: Fri, 26 Jan 2024 14:03:22 +0100
+Subject: [PATCH] fix : dibbler server is not running after reboot (OFW-5439
+ F3896SI-2419)
+
+[BUG DESCRIPTION]
+When IA_PD prefix is requested by Router/POD connected behind gateway, dibbler server saves the delegated IA_PD prefixes into its address database along with LAN bridge details (for eg. ifacename="brlan0" ifindex ="36"). During the scenario of LAN bridge(brlan0) recreation the corresponding ifindex will get changed, for example - during opensync restart. The dibbler server fails to restart at this point with the error indicating - "Loaded address database failed sanitization checks"
+
+This is because LAN bridge ifindex recorded at its address database doesn't match with the current ifindex value in the system.
+
+[ROOT CAUSE]
+buffer cleared prior to saving ifacename during IA_PD address parsing.
+
+[FIX DESCRIPTION]
+added fix to correctly parse details.
+
+[TESTING PERFORMED]
+Step(1) Provision gateway in dual stack/ds-lite mode.
+Step(2) connect a LAN client and make it request for IA_PD.
+Step(3) Perform gateway reboot via plume NOC.
+Step(4) Verify dibbler server is running after gateway reboot is completed.
+
+Signed-off-by: Andy Carvalho <acarvalho.contractor@libertyglobal.com>
+---
+ AddrMgr/AddrMgr.cpp | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/AddrMgr/AddrMgr.cpp b/AddrMgr/AddrMgr.cpp
+index cd3b6c25..19413448 100644
+--- a/AddrMgr/AddrMgr.cpp
++++ b/AddrMgr/AddrMgr.cpp
+@@ -819,13 +819,14 @@ SPtr<TAddrClient> TAddrMgr::parseAddrClient(const char * xmlFile, FILE *f)
+                 ifindex = atoi(x+7);
+                 // Log(Debug) << "Parsed AddrPD::iface=" << iface << LogEnd;
+             }
+-            if (strstr(buf,"unicast")) {
+-                x = strstr(buf,"=")+2;
+-                if (x)
+-                    x = strstr(x," ")-1;
+-                if (x)
+-                    *x = 0; // remove trailing xml tag
+-                unicast = new TIPv6Addr(strstr(buf,"=")+2, true);
++            if ((x=strstr(buf,"unicast"))) {
++                char *end = strstr(x+9, "\"");
++                if (end) {
++                    string uni(x+9, end);
++                    if (uni.size()) {
++                        unicast = new TIPv6Addr(uni.c_str(), true);
++                    }
++                }
+             }
+             if ((x=strstr(buf,"ifacename"))) {
+                 char* end = strstr(x + 11, "\"");
+-- 
+2.17.1
+
