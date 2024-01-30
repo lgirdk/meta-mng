@@ -16,6 +16,11 @@ inherit cmake pkgconfig systemd
 
 EXTRA_OECMAKE += "-DCMAKE_BUILD_TYPE=Release -DMSG_ROUNDTRIP_TIME=ON -DENABLE_RDKLOGGER=ON"
 
+# ccsp_common.inc is not included by this recipe, so machine specific
+# CFLAGS etc need to be added manually.
+
+CFLAGS += "${CCSP_CFLAGS_MACHINE}"
+
 do_install_append() {
 
 	# Fix include paths within rbus headers to match path in sysroot
