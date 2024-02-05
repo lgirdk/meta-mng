@@ -40,6 +40,8 @@ SRC_URI = "https://busybox.net/downloads/busybox-${PV}.tar.bz2;name=tarball \
            file://0001-ash-fix-unset_var-pattern-repl.patch \
            file://0001-decompress_gunzip-Fix-DoS-if-gzip-is-corrupt.patch \
            file://0001-hwclock-make-glibc-2.31-compatible.patch \
+           file://0001-awk-fix-dodgy-multi-char-separators-splitting-logic.patch \
+           file://0002-awk-FS-regex-matches-only-non-empty-separators-gawk-.patch \
            file://CVE-2021-42374.patch \
            file://CVE-2021-42376.patch \
            file://0001-libbb-sockaddr2str-ensure-only-printable-characters-.patch \
