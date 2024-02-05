@@ -37,18 +37,18 @@ SRC_URI = "https://busybox.net/downloads/busybox-${PV}.tar.bz2;name=tarball \
            file://0001-testsuite-use-www.example.org-for-wget-test-cases.patch \
            file://0001-du-l-works-fix-to-use-145-instead-of-144.patch \
            file://0001-sysctl-ignore-EIO-of-stable_secret-below-proc-sys-ne.patch \
-           file://0001-hwclock-make-glibc-2.31-compatible.patch \
-           file://0001-traceroute-round-up-too-small-packet-sizes-non-stand.patch \
            file://0001-ash-fix-unset_var-pattern-repl.patch \
            file://0001-decompress_gunzip-Fix-DoS-if-gzip-is-corrupt.patch \
-           file://0001-accept-truncated-ping-responses.patch \
-           file://0001-udhcp-add-parameters-4-7-54-100-122-to-DHCP_REQUEST-.patch \
-           file://0001-libbb-sockaddr2str-ensure-only-printable-characters-.patch \
-           file://0002-nslookup-sanitize-all-printed-strings-with-printable.patch \
-           file://0001-Fix-traceroute-error-invalid-Argument-when-port-numb.patch \
+           file://0001-hwclock-make-glibc-2.31-compatible.patch \
            file://CVE-2021-42374.patch \
            file://CVE-2021-42376.patch \
+           file://0001-libbb-sockaddr2str-ensure-only-printable-characters-.patch \
+           file://0002-nslookup-sanitize-all-printed-strings-with-printable.patch \
            file://CVE-2022-48174.patch \
+           file://0001-traceroute-round-up-too-small-packet-sizes-non-stand.patch \
+           file://0001-accept-truncated-ping-responses.patch \
+           file://0001-udhcp-add-parameters-4-7-54-100-122-to-DHCP_REQUEST-.patch \
+           file://0001-Fix-traceroute-error-invalid-Argument-when-port-numb.patch \
 "
 SRC_URI_append_libc-musl = " file://musl.cfg "
 
