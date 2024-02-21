@@ -107,7 +107,7 @@ do_install_append () {
     # Define the RDKB specific local routing tables (used by iproute2)
 
     install -d ${D}${sysconfdir}/iproute2/rt_tables.d
-    { echo "3 erouter" ; echo "4 all_lans" ; echo "6 moca" ; echo "7 brmode" ; } > ${D}${sysconfdir}/iproute2/rt_tables.d/rdkb.conf
+    { echo "3 erouter" ; echo "4 all_lans" ; echo "6 moca" ; echo "7 brmode" ; echo "8 vmb" ; } > ${D}${sysconfdir}/iproute2/rt_tables.d/rdkb.conf
 
     # Create mount point for tmpfs which will store RDK log files etc
 
