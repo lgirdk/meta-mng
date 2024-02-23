@@ -1,0 +1,269 @@
+From 6d80c3da5173543bd2d6f79c8b690612f824d986 Mon Sep 17 00:00:00 2001
+From: mkamat <mkamat@libertyglobal.com>
+Date: Wed, 21 Feb 2024 15:54:03 -0800
+Subject: [PATCH] OFW-5547 Parse and store suboptions for DHCPv6 option 17 in
+ server-AddrMgr.xml
+
+---
+ AddrMgr/AddrClient.cpp    | 50 ++++++++++++++++++++++++++++++++++++++-
+ AddrMgr/AddrClient.h      |  8 +++++++
+ Misc/DHCPConst.h          |  6 +++++
+ Options/OptGeneric.cpp    |  9 +++++++
+ Options/OptGeneric.h      |  2 ++
+ SrvAddrMgr/SrvAddrMgr.cpp | 34 ++++++++++++++++++++++++++
+ SrvAddrMgr/SrvAddrMgr.h   |  2 ++
+ SrvMessages/SrvMsg.cpp    | 31 ++++++++++++++++++++++++
+ 8 files changed, 141 insertions(+), 1 deletion(-)
+
+diff --git a/AddrMgr/AddrClient.cpp b/AddrMgr/AddrClient.cpp
+index e96f1ea0..b291e4fb 100644
+--- a/AddrMgr/AddrClient.cpp
++++ b/AddrMgr/AddrClient.cpp
+@@ -28,7 +28,7 @@ using namespace std;
+  *
+  */
+ TAddrClient::TAddrClient(SPtr<TDUID> duid)
+-    :DUID_(duid), SPI_(0), ReplayDetectionRcvd_(0) {
++    :DUID_(duid), SPI_(0), ReplayDetectionRcvd_(0), DeviceManufacturerOUI_(""),DeviceSerialNumber_(""),DeviceProductClass_(""){
+ }
+ 
+ SPtr<TDUID> TAddrClient::getDUID() {
+@@ -352,6 +352,21 @@ void TAddrClient::addOption(SPtr<TOpt> opt)
+     Options.push_back(opt);
+ }
+ 
++void TAddrClient::setDeviceManufacturerOUI(const std::string &oui)
++{
++     DeviceManufacturerOUI_ = oui;
++}
++
++void TAddrClient::setDeviceSerialNumber(const std::string &serial_number)
++{
++    DeviceSerialNumber_ = serial_number;
++}
++
++void TAddrClient::setDeviceProductClass(const std::string &product_class)
++{
++   DeviceProductClass_ = product_class;
++}
++
+ // --------------------------------------------------------------------
+ // --- operators ------------------------------------------------------
+ // --------------------------------------------------------------------
+@@ -415,6 +430,39 @@ std::ostream & operator<<(std::ostream & strum, TAddrClient &x)
+                 break;
+         }
+     }
++
++    // DeviceManufacturerOUI
++    if ( x.DeviceManufacturerOUI_.length() > 0)
++    {
++        strum << "    <DeviceManufacturerOUI length=\"" << x.DeviceManufacturerOUI_.length() << "\">"
++            << x.DeviceManufacturerOUI_ << "</DeviceManufacturerOUI>" << endl;
++    }
++    else
++    {
++        strum << "    <DeviceManufacturerOUI length=\"0\"></DeviceManufacturerOUI>" << endl;
++    }
++
++    // DeviceSerialNumber
++    if ( x.DeviceSerialNumber_.length() > 0 )
++    {
++        strum << "    <DeviceSerialNumber length=\"" << x.DeviceSerialNumber_.length() << "\">"
++            << x.DeviceSerialNumber_ << "</DeviceSerialNumber>" << endl;
++    }
++    else
++    {
++        strum << "    <DeviceSerialNumber length=\"0\"></DeviceSerialNumber>" << endl;
++    }
++
++   // DeviceProductClass
++    if (x.DeviceProductClass_.length() > 0 )
++    {
++        strum << "    <DeviceProductClass length=\"" << x.DeviceProductClass_.length() << "\">"
++            << x.DeviceProductClass_ << "</DeviceProductClass>" << endl;
++    }
++    else
++    {
++        strum << "    <DeviceProductClass length=\"0\"></DeviceProductClass>" << endl;
++    }
+     strum << "  </AddrClient>" << endl;
+     return strum;
+ }
+diff --git a/AddrMgr/AddrClient.h b/AddrMgr/AddrClient.h
+index b378c2b9..340ee797 100644
+--- a/AddrMgr/AddrClient.h
++++ b/AddrMgr/AddrClient.h
+@@ -83,6 +83,10 @@ public:
+     /// server that initially provided the configuration.
+     std::vector<uint8_t> ReconfKey_;
+ 
++    void setDeviceManufacturerOUI(const std::string &oui);
++    void setDeviceSerialNumber(const std::string &serial_number);
++    void setDeviceProductClass(const std::string &product_class);
++
+ private:
+     List(TAddrIA) IAsLst;
+     List(TAddrIA) TALst;
+@@ -92,6 +96,10 @@ private:
+ 
+     uint32_t SPI_;
+     uint64_t ReplayDetectionRcvd_;
++
++    std::string DeviceManufacturerOUI_;
++    std::string DeviceSerialNumber_;
++    std::string DeviceProductClass_;
+ };
+ 
+ 
+diff --git a/Misc/DHCPConst.h b/Misc/DHCPConst.h
+index 7f04a976..b63e1c4c 100644
+--- a/Misc/DHCPConst.h
++++ b/Misc/DHCPConst.h
+@@ -172,6 +172,12 @@
+ // draft-mrugalski-remote-dhcpv6-00
+ #define OPTION_NEIGHBORS 254
+ 
++
++#define ENTERPRISE_ID   0xde9 /* 3561 */
++#define DHCPV6_OPT17_SUBOPT_DEVICE_MANUFACTUREROUI  0x0b /* 11 */
++#define DHCPV6_OPT17_SUBOPT_DEVICE_SERIALNUMBER     0x0c /* 12 */
++#define DHCPV6_OPT17_SUBOPT_DEVICE_PRODUCTCLASS     0x0d /* 13 */
++
+ // -- Query types (RFC5007) --
+ typedef enum {
+     QUERY_BY_ADDRESS = 1,
+diff --git a/Options/OptGeneric.cpp b/Options/OptGeneric.cpp
+index ecec46f4..372ddd2e 100644
+--- a/Options/OptGeneric.cpp
++++ b/Options/OptGeneric.cpp
+@@ -48,6 +48,15 @@ char * TOptGeneric::storeSelf(char* buf) {
+     memmove(buf, this->Data, this->DataLen);
+     return buf+this->DataLen;
+ }
++int TOptGeneric::getDataLen()
++{
++    return this->DataLen;
++}
++
++char* TOptGeneric::getDataStr()
++{
++    return this->Data;
++}
+ 
+ std::string TOptGeneric::getPlain()
+ {
+diff --git a/Options/OptGeneric.h b/Options/OptGeneric.h
+index 9767022e..bc818e4d 100644
+--- a/Options/OptGeneric.h
++++ b/Options/OptGeneric.h
+@@ -31,6 +31,8 @@ class TOptGeneric : public TOpt
+     bool doDuties() { return true; }
+ 
+     char * storeSelf(char* buf);
++    char * getDataStr();
++    int getDataLen();
+     virtual bool isValid() const;
+   protected:
+     char * Data;
+diff --git a/SrvAddrMgr/SrvAddrMgr.cpp b/SrvAddrMgr/SrvAddrMgr.cpp
+index 8e95acbf..202f9b7e 100644
+--- a/SrvAddrMgr/SrvAddrMgr.cpp
++++ b/SrvAddrMgr/SrvAddrMgr.cpp
+@@ -1082,3 +1082,37 @@ TSrvAddrMgr & TSrvAddrMgr::instance()
+     }
+     return *Instance;
+ }
++
++/*Updates the TAddrClient with OPT17 options for Manageable device information */
++void TSrvAddrMgr::setDeviceAssociationToAddrClientList(SPtr<TDUID> clntDuid, int optionCode, const std::string &value)
++{
++    SPtr <TAddrClient> ptrClient;
++    this->firstClient();
++    while ( ptrClient = this->getClient() )
++    {
++        if ( (*ptrClient->getDUID()) == (*clntDuid) )
++        {
++            break;
++        }
++    }
++
++    if (!ptrClient)
++    {
++        ptrClient = new TAddrClient(clntDuid);
++        this->addClient(ptrClient);
++    }
++    switch (optionCode)
++    {
++        case DHCPV6_OPT17_SUBOPT_DEVICE_MANUFACTUREROUI:
++            ptrClient->setDeviceManufacturerOUI(value);
++            break;
++       case DHCPV6_OPT17_SUBOPT_DEVICE_SERIALNUMBER:
++            ptrClient->setDeviceSerialNumber(value);
++            break;
++        case DHCPV6_OPT17_SUBOPT_DEVICE_PRODUCTCLASS:
++            ptrClient->setDeviceProductClass(value);
++            break;
++        default:
++            break;
++    }
++}
+diff --git a/SrvAddrMgr/SrvAddrMgr.h b/SrvAddrMgr/SrvAddrMgr.h
+index 26aabccd..2d0f12db 100644
+--- a/SrvAddrMgr/SrvAddrMgr.h
++++ b/SrvAddrMgr/SrvAddrMgr.h
+@@ -92,6 +92,8 @@ class TSrvAddrMgr : public TAddrMgr
+ 
+     void setCacheSize(int bytes);
+     void dump();
++    void setDeviceAssociationToAddrClientList(SPtr<TDUID> clntDuid, int optionCode, const std::string &value);
++
+ 
+  protected:
+     void print(std::ostream & out);
+diff --git a/SrvMessages/SrvMsg.cpp b/SrvMessages/SrvMsg.cpp
+index 00d0339a..c99c70f9 100644
+--- a/SrvMessages/SrvMsg.cpp
++++ b/SrvMessages/SrvMsg.cpp
+@@ -255,7 +255,38 @@ void TSrvMsg::processOptions(SPtr<TSrvMsg> clientMsg, bool quiet) {
+         }
+         case OPTION_VENDOR_OPTS:
+         {
++            Log(Notice) << "  OPTION_VENDOR_OPTS: " <<"  "<< __FUNCTION__<<" "<<__LINE__<< LogEnd;
+             SPtr<TOptVendorSpecInfo> v = SPtr_cast<TOptVendorSpecInfo>(opt);
++
++            v->firstOption();
++            SPtr<TOpt> ptrOpt;
++            while ( ptrOpt = v->getOption() )
++            {
++                SPtr<TOptGeneric> optGeneric = SPtr_cast<TOptGeneric>(ptrOpt);
++                int len = optGeneric->getDataLen();
++                if(len > 0)
++                {
++                    char value[len+1];
++                    memcpy(value,optGeneric->getDataStr(),len);
++                    value[len] = '\0';
++
++                    if(optGeneric->getOptType() == DHCPV6_OPT17_SUBOPT_DEVICE_MANUFACTUREROUI)
++                    {
++                        std::string oui(value);
++                        SrvAddrMgr().setDeviceAssociationToAddrClientList(ClientDUID, DHCPV6_OPT17_SUBOPT_DEVICE_MANUFACTUREROUI, oui);
++                    }
++                    else if(optGeneric->getOptType() == DHCPV6_OPT17_SUBOPT_DEVICE_SERIALNUMBER)
++                    {
++                        std::string serialNumber(value);
++                        SrvAddrMgr().setDeviceAssociationToAddrClientList(ClientDUID, DHCPV6_OPT17_SUBOPT_DEVICE_SERIALNUMBER, serialNumber);
++                    }
++                    else if(optGeneric->getOptType() == DHCPV6_OPT17_SUBOPT_DEVICE_PRODUCTCLASS)
++                    {
++                        std::string productClass(value);
++                        SrvAddrMgr().setDeviceAssociationToAddrClientList(ClientDUID, DHCPV6_OPT17_SUBOPT_DEVICE_PRODUCTCLASS, productClass);
++                    }
++                }
++            }
+             appendVendorSpec(ClientDUID, Iface, v->getVendor(), ORO);
+             break;
+         }
+-- 
+2.17.1
+
