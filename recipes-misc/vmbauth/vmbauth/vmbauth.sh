@@ -55,7 +55,7 @@ vmbauth_start()
     cp -a /tmp/vmb-radius-client/vmbauth.skip.log /tmp/vmb-radius-client/vmbauth.log
     vmb-mode.sh restart >> /tmp/vmb-radius-client/vmb-mode.log 2>&1
   else
-    start-stop-daemon -S -b -n vmbauth vmbauth /tmp/vmb-radius-client/radiusclient.conf /tmp/vmb-radius-client/vmbauth.log erouter0 vmb0
+    start-stop-daemon -S -b -n vmbauth vmbauth -- /tmp/vmb-radius-client/radiusclient.conf /tmp/vmb-radius-client/vmbauth.log erouter0 vmb0
   fi
 }
 

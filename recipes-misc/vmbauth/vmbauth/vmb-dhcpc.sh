@@ -27,7 +27,7 @@ if [ "$1" = "bound" -o "$1" = "renew" ]; then
   ip rule add to $router lookup vmb
 
   start-stop-daemon -K -n vmbping
-  start-stop-daemon -S -b -n vmbping vmbping $router vmb0 10 3
+  start-stop-daemon -S -b -n vmbping vmbping -- -I vmb0 -i 10 -n 3 -t 30 $router
 
   sysevent set vmb_gw_ip $router
   sysevent set firewall-restart
