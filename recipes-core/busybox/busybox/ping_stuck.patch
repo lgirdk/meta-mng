@@ -1,0 +1,52 @@
+diff --git a/networking/ping.c b/networking/ping.c
+index a279b5a..fab8efb 100644
+--- a/networking/ping.c
++++ b/networking/ping.c
+@@ -775,6 +775,7 @@ static void ping4(len_and_sockaddr *lsa)
+ 		struct sockaddr_in from;
+ 		socklen_t fromlen = (socklen_t) sizeof(from);
+ 		int c;
++		sigset_t sigalarm;
+ 
+ 		c = recvfrom(pingsock, G.rcv_packet, G.sizeof_rcv_packet, 0,
+ 				(struct sockaddr *) &from, &fromlen);
+@@ -783,7 +784,11 @@ static void ping4(len_and_sockaddr *lsa)
+ 				bb_simple_perror_msg("recvfrom");
+ 			continue;
+ 		}
++		sigemptyset(&sigalarm);
++		sigaddset(&sigalarm, SIGALRM);
++		sigprocmask(SIG_BLOCK, &sigalarm, NULL);
+ 		c = unpack4(G.rcv_packet, c, &from);
++		sigprocmask(SIG_UNBLOCK, &sigalarm, NULL);
+ 		if (pingcount && G.nreceived >= pingcount)
+ 			break;
+ 		if (c && (option_mask32 & OPT_A)) {
+@@ -856,6 +861,7 @@ static void ping6(len_and_sockaddr *lsa)
+ 		int c;
+ 		struct cmsghdr *mp;
+ 		int hoplimit = -1;
++		sigset_t sigalarm;
+ 
+ 		msg.msg_controllen = sizeof(control_buf);
+ 		c = recvmsg(pingsock, &msg, 0);
+@@ -874,7 +880,11 @@ static void ping6(len_and_sockaddr *lsa)
+ 				move_from_unaligned_int(hoplimit, CMSG_DATA(mp));
+ 			}
+ 		}
++		sigemptyset(&sigalarm);
++		sigaddset(&sigalarm, SIGALRM);
++		sigprocmask(SIG_BLOCK, &sigalarm, NULL);
+ 		c = unpack6(G.rcv_packet, c, &from, hoplimit);
++		sigprocmask(SIG_UNBLOCK, &sigalarm, NULL);
+ 		if (pingcount && G.nreceived >= pingcount)
+ 			break;
+ 		if (c && (option_mask32 & OPT_A)) {
+@@ -912,6 +922,7 @@ static void ping(len_and_sockaddr *lsa)
+ 		G.snd_packet = xzalloc(datalen + ICMP_MINLEN + 4);
+ 		ping4(lsa);
+ 	}
++	signal(SIGALRM, SIG_IGN);
+ }
+ 
+ static int common_ping_main(int opt, char **argv)
