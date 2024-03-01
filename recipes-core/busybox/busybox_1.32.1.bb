@@ -51,6 +51,7 @@ SRC_URI = "https://busybox.net/downloads/busybox-${PV}.tar.bz2;name=tarball \
            file://0001-accept-truncated-ping-responses.patch \
            file://0001-udhcp-add-parameters-4-7-54-100-122-to-DHCP_REQUEST-.patch \
            file://0001-Fix-traceroute-error-invalid-Argument-when-port-numb.patch \
+           file://ping_stuck.patch \
 "
 SRC_URI_append_libc-musl = " file://musl.cfg "
 
