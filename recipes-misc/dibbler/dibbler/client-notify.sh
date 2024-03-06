@@ -9,7 +9,7 @@ LOGFILE=/var/lib/dibbler/client.sh-log
 
 # uncomment this to get full list of available variables
 set >> $LOGFILE
-RESOLV_CONF="/etc/resolv.conf"
+RESOLV_CONF="/var/tmp/resolv.conf"
 RESOLV_CONF_TMP="/tmp/resolv_tmp.conf"
 R=""
 SYSEVENT_SET_CMD=()
