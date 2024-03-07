@@ -9,6 +9,8 @@ vmbmode_stop()
   ip rule flush table vmb
   start-stop-daemon -K -n udhcpc -p /tmp/vmb-radius-client/udhcpc.pid
   start-stop-daemon -K -n vmbping
+  syscfg unset vmb_ipaddress
+  syscfg unset vmb_subnetmask
   if [ -n "$instance" ]; then
     dmcli eRT setv Device.IP.Interface.4.IPv4Address.$instance.Enable bool false
   fi
@@ -23,6 +25,9 @@ vmbmode_start()
 {
   local staticip=$(awk -F = '$1=="Framed-Route" { print $2 }' /tmp/vmb-radius-client/vmbauth.log | awk '{print $1}' | awk -F / '{print $1}')
   local staticipbits=$(awk -F = '$1=="Framed-Route" { print $2 }' /tmp/vmb-radius-client/vmbauth.log | awk '{print $1}' | awk -F / '{print $2}')
+
+  syscfg set vmb_ipaddress "$staticip"
+  syscfg set vmb_subnetmask "$(cidr_to_netmask $staticipbits)"
 
   ip rule add oif vmb0 lookup vmb
   ip rule add iif brlan0 lookup vmb
