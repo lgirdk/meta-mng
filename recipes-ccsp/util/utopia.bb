@@ -25,6 +25,7 @@ SRC_URI = "${LGI_RDKB_GIT}/${BPN}${LGI_RDKB_GIT_SUFFIX};protocol=${LGI_RDKB_GIT_
 
 SRC_URI += "file://udhcpc.script"
 SRC_URI += "file://udhcpc.vendor_specific"
+SRC_URI += "file://static_ip_ui.sh"
 
 SRCREV ?= "${AUTOREV}"
 
@@ -147,6 +148,10 @@ do_install_append () {
     install -d ${D}${sysconfdir}/utopia/service.d/service_multinet
     install -d ${D}${sysconfdir}/utopia/service.d/service_syslog
     install -d ${D}${sysconfdir}/utopia/service.d/service_wan
+
+    if ${@bb.utils.contains_any('DISTRO_FEATURES', ['vmb', 'static_ipv4'], 'true', 'false', d)}; then
+        install -m 755 ${WORKDIR}/static_ip_ui.sh                                               ${D}${sysconfdir}/utopia/service.d/
+    fi
 
     install -m 755 ${S}/source/scripts/init/system/utopia_init.sh                               ${D}${sysconfdir}/utopia/
 
