@@ -22,6 +22,18 @@ do_install_append () {
 	install -m 644 ${S}/config/ccsp_tr069_pa_cfg_arm.xml              ${D}/usr/ccsp/tr069pa/ccsp_tr069_pa_cfg.xml
 	install -m 644 ${S}/config/ccsp_tr069_pa_mapper_arm.xml           ${D}/usr/ccsp/tr069pa/ccsp_tr069_pa_mapper.xml
 	install -m 644 ${S}/config/sdm_arm.xml                            ${D}/usr/ccsp/tr069pa/sdm.xml
+
+	# Strip comments
+	perl -0777 -pe 's/<!--.*?-->//gs' -i ${D}/usr/ccsp/tr069pa/ccsp_tr069_pa_mapper.xml
+
+	# Drop trailing whitespace
+	sed 's/[ \t\r]\+$//' -i ${D}/usr/ccsp/tr069pa/ccsp_tr069_pa_mapper.xml
+
+	# Drop leading whitespace
+	sed 's/^[ \t]\+//' -i ${D}/usr/ccsp/tr069pa/ccsp_tr069_pa_mapper.xml
+
+	# Drop empty lines
+	sed '/^$/d' -i ${D}/usr/ccsp/tr069pa/ccsp_tr069_pa_mapper.xml
 }
 
 FILES_${PN} += "/usr/ccsp"
