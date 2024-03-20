@@ -75,6 +75,9 @@ do_install_append () {
 
 	install -m 644 ${S}/source/ccsp/components/CCSP_AliasMgr/custom_mapper.xml ${D}/usr/ccsp/
 
+	# The <AliasList> elements are processed at build time and can be stripped from the version of custom_mapper.xml installed in the rootfs
+	perl -0777 -pe 's/<AliasList>.*<\/AliasList>\n//gs' -i ${D}/usr/ccsp/custom_mapper.xml
+
 	install -d ${D}/usr/ccsp/cm
 	install -d ${D}/usr/ccsp/mta
 	install -d ${D}/usr/ccsp/pam
